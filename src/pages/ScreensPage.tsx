@@ -77,8 +77,27 @@ export default function ScreensPage() {
     scheduleEnabled: false,
     scheduleOn: "08:00",
     scheduleOff: "22:00",
+    defaultPlayback: "sleep" as "sleep" | "media" | "design",
+    defaultMediaId: "",
+    defaultDesignId: "",
   });
   const [rebootConfirmOpen, setRebootConfirmOpen] = useState(false);
+  const [mediaOptions, setMediaOptions] = useState<{ id: string; name: string; type: string }[]>([]);
+  const [designOptions, setDesignOptions] = useState<{ id: string; name: string }[]>([]);
+
+  // Fetch media & design projects for default playback selector
+  useEffect(() => {
+    if (!settingsScreen) return;
+    const fetchOptions = async () => {
+      const [mediaRes, designRes] = await Promise.all([
+        (supabase as any).from("media_items").select("id, name, type").in("type", ["image", "video"]).order("created_at", { ascending: false }),
+        (supabase as any).from("design_projects").select("id, name").order("created_at", { ascending: false }),
+      ]);
+      setMediaOptions(mediaRes.data || []);
+      setDesignOptions(designRes.data || []);
+    };
+    fetchOptions();
+  }, [settingsScreen]);
 
   const [deleteGroupTarget, setDeleteGroupTarget] = useState<string | null>(null);
 
