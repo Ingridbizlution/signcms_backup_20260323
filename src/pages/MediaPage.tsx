@@ -736,8 +736,11 @@ export default function MediaPage() {
       {/* Widget Creation Dialog */}
       <Dialog open={widgetDialogOpen} onOpenChange={setWidgetDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><Code2 className="w-5 h-5 text-primary" />{t("mediaAddWidget")}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2 overflow-y-auto flex-1 pr-1">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Code2 className="w-5 h-5 text-primary" />{t("mediaAddWidget")}</DialogTitle>
+            <DialogDescription className="sr-only">建立與調整 Widget 設定，並在對話框底部即時預覽結果。</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2 overflow-y-auto flex-1 pr-1 min-h-0">
             <div className="space-y-2">
               <Label>{t("widgetName")} *</Label>
               <Input value={widgetForm.name} onChange={(e) => setWidgetForm({ ...widgetForm, name: e.target.value })} placeholder={t("widgetNamePlaceholder")} />
