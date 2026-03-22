@@ -588,11 +588,11 @@ export default function SystemLogsPage() {
             <Card className="p-12 text-center text-muted-foreground"><BarChart3 className="w-10 h-10 mx-auto mb-3 opacity-40" /><p>{{ zh: "暫無播放紀錄", en: "No playback data", ja: "再生データなし" }[language]}</p></Card>
           ) : (
             <>
-              {/* 7-day trend chart */}
+              {/* Trend chart */}
               <Card className="p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-primary" />
-                  {{ zh: "過去 7 天播放趨勢", en: "7-Day Playback Trend", ja: "過去7日間の再生トレンド" }[language]}
+                  {{ zh: "播放趨勢", en: "Playback Trend", ja: "再生トレンド" }[language]}
                 </h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={playbackTrend} barSize={32}>
