@@ -1,1119 +1,587 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Image, Upload, Trash2, Search, Grid3X3, List, Eye, FileImage, FileVideo, Clock, HardDrive, Loader2,
-  Code2, Calendar, Globe, Type, Plus, CloudSun, QrCode, Timer, Youtube, FolderOpen, Pencil, FolderPlus, Settings2,
+  Upload,
+  Trash2,
+  Search,
+  Grid3X3,
+  List,
+  Eye,
+  FileImage,
+  FileVideo,
+  Clock,
+  HardDrive,
+  Loader2,
+  FolderOpen,
+  Pencil,
+  Plus,
+  Settings2,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
-type WidgetSubType = "date" | "clock" | "webpage" | "marquee" | "qrcode" | "countdown" | "youtube" | "weather";
+type MediaType = "image" | "video" | "widget";
 
-type WidgetAnimation = "none" | "fadeIn" | "slideUp" | "bounce" | "zoomIn" | "flipIn";
-
-interface WidgetConfig {
-  widgetType: WidgetSubType;
-  url?: string;
-  text?: string;
-  speed?: "slow" | "normal" | "fast";
-  format?: "12" | "24";
-  clockStyle?: "digital" | "analog";
-  showDate?: boolean;
-  timezone?: string;
-  bgColor?: string;
-  textColor?: string;
-  qrcodeContent?: string;
-  targetDate?: string;
-  countdownTitle?: string;
-  youtubeUrl?: string;
-  city?: string;
-  fontSize?: "small" | "medium" | "large" | "xlarge";
-  qrcodeSize?: number;
-  animation?: WidgetAnimation;
-}
-
-interface MediaItem {
+interface MediaItemRow {
   id: string;
   name: string;
-  type: "image" | "video" | "widget";
+  type: MediaType;
   url: string;
-  thumbnail: string;
+  thumbnail?: string | null;
   size: string;
   dimensions: string;
-  duration?: string;
+  duration?: string | null;
   created_at: string;
   design_project_id?: string | null;
 }
 
-interface DesignProject {
+interface ProjectItem {
   id: string;
   name: string;
 }
 
-function parseWidgetConfig(url: string): WidgetConfig | null {
-  try {
-    if (url.startsWith("{")) return JSON.parse(url);
-  } catch {}
-  return null;
-}
+const NONE_PROJECT_VALUE = "__none__";
 
-const WIDGET_ICONS: Record<WidgetSubType, typeof Calendar> = {
-  date: Calendar,
-  clock: Clock,
-  webpage: Globe,
-  marquee: Type,
-  qrcode: QrCode,
-  countdown: Timer,
-  youtube: Youtube,
-  weather: CloudSun,
+const getPreviewIcon = (type: MediaType) => {
+  if (type === "image") return <FileImage className="w-10 h-10 text-muted-foreground" />;
+  if (type === "video") return <FileVideo className="w-10 h-10 text-muted-foreground" />;
+  return <FolderOpen className="w-10 h-10 text-muted-foreground" />;
 };
 
-const TIMEZONE_OPTIONS = [
-  { value: "Asia/Taipei", label: "🇹🇼 台北 (UTC+8)" },
-  { value: "Asia/Tokyo", label: "🇯🇵 東京 (UTC+9)" },
-  { value: "Asia/Shanghai", label: "🇨🇳 上海 (UTC+8)" },
-  { value: "Asia/Hong_Kong", label: "🇭🇰 香港 (UTC+8)" },
-  { value: "Asia/Singapore", label: "🇸🇬 新加坡 (UTC+8)" },
-  { value: "Asia/Seoul", label: "🇰🇷 首爾 (UTC+9)" },
-  { value: "Asia/Bangkok", label: "🇹🇭 曼谷 (UTC+7)" },
-  { value: "Asia/Kolkata", label: "🇮🇳 孟買 (UTC+5:30)" },
-  { value: "Asia/Dubai", label: "🇦🇪 杜拜 (UTC+4)" },
-  { value: "Europe/London", label: "🇬🇧 倫敦 (UTC+0/+1)" },
-  { value: "Europe/Paris", label: "🇫🇷 巴黎 (UTC+1/+2)" },
-  { value: "Europe/Berlin", label: "🇩🇪 柏林 (UTC+1/+2)" },
-  { value: "America/New_York", label: "🇺🇸 紐約 (UTC-5/-4)" },
-  { value: "America/Chicago", label: "🇺🇸 芝加哥 (UTC-6/-5)" },
-  { value: "America/Los_Angeles", label: "🇺🇸 洛杉磯 (UTC-8/-7)" },
-  { value: "Pacific/Auckland", label: "🇳🇿 奧克蘭 (UTC+12/+13)" },
-  { value: "Australia/Sydney", label: "🇦🇺 雪梨 (UTC+10/+11)" },
-];
+const getTypeBadgeVariant = (type: MediaType) => (type === "widget" ? "default" : "secondary");
 
-function WidgetPreviewCard({ config }: { config: WidgetConfig }) {
-  const { t } = useLanguage();
-  const Icon = WIDGET_ICONS[config.widgetType] || Code2;
-  const labels: Record<WidgetSubType, string> = {
-    date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee"),
-    qrcode: t("widgetQrcode"), countdown: t("widgetCountdown"), youtube: t("widgetYoutube"), weather: t("widgetWeather"),
-  };
-
-  return (
-    <div
-      className="w-full h-full flex flex-col items-center justify-center gap-2"
-      style={{ background: config.bgColor || "hsl(var(--muted))", color: config.textColor || "hsl(var(--foreground))" }}
-    >
-      <Icon className="w-8 h-8 opacity-60" />
-      <span className="text-xs font-medium">{labels[config.widgetType]}</span>
-      {config.widgetType === "marquee" && config.text && (
-        <span className="text-[10px] opacity-60 truncate max-w-[80%]">{config.text}</span>
-      )}
-      {config.widgetType === "webpage" && config.url && (
-        <span className="text-[10px] opacity-60 truncate max-w-[80%]">{config.url}</span>
-      )}
-    </div>
-  );
-}
-
-const FONT_SIZE_MAP = {
-  small: { time: "text-2xl", date: "text-xs", title: "text-sm", countdown: "text-2xl", marquee: "text-lg", weather: "text-xl", weatherCity: "text-sm", weatherIcon: "w-10 h-10" },
-  medium: { time: "text-4xl", date: "text-sm", title: "text-lg", countdown: "text-4xl", marquee: "text-2xl", weather: "text-3xl", weatherCity: "text-lg", weatherIcon: "w-16 h-16" },
-  large: { time: "text-6xl", date: "text-lg", title: "text-2xl", countdown: "text-6xl", marquee: "text-4xl", weather: "text-5xl", weatherCity: "text-xl", weatherIcon: "w-20 h-20" },
-  xlarge: { time: "text-8xl", date: "text-xl", title: "text-3xl", countdown: "text-8xl", marquee: "text-6xl", weather: "text-7xl", weatherCity: "text-2xl", weatherIcon: "w-24 h-24" },
-};
-
-const ANIMATION_CSS: Record<WidgetAnimation, string> = {
-  none: "",
-  fadeIn: "animate-[widgetFadeIn_0.8s_ease-out_both]",
-  slideUp: "animate-[widgetSlideUp_0.6s_ease-out_both]",
-  bounce: "animate-[widgetBounce_0.8s_ease-out_both]",
-  zoomIn: "animate-[widgetZoomIn_0.5s_ease-out_both]",
-  flipIn: "animate-[widgetFlipIn_0.7s_ease-out_both]",
-};
-
-function WidgetLivePreview({ config }: { config: WidgetConfig }) {
-  const [now, setNow] = useState(new Date());
-  const fs = FONT_SIZE_MAP[config.fontSize || "medium"];
-
-  useEffect(() => {
-    if (config.widgetType === "clock" || config.widgetType === "date") {
-      const timer = setInterval(() => setNow(new Date()), 1000);
-      return () => clearInterval(timer);
-    }
-  }, [config.widgetType]);
-
-  const bg = config.bgColor || "transparent";
-  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
-  const fg = config.textColor || (isDark ? "#ffffff" : "#000000");
-
-  if (config.widgetType === "clock") {
-    const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: config.format === "12", timeZone: tz };
-    const timeStr = now.toLocaleTimeString("en-US", opts);
-
-    if (config.clockStyle === "analog") {
-      const hParts = now.toLocaleString("en-US", { hour: "numeric", minute: "numeric", second: "numeric", hour12: false, timeZone: tz }).split(":");
-      const h = parseInt(hParts[0]), m = parseInt(hParts[1]), s = parseInt(hParts[2]);
-      const hDeg = (h % 12) * 30 + m * 0.5;
-      const mDeg = m * 6;
-      const sDeg = s * 6;
-      const dateStr = config.showDate ? now.toLocaleDateString("zh-TW", { month: "short", day: "numeric", timeZone: tz }) : "";
-      return (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
-          <svg viewBox="0 0 200 200" className="w-[55%] max-w-[170px]">
-            {/* Outer ring */}
-            <circle cx="100" cy="100" r="96" fill="none" stroke={fg} strokeWidth="2" opacity="0.15" />
-            <circle cx="100" cy="100" r="93" fill="none" stroke={fg} strokeWidth="1" opacity="0.08" />
-            {/* Hour numbers */}
-            {[...Array(12)].map((_, i) => {
-              const num = i === 0 ? 12 : i;
-              const angle = (i * 30 - 90) * Math.PI / 180;
-              const tx = 100 + 78 * Math.cos(angle);
-              const ty = 100 + 78 * Math.sin(angle);
-              return <text key={i} x={tx} y={ty} textAnchor="middle" dominantBaseline="central" fill={fg} fontSize="14" fontWeight="600" opacity="0.8">{num}</text>;
-            })}
-            {/* Minute ticks */}
-            {[...Array(60)].map((_, i) => {
-              const angle = (i * 6 - 90) * Math.PI / 180;
-              const isHour = i % 5 === 0;
-              const r1 = isHour ? 86 : 89;
-              const r2 = 92;
-              return <line key={i} x1={100 + r1 * Math.cos(angle)} y1={100 + r1 * Math.sin(angle)} x2={100 + r2 * Math.cos(angle)} y2={100 + r2 * Math.sin(angle)} stroke={fg} strokeWidth={isHour ? 2 : 0.8} opacity={isHour ? 0.6 : 0.3} />;
-            })}
-            {/* Date window */}
-            {config.showDate && (
-              <>
-                <rect x="120" y="92" width="30" height="16" rx="3" fill={fg} opacity="0.15" stroke={fg} strokeWidth="0.5" />
-                <text x="135" y="101" textAnchor="middle" dominantBaseline="central" fill={fg} fontSize="8" fontWeight="500" opacity="0.7">{dateStr}</text>
-              </>
-            )}
-            {/* Hour hand - tapered */}
-            <polygon points={`${100 + 45 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 + 45 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 + 5 * Math.cos((hDeg) * Math.PI / 180)},${100 + 5 * Math.sin((hDeg) * Math.PI / 180)} ${100 - 10 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 - 10 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 - 5 * Math.cos((hDeg) * Math.PI / 180)},${100 - 5 * Math.sin((hDeg) * Math.PI / 180)}`} fill={fg} opacity="0.9" />
-            {/* Minute hand - tapered */}
-            <polygon points={`${100 + 65 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 + 65 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 + 4 * Math.cos((mDeg) * Math.PI / 180)},${100 + 4 * Math.sin((mDeg) * Math.PI / 180)} ${100 - 12 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 - 12 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 - 4 * Math.cos((mDeg) * Math.PI / 180)},${100 - 4 * Math.sin((mDeg) * Math.PI / 180)}`} fill={fg} opacity="0.85" />
-            {/* Second hand */}
-            <line x1={100 - 18 * Math.cos((sDeg - 90) * Math.PI / 180)} y1={100 - 18 * Math.sin((sDeg - 90) * Math.PI / 180)} x2={100 + 72 * Math.cos((sDeg - 90) * Math.PI / 180)} y2={100 + 72 * Math.sin((sDeg - 90) * Math.PI / 180)} stroke="hsl(0 70% 55%)" strokeWidth="1.2" strokeLinecap="round" />
-            {/* Center cap */}
-            <circle cx="100" cy="100" r="5" fill={fg} />
-            <circle cx="100" cy="100" r="2.5" fill="hsl(0 70% 55%)" />
-          </svg>
-          {config.timezone && <span className="text-[10px] opacity-50">{config.timezone}</span>}
-        </div>
-      );
-    }
-
-    const dateStr = config.showDate ? now.toLocaleDateString("zh-TW", { year: "numeric", month: "short", day: "numeric", weekday: "short", timeZone: tz }) : "";
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
-        <span className={`${fs.time} font-mono font-bold tracking-wider`}>{timeStr}</span>
-        {config.showDate && <span className={`${fs.date} opacity-60`}>{dateStr}</span>}
-        {config.timezone && <span className="text-xs opacity-40">{config.timezone}</span>}
-      </div>
-    );
-  }
-
-  if (config.widgetType === "date") {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
-        <span className={`${fs.date} font-medium opacity-70`}>{now.toLocaleDateString("zh-TW", { weekday: "long" })}</span>
-        <span className={`${fs.title} font-bold`}>{now.toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" })}</span>
-      </div>
-    );
-  }
-
-  if (config.widgetType === "webpage") {
-    return (
-      <div className="w-full h-full rounded-lg overflow-hidden relative" style={{ background: bg }}>
-        {config.url ? (
-          <iframe src={config.url} className="w-full h-full border-0" sandbox="allow-scripts allow-same-origin" title="webpage widget" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ color: fg }}>
-            <Globe className="w-10 h-10 opacity-30" />
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (config.widgetType === "marquee") {
-    const speed = config.speed === "slow" ? "30s" : config.speed === "fast" ? "8s" : "15s";
-    return (
-      <div className="w-full h-full flex items-center overflow-hidden rounded-lg" style={{ background: bg, color: fg }}>
-        <div className={`whitespace-nowrap animate-marquee ${fs.marquee} font-bold`} style={{ animationDuration: speed }}>
-          {config.text || "Marquee Text"}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{config.text || "Marquee Text"}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        </div>
-      </div>
-    );
-  }
-
-  if (config.widgetType === "qrcode") {
-    const qrSize = config.qrcodeSize || 140;
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
-        <QRCodeSVG value={config.qrcodeContent || "https://example.com"} size={qrSize} bgColor={bg} fgColor={fg} level="M" />
-        {config.qrcodeContent && <span className="text-[10px] opacity-50 truncate max-w-[80%]">{config.qrcodeContent}</span>}
-      </div>
-    );
-  }
-
-  if (config.widgetType === "countdown") {
-    const target = config.targetDate ? new Date(config.targetDate).getTime() : Date.now() + 86400000;
-    const diff = Math.max(0, target - now.getTime());
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    const secs = Math.floor((diff % 60000) / 1000);
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-3 rounded-lg" style={{ background: bg, color: fg }}>
-        {config.countdownTitle && <span className={`${fs.title} font-bold opacity-80`}>{config.countdownTitle}</span>}
-        <div className="flex gap-4">
-          {[{ v: days, l: "天" }, { v: hours, l: "時" }, { v: mins, l: "分" }, { v: secs, l: "秒" }].map(({ v, l }) => (
-            <div key={l} className="flex flex-col items-center">
-              <span className={`${fs.countdown} font-mono font-bold`}>{String(v).padStart(2, "0")}</span>
-              <span className="text-xs opacity-50">{l}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (config.widgetType === "youtube") {
-    const videoId = extractYoutubeId(config.youtubeUrl || "");
-    return (
-      <div className="w-full h-full rounded-lg overflow-hidden" style={{ background: bg }}>
-        {videoId ? (
-          <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`} className="w-full h-full border-0" allow="autoplay; encrypted-media" allowFullScreen title="YouTube" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ color: fg }}>
-            <Youtube className="w-10 h-10 opacity-30" />
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (config.widgetType === "weather") {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
-        <CloudSun className={`${fs.weatherIcon} opacity-60`} />
-        <span className={`${fs.weatherCity} font-bold`}>{config.city || "City"}</span>
-        <WeatherDisplay city={config.city || "Taipei"} fg={fg} fontSize={fs.weather} />
-      </div>
-    );
-  }
-
-  return null;
-}
-
-function AnimatedWidgetWrapper({ config, children }: { config: WidgetConfig; children: React.ReactNode }) {
-  const [key, setKey] = useState(0);
-  const anim = config.animation || "none";
-  useEffect(() => { setKey((k) => k + 1); }, [anim]);
-  if (anim === "none") return <>{children}</>;
-  return <div key={key} className={`w-full h-full ${ANIMATION_CSS[anim]}`}>{children}</div>;
-}
-
-function extractYoutubeId(url: string): string | null {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : null;
-}
-
-function WeatherDisplay({ city, fg, fontSize }: { city: string; fg: string; fontSize?: string }) {
-  const [weather, setWeather] = useState<{ temp: string; desc: string } | null>(null);
-
-  useEffect(() => {
-    fetch(`https://wttr.in/${encodeURIComponent(city)}?format=%t|%C&lang=zh`)
-      .then(r => r.text())
-      .then(text => {
-        const [temp, desc] = text.split("|");
-        setWeather({ temp: temp?.trim() || "--", desc: desc?.trim() || "" });
-      })
-      .catch(() => setWeather({ temp: "--", desc: "" }));
-  }, [city]);
-
-  if (!weather) return <span className="text-xs opacity-40">Loading...</span>;
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className={`${fontSize || "text-3xl"} font-bold`}>{weather.temp}</span>
-      <span className="text-sm opacity-60">{weather.desc}</span>
-    </div>
-  );
-}
-
-export default function MediaPage() {
-  const { isAdmin } = useUserRole();
+const MediaPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const [media, setMedia] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [widgetDialogOpen, setWidgetDialogOpen] = useState(false);
-  const [projects, setProjects] = useState<DesignProject[]>([]);
-  const [projectFilter, setProjectFilter] = useState("all");
-  const [uploadProjectId, setUploadProjectId] = useState<string>("__none__");
-  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
-  const [newProjectName, setNewProjectName] = useState("");
-  const [editingProject, setEditingProject] = useState<DesignProject | null>(null);
-  const [editProjectName, setEditProjectName] = useState("");
-  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const { isAdmin, loading: roleLoading } = useUserRole();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Widget form state — text color defaults to theme-aware
-  const isDarkMode = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
-  const defaultTextColor = isDarkMode ? "#ffffff" : "#000000";
-  const defaultWidgetForm = useMemo(() => ({
-    name: "",
-    widgetType: "clock" as WidgetSubType,
-    url: "",
-    text: "歡迎光臨！今日特惠中",
-    speed: "normal" as "slow" | "normal" | "fast",
-    format: "24" as "12" | "24",
-    clockStyle: "digital" as "digital" | "analog",
-    showDate: false,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    bgColor: "transparent",
-    textColor: defaultTextColor,
-    qrcodeContent: "",
-    targetDate: "",
-    countdownTitle: "",
-    youtubeUrl: "",
-    city: "Taipei",
-    fontSize: "medium" as "small" | "medium" | "large" | "xlarge",
-    qrcodeSize: 140,
-    animation: "none" as WidgetAnimation,
-    projectId: "__none__",
-  }), [defaultTextColor]);
-  const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
+  const [media, setMedia] = useState<MediaItemRow[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const [previewItem, setPreviewItem] = useState<MediaItemRow | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
+  const [editProjectName, setEditProjectName] = useState("");
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const [updatingProjectItemId, setUpdatingProjectItemId] = useState<string | null>(null);
 
   const fetchMedia = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).from("media_items")
+    const { data, error } = await (supabase as any)
+      .from("media_items")
       .select("id, name, type, url, thumbnail, size, dimensions, duration, created_at, design_project_id")
       .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    else setMedia(data || []);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setMedia((data || []) as MediaItemRow[]);
+    }
+
     setLoading(false);
   };
 
   const fetchProjects = async () => {
-    const { data } = await (supabase as any).from("design_projects").select("id, name").order("name");
-    setProjects(data || []);
+    const { data, error } = await (supabase as any)
+      .from("design_projects")
+      .select("id, name")
+      .order("name", { ascending: true });
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    setProjects((data || []) as ProjectItem[]);
   };
 
-  const handleCreateProject = async () => {
-    if (!newProjectName.trim()) return;
-    const { error } = await (supabase as any).from("design_projects").insert({ name: newProjectName.trim(), created_by: user?.id });
-    if (error) toast.error(error.message);
-    else { toast.success(t("mediaProjectCreated")); setNewProjectName(""); fetchProjects(); }
+  useEffect(() => {
+    fetchMedia();
+    fetchProjects();
+  }, []);
+
+  const filteredMedia = useMemo(() => {
+    return media.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesType = typeFilter === "all" || item.type === typeFilter;
+      const matchesProject =
+        projectFilter === "all" ||
+        (projectFilter === "none" ? !item.design_project_id : item.design_project_id === projectFilter);
+
+      return matchesSearch && matchesType && matchesProject;
+    });
+  }, [media, projectFilter, search, typeFilter]);
+
+  const stats = useMemo(() => {
+    const images = media.filter((item) => item.type === "image").length;
+    const videos = media.filter((item) => item.type === "video").length;
+    const widgets = media.filter((item) => item.type === "widget").length;
+    return { images, videos, widgets };
+  }, [media]);
+
+  const projectNameMap = useMemo(() => {
+    return new Map(projects.map((project) => [project.id, project.name]));
+  }, [projects]);
+
+  const getProjectName = (projectId?: string | null) => {
+    if (!projectId) return t("mediaNoProject");
+    return projectNameMap.get(projectId) || t("mediaNoProject");
   };
 
-  const handleUpdateProject = async () => {
-    if (!editingProject || !editProjectName.trim()) return;
-    const { error } = await (supabase as any).from("design_projects").update({ name: editProjectName.trim() }).eq("id", editingProject.id);
-    if (error) toast.error(error.message);
-    else { toast.success(t("mediaProjectUpdated")); setEditingProject(null); setEditProjectName(""); fetchProjects(); }
-  };
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const handleDeleteProject = async () => {
-    if (!deleteProjectId) return;
-    const { error } = await (supabase as any).from("design_projects").delete().eq("id", deleteProjectId);
-    if (error) toast.error(error.message);
-    else { toast.success(t("mediaProjectDeleted")); setDeleteProjectId(null); fetchProjects(); fetchMedia(); }
-  };
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
 
-  useEffect(() => { fetchMedia(); fetchProjects(); }, []);
+    if (!isImage && !isVideo) {
+      toast.error(t("mediaUnsupported"));
+      event.target.value = "";
+      return;
+    }
 
-  const filtered = media.filter((m) => {
-    const matchSearch = m.name.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter === "all" || m.type === typeFilter;
-    const matchProject = projectFilter === "all" || (projectFilter === "none" ? !m.design_project_id : m.design_project_id === projectFilter);
-    return matchSearch && matchType && matchProject;
-  });
+    setUploading(true);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    for (const file of Array.from(files)) {
-      const isVideo = file.type.startsWith("video/");
-      const isImage = file.type.startsWith("image/");
-      if (!isVideo && !isImage) { toast.error(`${t("mediaUnsupported")}：${file.name}`); continue; }
-
-      let dimensions = "";
-      let duration: string | undefined;
-
-      if (isImage) {
-        dimensions = await new Promise<string>((resolve) => {
-          const img = new window.Image();
-          img.onload = () => resolve(`${img.naturalWidth}×${img.naturalHeight}`);
-          img.onerror = () => resolve("");
-          img.src = URL.createObjectURL(file);
-        });
-      } else {
-        const result = await new Promise<{ dimensions: string; duration: string }>((resolve) => {
-          const video = document.createElement("video");
-          video.preload = "metadata";
-          video.onloadedmetadata = () => {
-            const mins = Math.floor(video.duration / 60);
-            const secs = Math.floor(video.duration % 60);
-            resolve({
-              dimensions: `${video.videoWidth}×${video.videoHeight}`,
-              duration: `${mins}:${secs.toString().padStart(2, "0")}`,
-            });
-          };
-          video.onerror = () => resolve({ dimensions: "", duration: "" });
-          video.src = URL.createObjectURL(file);
-        });
-        dimensions = result.dimensions;
-        duration = result.duration;
-      }
-
-      const dataUrl = await new Promise<string>((resolve) => {
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
         reader.readAsDataURL(file);
       });
 
+      let dimensions = "-";
+      let duration: string | null = null;
+
+      if (isImage) {
+        dimensions = await new Promise<string>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(`${img.width}×${img.height}`);
+          img.onerror = () => resolve("-");
+          img.src = base64;
+        });
+      }
+
+      if (isVideo) {
+        const videoMeta = await new Promise<{ dimensions: string; duration: string | null }>((resolve) => {
+          const video = document.createElement("video");
+          video.preload = "metadata";
+          video.onloadedmetadata = () => {
+            const totalSeconds = Number.isFinite(video.duration) ? Math.round(video.duration) : 0;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            resolve({
+              dimensions: `${video.videoWidth}×${video.videoHeight}`,
+              duration: `${minutes}:${String(seconds).padStart(2, "0")}`,
+            });
+          };
+          video.onerror = () => resolve({ dimensions: "-", duration: null });
+          video.src = base64;
+        });
+        dimensions = videoMeta.dimensions;
+        duration = videoMeta.duration;
+      }
+
       const { error } = await (supabase as any).from("media_items").insert({
         name: file.name,
-        type: isVideo ? "video" : "image",
-        url: dataUrl,
-        thumbnail: isImage ? dataUrl : "",
+        type: isImage ? "image" : "video",
+        url: base64,
+        thumbnail: isImage ? base64 : null,
         size: formatFileSize(file.size),
         dimensions,
         duration,
         uploaded_by: user?.id,
-        design_project_id: uploadProjectId && uploadProjectId !== "__none__" ? uploadProjectId : null,
       });
 
-      if (error) toast.error(error.message);
-      else toast.success(`${t("mediaUploaded")}：${file.name}`);
-    }
-
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    fetchMedia();
-  };
-
-  const handleChangeProject = async (itemId: string, newProjectId: string | null) => {
-    const { error } = await (supabase as any).from("media_items").update({ design_project_id: newProjectId }).eq("id", itemId);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(t("save"));
-      fetchMedia();
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success(`${t("mediaUploaded")}：${file.name}`);
+        fetchMedia();
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("mediaUnsupported"));
+    } finally {
+      setUploading(false);
+      event.target.value = "";
     }
   };
 
   const handleDelete = async () => {
-    if (deleteId) {
-      const item = media.find((m) => m.id === deleteId);
-      const { error } = await (supabase as any).from("media_items").delete().eq("id", deleteId);
-      if (error) toast.error(error.message);
-      else { toast.success(`${t("mediaDeleted")}：${item?.name}`); fetchMedia(); }
+    if (!deleteId) return;
+
+    const item = media.find((entry) => entry.id === deleteId);
+    const { error } = await (supabase as any).from("media_items").delete().eq("id", deleteId);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(`${t("mediaDeleted")}：${item?.name || ""}`);
       setDeleteId(null);
-    }
-  };
-
-  const handleCreateWidget = async () => {
-    if (!widgetForm.name.trim()) { toast.error(t("widgetFillRequired")); return; }
-
-    const config: WidgetConfig = {
-      widgetType: widgetForm.widgetType,
-      bgColor: widgetForm.bgColor,
-      textColor: widgetForm.textColor,
-      fontSize: widgetForm.fontSize,
-      animation: widgetForm.animation,
-    };
-    if (widgetForm.widgetType === "webpage") config.url = widgetForm.url;
-    if (widgetForm.widgetType === "marquee") { config.text = widgetForm.text; config.speed = widgetForm.speed; }
-    if (widgetForm.widgetType === "clock") { config.format = widgetForm.format; config.clockStyle = widgetForm.clockStyle; config.timezone = widgetForm.timezone; config.showDate = widgetForm.showDate; }
-    if (widgetForm.widgetType === "qrcode") { config.qrcodeContent = widgetForm.qrcodeContent; config.qrcodeSize = widgetForm.qrcodeSize; }
-    if (widgetForm.widgetType === "countdown") { config.targetDate = widgetForm.targetDate; config.countdownTitle = widgetForm.countdownTitle; }
-    if (widgetForm.widgetType === "youtube") config.youtubeUrl = widgetForm.youtubeUrl;
-    if (widgetForm.widgetType === "weather") config.city = widgetForm.city;
-
-    const { error } = await (supabase as any).from("media_items").insert({
-      name: widgetForm.name,
-      type: "widget",
-      url: JSON.stringify(config),
-      thumbnail: "",
-      size: "Widget",
-      dimensions: "auto",
-      uploaded_by: user?.id,
-      design_project_id: (widgetForm as any).projectId && (widgetForm as any).projectId !== "__none__" ? (widgetForm as any).projectId : null,
-    });
-
-    if (error) toast.error(error.message);
-    else {
-      toast.success(t("widgetCreated"));
-      setWidgetDialogOpen(false);
-      setWidgetForm({ ...defaultWidgetForm });
+      if (previewItem?.id === deleteId) setPreviewItem(null);
       fetchMedia();
     }
   };
 
-  const imageCount = media.filter((m) => m.type === "image").length;
-  const videoCount = media.filter((m) => m.type === "video").length;
-  const widgetCount = media.filter((m) => m.type === "widget").length;
+  const handleChangeProject = async (itemId: string, newProjectId: string | null) => {
+    setUpdatingProjectItemId(itemId);
+    const { error } = await (supabase as any)
+      .from("media_items")
+      .update({ design_project_id: newProjectId })
+      .eq("id", itemId);
 
-  const getItemIcon = (item: MediaItem) => {
-    if (item.type === "widget") {
-      const config = parseWidgetConfig(item.url);
-      if (config) {
-        const Icon = WIDGET_ICONS[config.widgetType] || Code2;
-        return <Icon className="w-10 h-10 text-primary/40" />;
-      }
-      return <Code2 className="w-10 h-10 text-primary/40" />;
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setMedia((current) => current.map((item) => (item.id === itemId ? { ...item, design_project_id: newProjectId } : item)));
+      setPreviewItem((current) => (current && current.id === itemId ? { ...current, design_project_id: newProjectId } : current));
+      toast.success(t("save"));
     }
-    if (item.type === "video") return <FileVideo className="w-10 h-10 text-muted-foreground/40" />;
-    return <FileImage className="w-10 h-10 text-muted-foreground/40" />;
+    setUpdatingProjectItemId(null);
   };
 
-  const getSmallItemIcon = (item: MediaItem) => {
-    if (item.type === "widget") {
-      const config = parseWidgetConfig(item.url);
-      if (config) {
-        const Icon = WIDGET_ICONS[config.widgetType] || Code2;
-        return <Icon className="w-5 h-5 text-primary/50" />;
-      }
-      return <Code2 className="w-5 h-5 text-primary/50" />;
+  const handleCreateProject = async () => {
+    const name = newProjectName.trim();
+    if (!name) return;
+
+    const { error } = await (supabase as any).from("design_projects").insert({
+      name,
+      created_by: user?.id,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(t("mediaProjectCreated"));
+      setNewProjectName("");
+      fetchProjects();
     }
-    if (item.type === "video") return <FileVideo className="w-5 h-5 text-muted-foreground/50" />;
-    return <FileImage className="w-5 h-5 text-muted-foreground/50" />;
   };
 
-  const getTypeBadge = (item: MediaItem) => {
-    if (item.type === "widget") {
-      const config = parseWidgetConfig(item.url);
-      const subLabel = config ? { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee"), qrcode: t("widgetQrcode"), countdown: t("widgetCountdown"), youtube: t("widgetYoutube"), weather: t("widgetWeather") }[config.widgetType] : t("widget");
-      return subLabel;
+  const handleUpdateProject = async () => {
+    if (!editingProject) return;
+    const name = editProjectName.trim();
+    if (!name) return;
+
+    const { error } = await (supabase as any)
+      .from("design_projects")
+      .update({ name })
+      .eq("id", editingProject.id);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(t("mediaProjectUpdated"));
+      setEditingProject(null);
+      setEditProjectName("");
+      fetchProjects();
     }
-    return item.type === "image" ? t("image") : t("video");
   };
 
-  return (
-    <div className="space-y-6 max-w-6xl">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t("mediaTitle")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("mediaSubtitle")} · {imageCount} {t("mediaImages")} · {videoCount} {t("mediaVideos")} · {widgetCount} {t("mediaWidgets")}
-          </p>
-        </div>
-        {isAdmin && (
-          <div className="flex gap-2 items-center">
-            <Button variant="outline" onClick={() => setWidgetDialogOpen(true)} className="gap-2">
-              <Code2 className="w-4 h-4" />
-              {t("mediaAddWidget")}
-            </Button>
-            <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleUpload} />
-            <Button onClick={() => fileInputRef.current?.click()} className="gap-2">
-              <Upload className="w-4 h-4" />
-              {t("mediaUpload")}
-            </Button>
-          </div>
-        )}
-      </div>
+  const handleDeleteProject = async () => {
+    if (!deleteProjectId) return;
 
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder={t("mediaSearchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-        </div>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+    const { error: updateError } = await (supabase as any)
+      .from("media_items")
+      .update({ design_project_id: null })
+      .eq("design_project_id", deleteProjectId);
+
+    if (updateError) {
+      toast.error(updateError.message);
+      return;
+    }
+
+    const { error } = await (supabase as any).from("design_projects").delete().eq("id", deleteProjectId);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(t("mediaProjectDeleted"));
+      setDeleteProjectId(null);
+      fetchProjects();
+      fetchMedia();
+    }
+  };
+
+  const renderProjectSelect = (item: MediaItemRow, compact = false) => {
+    if (!isAdmin) {
+      return (
+        <span className={`flex items-center ${compact ? "gap-1" : "gap-0.5"}`}>
+          <FolderOpen className="w-3 h-3 shrink-0" />
+          <span className="truncate">{getProjectName(item.design_project_id)}</span>
+        </span>
+      );
+    }
+
+    return (
+      <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+        <Select
+          value={item.design_project_id || NONE_PROJECT_VALUE}
+          onValueChange={(value) => handleChangeProject(item.id, value === NONE_PROJECT_VALUE ? null : value)}
+          disabled={updatingProjectItemId === item.id}
+        >
+          <SelectTrigger
+            className={`border-0 bg-transparent px-0 py-0 shadow-none focus:ring-0 focus:ring-offset-0 ${
+              compact ? "h-6 gap-1 text-xs text-muted-foreground hover:text-foreground" : "h-6 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FolderOpen className="w-3 h-3 shrink-0" />
+            <SelectValue placeholder={t("mediaNoProject")} />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("allTypes")}</SelectItem>
-            <SelectItem value="image">{t("image")}</SelectItem>
-            <SelectItem value="video">{t("video")}</SelectItem>
-            <SelectItem value="widget">{t("widget")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={projectFilter} onValueChange={setProjectFilter}>
-          <SelectTrigger className="w-[160px]"><FolderOpen className="w-4 h-4 mr-1.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("mediaAllProjects")}</SelectItem>
-            <SelectItem value="none">{t("mediaNoProject")}</SelectItem>
-            {projects.map((p) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            <SelectItem value={NONE_PROJECT_VALUE}>{t("mediaNoProject")}</SelectItem>
+            {projects.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {isAdmin && (
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setProjectDialogOpen(true)} title={t("mediaManageProjects")}>
-            <Settings2 className="w-4 h-4" />
-          </Button>
-        )}
-        <div className="flex border border-border rounded-lg overflow-hidden">
-          <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-none" onClick={() => setViewMode("grid")}><Grid3X3 className="w-4 h-4" /></Button>
-          <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-none" onClick={() => setViewMode("list")}><List className="w-4 h-4" /></Button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("mediaTitle")}</h1>
+          <p className="text-muted-foreground">{t("mediaSubtitle")}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {isAdmin && (
+            <Button variant="outline" className="gap-2" onClick={() => setProjectDialogOpen(true)}>
+              <Settings2 className="w-4 h-4" />
+              {t("mediaManageProjects")}
+            </Button>
+          )}
+          {isAdmin && <input ref={fileInputRef} type="file" className="hidden" accept="image/*,video/*" onChange={handleUpload} />}
+          {isAdmin && (
+            <Button className="gap-2" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              {t("mediaUpload")}
+            </Button>
+          )}
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-      ) : (
-        <>
-          {filtered.length === 0 && (
-            <Card className="p-12 text-center text-muted-foreground">
-              <Image className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p>{t("mediaNoResult")}</p>
-            </Card>
-          )}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">{stats.images}</div>
+          <div className="text-xl font-semibold text-foreground">{t("mediaImages")}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">{stats.videos}</div>
+          <div className="text-xl font-semibold text-foreground">{t("mediaVideos")}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">{stats.widgets}</div>
+          <div className="text-xl font-semibold text-foreground">{t("mediaWidgets")}</div>
+        </Card>
+      </div>
 
-          {viewMode === "grid" && filtered.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filtered.map((item, i) => (
-                <Card key={item.id} className={`overflow-hidden hover-lift shadow-sm group cursor-pointer opacity-0 animate-scale-in stagger-${Math.min(i + 1, 8)}`} onClick={() => setPreviewItem(item)}>
-                  <div className="aspect-video bg-muted relative flex items-center justify-center overflow-hidden">
-                    {item.type === "widget" ? (
-                      (() => { const c = parseWidgetConfig(item.url); return c ? <WidgetPreviewCard config={c} /> : getItemIcon(item); })()
-                    ) : item.url && item.type === "image" ? (
-                      <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      getItemIcon(item)
-                    )}
-                    {item.type === "video" && item.duration && (
-                      <span className="absolute bottom-2 right-2 bg-foreground/80 text-background text-[10px] font-medium px-1.5 py-0.5 rounded">{item.duration}</span>
-                    )}
-                    <Badge variant={item.type === "widget" ? "default" : "secondary"} className="absolute top-2 left-2 text-[10px] px-1.5 py-0.5">
-                      {getTypeBadge(item)}
-                    </Badge>
-                    <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <Eye className="w-6 h-6 text-background drop-shadow-lg" />
-                    </div>
-                  </div>
-                  <div className="p-3 space-y-1">
-                    <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                      <span>{item.size}</span>
-                      {item.type !== "widget" && <><span>·</span><span>{item.dimensions}</span></>}
+      <Card className="p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("mediaSearchPlaceholder")} className="pl-9" />
+            </div>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allTypes")}</SelectItem>
+                <SelectItem value="image">{t("image")}</SelectItem>
+                <SelectItem value="video">{t("video")}</SelectItem>
+                <SelectItem value="widget">{t("widget")}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <FolderOpen className="mr-1.5 h-4 w-4 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("mediaAllProjects")}</SelectItem>
+                <SelectItem value="none">{t("mediaNoProject")}</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2 self-end lg:self-auto">
+            <Button variant={viewMode === "grid" ? "default" : "outline"} size="icon" onClick={() => setViewMode("grid")}>
+              <Grid3X3 className="w-4 h-4" />
+            </Button>
+            <Button variant={viewMode === "list" ? "default" : "outline"} size="icon" onClick={() => setViewMode("list")}>
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {loading || roleLoading ? (
+        <Card className="p-10 flex items-center justify-center gap-3 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>{t("mediaReading")}</span>
+        </Card>
+      ) : filteredMedia.length === 0 ? (
+        <Card className="p-10 text-center text-muted-foreground">{t("mediaNoResult")}</Card>
+      ) : viewMode === "grid" ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {filteredMedia.map((item) => (
+            <Card key={item.id} className="overflow-hidden cursor-pointer" onClick={() => setPreviewItem(item)}>
+              <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden relative">
+                {item.type === "image" && item.url ? (
+                  <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
+                ) : (
+                  getPreviewIcon(item.type)
+                )}
+                {item.type === "video" && item.duration && (
+                  <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-1.5 py-0.5 text-[10px] text-background">
+                    {item.duration}
+                  </span>
+                )}
+                <Badge variant={getTypeBadgeVariant(item.type)} className="absolute left-2 top-2 text-[10px]">
+                  {item.type === "image" ? t("image") : item.type === "video" ? t("video") : t("widget")}
+                </Badge>
+              </div>
+
+              <div className="space-y-2 p-3">
+                <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span>{item.size}</span>
+                  {item.type !== "widget" && (
+                    <>
                       <span>·</span>
-                      {isAdmin ? (
-                        <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="flex items-center gap-0.5 hover:text-foreground transition-colors">
-                                <FolderOpen className="w-3 h-3" />
-                                <span>{(() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? p.name : t("mediaNoProject"); })()}</span>
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
-                              <DropdownMenuLabel className="text-xs">{t("mediaProjectGroup")}</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onSelect={() => handleChangeProject(item.id, null)} className={!item.design_project_id ? "bg-accent" : ""}>
-                                {t("mediaNoProject")}
-                              </DropdownMenuItem>
-                              {projects.map((p) => (
-                                <DropdownMenuItem key={p.id} onSelect={() => handleChangeProject(item.id, p.id)} className={item.design_project_id === p.id ? "bg-accent" : ""}>
-                                  {p.name}
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      ) : (
-                        <span className="flex items-center gap-0.5"><FolderOpen className="w-3 h-3" />{(() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? p.name : t("mediaNoProject"); })()}</span>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
+                      <span>{item.dimensions}</span>
+                    </>
+                  )}
+                  <span>·</span>
+                  <div className="min-w-0 flex-1">{renderProjectSelect(item)}</div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          {filteredMedia.map((item) => (
+            <Card key={item.id} className="flex cursor-pointer items-center gap-4 p-3" onClick={() => setPreviewItem(item)}>
+              <div className="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                {item.type === "image" && item.url ? (
+                  <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
+                ) : (
+                  getPreviewIcon(item.type)
+                )}
+              </div>
 
-          {viewMode === "list" && filtered.length > 0 && (
-            <div className="grid gap-2">
-              {filtered.map((item) => (
-                <Card key={item.id} className="p-3 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setPreviewItem(item)}>
-                  <div className="w-16 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-                    {item.type === "widget" ? (
-                      (() => { const c = parseWidgetConfig(item.url); return c ? <WidgetPreviewCard config={c} /> : getSmallItemIcon(item); })()
-                    ) : item.url && item.type === "image" ? (
-                      <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      getSmallItemIcon(item)
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                      <Badge variant={item.type === "widget" ? "default" : "outline"} className="text-[10px] px-1.5 py-0 h-4">{getTypeBadge(item)}</Badge>
-                      <span className="flex items-center gap-1"><HardDrive className="w-3 h-3" />{item.size}</span>
-                      {item.type !== "widget" && <span>{item.dimensions}</span>}
-                      {item.duration && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{item.duration}</span>}
-                      <span>{item.created_at?.split("T")[0]}</span>
-                      {isAdmin ? (
-                        <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="flex items-center gap-1 hover:text-foreground transition-colors">
-                                <FolderOpen className="w-3 h-3" />
-                                {(() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? p.name : t("mediaNoProject"); })()}
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
-                              <DropdownMenuLabel className="text-xs">{t("mediaProjectGroup")}</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onSelect={() => handleChangeProject(item.id, null)} className={!item.design_project_id ? "bg-accent" : ""}>
-                                {t("mediaNoProject")}
-                              </DropdownMenuItem>
-                              {projects.map((p) => (
-                                <DropdownMenuItem key={p.id} onSelect={() => handleChangeProject(item.id, p.id)} className={item.design_project_id === p.id ? "bg-accent" : ""}>
-                                  {p.name}
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      ) : (
-                        <span className="flex items-center gap-1"><FolderOpen className="w-3 h-3" />{(() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? p.name : t("mediaNoProject"); })()}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}><Eye className="w-4 h-4" /></Button>
-                    {isAdmin && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(item.id); }}><Trash2 className="w-4 h-4" /></Button>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <Badge variant={item.type === "widget" ? "default" : "outline"} className="text-[10px] px-1.5 py-0 h-4">
+                    {item.type === "image" ? t("image") : item.type === "video" ? t("video") : t("widget")}
+                  </Badge>
+                  <span className="flex items-center gap-1"><HardDrive className="w-3 h-3" />{item.size}</span>
+                  {item.type !== "widget" && <span>{item.dimensions}</span>}
+                  {item.duration && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{item.duration}</span>}
+                  <span>{item.created_at?.split("T")[0]}</span>
+                  <div className="min-w-[140px]">{renderProjectSelect(item, true)}</div>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}>
+                  <Eye className="w-4 h-4" />
+                </Button>
+                {isAdmin && (
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(item.id); }}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
       )}
 
-      {/* Preview Dialog */}
       <Dialog open={!!previewItem} onOpenChange={(open) => !open && setPreviewItem(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 truncate pr-6">
-              {previewItem?.type === "widget" ? <Code2 className="w-5 h-5 text-primary shrink-0" /> : previewItem?.type === "image" ? <FileImage className="w-5 h-5 text-primary shrink-0" /> : <FileVideo className="w-5 h-5 text-primary shrink-0" />}
-              <span className="truncate">{previewItem?.name}</span>
-            </DialogTitle>
-            <DialogDescription className="sr-only">素材預覽對話框，可檢視圖片、影片或 Widget 預覽內容。</DialogDescription>
+            <DialogTitle>{previewItem?.name}</DialogTitle>
+            <DialogDescription className="sr-only">素材預覽視窗</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-              {previewItem?.type === "widget" ? (
-                (() => { const c = parseWidgetConfig(previewItem.url); return c ? <AnimatedWidgetWrapper config={c}><WidgetLivePreview config={c} /></AnimatedWidgetWrapper> : <Code2 className="w-16 h-16 opacity-30" />; })()
-              ) : previewItem?.url && previewItem.type === "image" ? (
-                <img src={previewItem.url} alt={previewItem.name} className="w-full h-full object-contain" />
-              ) : previewItem?.url && previewItem.type === "video" ? (
-                <video src={previewItem.url} controls className="w-full h-full" />
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  {previewItem?.type === "image" ? <FileImage className="w-16 h-16 mx-auto mb-2 opacity-30" /> : <FileVideo className="w-16 h-16 mx-auto mb-2 opacity-30" />}
-                  <p className="text-sm">{t("mediaPreviewUnavailable")}</p>
+            <div className="aspect-video overflow-hidden rounded-lg bg-muted flex items-center justify-center">
+              {previewItem?.type === "image" && previewItem.url ? (
+                <img src={previewItem.url} alt={previewItem.name} className="h-full w-full object-contain" />
+              ) : previewItem?.type === "video" && previewItem.url ? (
+                <video src={previewItem.url} controls className="h-full w-full" />
+              ) : previewItem ? (
+                getPreviewIcon(previewItem.type)
+              ) : null}
+            </div>
+            {previewItem && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-sm">
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-xs text-muted-foreground">{t("mediaType")}</p>
+                  <p className="font-medium text-foreground">{previewItem.type === "image" ? t("image") : previewItem.type === "video" ? t("video") : t("widget")}</p>
                 </div>
-              )}
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-muted-foreground text-xs">{t("mediaType")}</p>
-                <p className="font-medium text-foreground">{previewItem ? getTypeBadge(previewItem) : ""}</p>
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-xs text-muted-foreground">{t("mediaFileSize")}</p>
+                  <p className="font-medium text-foreground">{previewItem.size}</p>
+                </div>
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-xs text-muted-foreground">{t("mediaResolution")}</p>
+                  <p className="font-medium text-foreground">{previewItem.dimensions}</p>
+                </div>
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-xs text-muted-foreground">{t("mediaProjectGroup")}</p>
+                  <p className="font-medium text-foreground">{getProjectName(previewItem.design_project_id)}</p>
+                </div>
               </div>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-muted-foreground text-xs">{t("mediaFileSize")}</p>
-                <p className="font-medium text-foreground">{previewItem?.size}</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-muted-foreground text-xs">{previewItem?.type === "widget" ? t("widgetType") : t("mediaResolution")}</p>
-                <p className="font-medium text-foreground">{previewItem?.type === "widget" ? t("widget") : previewItem?.dimensions}</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-muted-foreground text-xs">{previewItem?.type === "video" ? t("mediaDuration") : t("mediaUploadDate")}</p>
-                <p className="font-medium text-foreground">{previewItem?.type === "video" ? previewItem?.duration : previewItem?.created_at?.split("T")[0]}</p>
-              </div>
-            </div>
-            {isAdmin && (
+            )}
+            {isAdmin && previewItem && (
               <div className="flex justify-end">
-                <Button variant="destructive" size="sm" className="gap-2" onClick={() => { if (previewItem) { setDeleteId(previewItem.id); setPreviewItem(null); } }}>
+                <Button variant="destructive" size="sm" className="gap-2" onClick={() => { setDeleteId(previewItem.id); setPreviewItem(null); }}>
                   <Trash2 className="w-4 h-4" />
                   {t("mediaDeleteItem")}
                 </Button>
               </div>
             )}
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Widget Creation Dialog */}
-      <Dialog open={widgetDialogOpen} onOpenChange={setWidgetDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Code2 className="w-5 h-5 text-primary" />{t("mediaAddWidget")}</DialogTitle>
-            <DialogDescription className="sr-only">建立與調整 Widget 設定，並在對話框底部即時預覽結果。</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2 overflow-y-auto flex-1 pr-1 min-h-0">
-            <div className="space-y-2">
-              <Label>{t("widgetName")} *</Label>
-              <Input value={widgetForm.name} onChange={(e) => setWidgetForm({ ...widgetForm, name: e.target.value })} placeholder={t("widgetNamePlaceholder")} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("mediaProjectGroup")}</Label>
-              <Select value={(widgetForm as any).projectId || "__none__"} onValueChange={(v) => setWidgetForm({ ...widgetForm, projectId: v } as any)}>
-                <SelectTrigger><FolderOpen className="w-4 h-4 mr-1.5 text-muted-foreground" /><SelectValue placeholder={t("mediaNoProject")} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">{t("mediaNoProject")}</SelectItem>
-                  {projects.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t("widgetType")}</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {(["clock", "date", "webpage", "marquee", "qrcode", "countdown", "youtube", "weather"] as WidgetSubType[]).map((wt) => {
-                  const Icon = WIDGET_ICONS[wt];
-                  const labels: Record<WidgetSubType, string> = { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee"), qrcode: t("widgetQrcode"), countdown: t("widgetCountdown"), youtube: t("widgetYoutube"), weather: t("widgetWeather") };
-                  const descs: Record<WidgetSubType, string> = { date: t("widgetDateDesc"), clock: t("widgetClockDesc"), webpage: t("widgetWebpageDesc"), marquee: t("widgetMarqueeDesc"), qrcode: t("widgetQrcodeDesc"), countdown: t("widgetCountdownDesc"), youtube: t("widgetYoutubeDesc"), weather: t("widgetWeatherDesc") };
-                  return (
-                    <button key={wt} type="button" onClick={() => setWidgetForm({ ...widgetForm, widgetType: wt })}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all text-center ${
-                        widgetForm.widgetType === wt ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
-                      }`}>
-                      <Icon className={`w-6 h-6 ${widgetForm.widgetType === wt ? "text-primary" : "text-muted-foreground"}`} />
-                      <span className="text-xs font-medium">{labels[wt]}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {widgetForm.widgetType === "clock" && (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label>{t("widgetClockStyle")}</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button type="button" onClick={() => setWidgetForm({ ...widgetForm, clockStyle: "digital" })}
-                      className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 transition-all text-sm ${widgetForm.clockStyle === "digital" ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
-                      {t("widgetDigital")}
-                    </button>
-                    <button type="button" onClick={() => setWidgetForm({ ...widgetForm, clockStyle: "analog" })}
-                      className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 transition-all text-sm ${widgetForm.clockStyle === "analog" ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
-                      {t("widgetAnalog")}
-                    </button>
-                  </div>
-                </div>
-                {widgetForm.clockStyle === "digital" && (
-                  <div className="space-y-2">
-                    <Label>{t("widgetFormat")}</Label>
-                    <Select value={widgetForm.format} onValueChange={(v) => setWidgetForm({ ...widgetForm, format: v as "12" | "24" })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="24">{t("widgetFormat24")}</SelectItem>
-                        <SelectItem value="12">{t("widgetFormat12")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div className="flex items-center justify-between">
-                  <Label>{t("widgetShowDate")}</Label>
-                  <Switch checked={widgetForm.showDate} onCheckedChange={(v) => setWidgetForm({ ...widgetForm, showDate: v })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("widgetTimezone")}</Label>
-                  <Select value={widgetForm.timezone} onValueChange={(v) => setWidgetForm({ ...widgetForm, timezone: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {TIMEZONE_OPTIONS.map((tz) => (
-                        <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            {widgetForm.widgetType === "webpage" && (
-              <div className="space-y-2">
-                <Label>{t("widgetUrl")}</Label>
-                <Input value={widgetForm.url} onChange={(e) => setWidgetForm({ ...widgetForm, url: e.target.value })} placeholder={t("widgetUrlPlaceholder")} />
-              </div>
-            )}
-
-            {widgetForm.widgetType === "marquee" && (
-              <>
-                <div className="space-y-2">
-                  <Label>{t("widgetText")}</Label>
-                  <Input value={widgetForm.text} onChange={(e) => setWidgetForm({ ...widgetForm, text: e.target.value })} placeholder={t("widgetTextPlaceholder")} />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("widgetSpeed")}</Label>
-                  <Select value={widgetForm.speed} onValueChange={(v) => setWidgetForm({ ...widgetForm, speed: v as "slow" | "normal" | "fast" })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="slow">{t("widgetSpeedSlow")}</SelectItem>
-                      <SelectItem value="normal">{t("widgetSpeedNormal")}</SelectItem>
-                      <SelectItem value="fast">{t("widgetSpeedFast")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-
-            {widgetForm.widgetType === "qrcode" && (
-              <div className="space-y-2">
-                <Label>{t("widgetQrcodeContent")}</Label>
-                <Input value={widgetForm.qrcodeContent || ""} onChange={(e) => setWidgetForm({ ...widgetForm, qrcodeContent: e.target.value })} placeholder={t("widgetQrcodePlaceholder")} />
-              </div>
-            )}
-
-            {widgetForm.widgetType === "countdown" && (
-              <>
-                <div className="space-y-2">
-                  <Label>{t("widgetCountdownTitle")}</Label>
-                  <Input value={widgetForm.countdownTitle || ""} onChange={(e) => setWidgetForm({ ...widgetForm, countdownTitle: e.target.value })} placeholder={t("widgetCountdownTitlePlaceholder")} />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("widgetTargetDate")}</Label>
-                  <Input type="datetime-local" value={widgetForm.targetDate || ""} onChange={(e) => setWidgetForm({ ...widgetForm, targetDate: e.target.value })} />
-                </div>
-              </>
-            )}
-
-            {widgetForm.widgetType === "youtube" && (
-              <div className="space-y-2">
-                <Label>{t("widgetYoutubeUrl")}</Label>
-                <Input value={widgetForm.youtubeUrl || ""} onChange={(e) => setWidgetForm({ ...widgetForm, youtubeUrl: e.target.value })} placeholder={t("widgetYoutubeUrlPlaceholder")} />
-              </div>
-            )}
-
-            {widgetForm.widgetType === "weather" && (
-              <div className="space-y-2">
-                <Label>{t("widgetCity")}</Label>
-                <Input value={widgetForm.city || ""} onChange={(e) => setWidgetForm({ ...widgetForm, city: e.target.value })} placeholder={t("widgetCityPlaceholder")} />
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>{t("widgetBgColor")}</Label>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => setWidgetForm({ ...widgetForm, bgColor: "transparent" })}
-                    className={`w-8 h-8 rounded border cursor-pointer relative overflow-hidden shrink-0 ${widgetForm.bgColor === "transparent" ? "ring-2 ring-primary border-primary" : "border-border"}`}
-                    style={{ background: "linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)", backgroundSize: "8px 8px", backgroundPosition: "0 0, 4px 4px" }}
-                    title="Transparent" />
-                  <input type="color" value={widgetForm.bgColor === "transparent" ? "#1a1a2e" : widgetForm.bgColor} onChange={(e) => setWidgetForm({ ...widgetForm, bgColor: e.target.value })} className="w-8 h-8 rounded border border-border cursor-pointer" />
-                  <Input value={widgetForm.bgColor} onChange={(e) => setWidgetForm({ ...widgetForm, bgColor: e.target.value })} className="flex-1" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("widgetTextColor")}</Label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={widgetForm.textColor} onChange={(e) => setWidgetForm({ ...widgetForm, textColor: e.target.value })} className="w-8 h-8 rounded border border-border cursor-pointer" />
-                  <Input value={widgetForm.textColor} onChange={(e) => setWidgetForm({ ...widgetForm, textColor: e.target.value })} className="flex-1" />
-                </div>
-              </div>
-            </div>
-
-            {/* Font Size - shown for clock, date, marquee, countdown, weather */}
-            {["clock", "date", "marquee", "countdown", "weather"].includes(widgetForm.widgetType) && (
-              <div className="space-y-2">
-                <Label>{t("widgetFontSize")}</Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(["small", "medium", "large", "xlarge"] as const).map((size) => {
-                    const sizeLabels = { small: t("widgetFontSizeSmall"), medium: t("widgetFontSizeMedium"), large: t("widgetFontSizeLarge"), xlarge: t("widgetFontSizeXLarge") };
-                    return (
-                      <button key={size} type="button" onClick={() => setWidgetForm({ ...widgetForm, fontSize: size })}
-                        className={`p-2 rounded-lg border-2 transition-all text-sm text-center ${widgetForm.fontSize === size ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
-                        {sizeLabels[size]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* QR Code Size */}
-            {widgetForm.widgetType === "qrcode" && (
-              <div className="space-y-2">
-                <Label>{t("widgetQrcodeSize")}：{widgetForm.qrcodeSize}px</Label>
-                <input type="range" min={60} max={300} step={10} value={widgetForm.qrcodeSize}
-                  onChange={(e) => setWidgetForm({ ...widgetForm, qrcodeSize: Number(e.target.value) })}
-                  className="w-full accent-primary" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>60px</span><span>300px</span>
-                </div>
-              </div>
-            )}
-
-            {/* Animation */}
-            <div className="space-y-2">
-              <Label>{t("widgetAnimation")}</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {(["none", "fadeIn", "slideUp", "bounce", "zoomIn", "flipIn"] as WidgetAnimation[]).map((anim) => {
-                  const animLabels: Record<WidgetAnimation, string> = { none: t("widgetAnimNone"), fadeIn: t("widgetAnimFadeIn"), slideUp: t("widgetAnimSlideUp"), bounce: t("widgetAnimBounce"), zoomIn: t("widgetAnimZoomIn"), flipIn: t("widgetAnimFlipIn") };
-                  return (
-                    <button key={anim} type="button" onClick={() => setWidgetForm({ ...widgetForm, animation: anim })}
-                      className={`p-2 rounded-lg border-2 transition-all text-sm text-center ${widgetForm.animation === anim ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
-                      {animLabels[anim]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Live Preview */}
-            <div className="space-y-2">
-              <Label>{t("widgetLivePreview")}</Label>
-              <div className="aspect-video rounded-lg overflow-hidden border border-border bg-muted/30 shrink-0">
-                <div className="w-full h-full overflow-hidden">
-                  <AnimatedWidgetWrapper config={{
-                    animation: widgetForm.animation,
-                    widgetType: widgetForm.widgetType,
-                  }}>
-                    <WidgetLivePreview config={{
-                      widgetType: widgetForm.widgetType,
-                      url: widgetForm.url,
-                      text: widgetForm.text,
-                      speed: widgetForm.speed,
-                      format: widgetForm.format,
-                      clockStyle: widgetForm.clockStyle,
-                      showDate: widgetForm.showDate,
-                      timezone: widgetForm.timezone,
-                      bgColor: widgetForm.bgColor,
-                      textColor: widgetForm.textColor,
-                      qrcodeContent: widgetForm.qrcodeContent,
-                      targetDate: widgetForm.targetDate,
-                      countdownTitle: widgetForm.countdownTitle,
-                      youtubeUrl: widgetForm.youtubeUrl,
-                      city: widgetForm.city,
-                      fontSize: widgetForm.fontSize,
-                      qrcodeSize: widgetForm.qrcodeSize,
-                      animation: widgetForm.animation,
-                    }} />
-                  </AnimatedWidgetWrapper>
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild><Button variant="outline">{t("cancel")}</Button></DialogClose>
-            <Button onClick={handleCreateWidget} className="gap-2"><Plus className="w-4 h-4" />{t("mediaAddWidget")}</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1125,20 +593,20 @@ export default function MediaPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("confirmDelete")}</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t("confirmDelete")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Project Management Dialog */}
       <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><FolderOpen className="w-5 h-5 text-primary" />{t("mediaManageProjects")}</DialogTitle>
-            <DialogDescription className="sr-only">{t("mediaManageProjects")}</DialogDescription>
+            <DialogDescription className="sr-only">管理設計專案</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Add new project */}
             <div className="flex gap-2">
               <Input
                 value={newProjectName}
@@ -1151,36 +619,41 @@ export default function MediaPage() {
               </Button>
             </div>
 
-            {/* Project list */}
-            <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+            <div className="max-h-[320px] space-y-1.5 overflow-y-auto">
               {projects.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">{t("mediaNoProject")}</p>
+                <p className="py-4 text-center text-sm text-muted-foreground">{t("mediaNoProject")}</p>
               )}
-              {projects.map((p) => (
-                <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 group">
-                  {editingProject?.id === p.id ? (
-                    <div className="flex-1 flex gap-2">
+              {projects.map((project) => (
+                <div key={project.id} className="flex items-center gap-2 rounded-lg p-2 hover:bg-muted/50 group">
+                  {editingProject?.id === project.id ? (
+                    <div className="flex flex-1 gap-2">
                       <Input
                         value={editProjectName}
                         onChange={(e) => setEditProjectName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") handleUpdateProject(); if (e.key === "Escape") setEditingProject(null); }}
-                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleUpdateProject();
+                          if (e.key === "Escape") {
+                            setEditingProject(null);
+                            setEditProjectName("");
+                          }
+                        }}
                         className="h-8"
+                        autoFocus
                       />
-                      <Button size="sm" onClick={handleUpdateProject} disabled={!editProjectName.trim()} className="h-8">{t("save")}</Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingProject(null)} className="h-8">{t("cancel")}</Button>
+                      <Button size="sm" className="h-8" onClick={handleUpdateProject} disabled={!editProjectName.trim()}>{t("save")}</Button>
+                      <Button size="sm" variant="ghost" className="h-8" onClick={() => { setEditingProject(null); setEditProjectName(""); }}>{t("cancel")}</Button>
                     </div>
                   ) : (
                     <>
-                      <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <span className="flex-1 text-sm text-foreground truncate">{p.name}</span>
-                      <Badge variant="outline" className="text-[10px] shrink-0">
-                        {media.filter((m) => m.design_project_id === p.id).length}
+                      <FolderOpen className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      <span className="flex-1 truncate text-sm text-foreground">{project.name}</span>
+                      <Badge variant="outline" className="shrink-0 text-[10px]">
+                        {media.filter((item) => item.design_project_id === project.id).length}
                       </Badge>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { setEditingProject(p); setEditProjectName(p.name); }}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100" onClick={() => { setEditingProject(project); setEditProjectName(project.name); }}>
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive" onClick={() => setDeleteProjectId(p.id)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-destructive hover:text-destructive" onClick={() => setDeleteProjectId(project.id)}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </>
@@ -1192,7 +665,6 @@ export default function MediaPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Project Confirm */}
       <AlertDialog open={deleteProjectId !== null} onOpenChange={(open) => !open && setDeleteProjectId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1201,16 +673,20 @@ export default function MediaPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("confirmDelete")}</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteProject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t("confirmDelete")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
   );
-}
+};
+
+export default MediaPage;
 
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
