@@ -240,7 +240,12 @@ export default function SchedulesPage() {
     if (deleteId) {
       const { error } = await (supabase as any).from("schedules").delete().eq("id", deleteId);
       if (error) toast.error(error.message);
-      else { toast.success(t("schedDeleted")); fetchAll(); }
+      else {
+        const deleted = schedules.find(s => s.id === deleteId);
+        toast.success(t("schedDeleted"));
+        logActivity({ action: "刪除排程", category: "schedule", targetName: deleted?.name || "", targetId: deleteId });
+        fetchAll();
+      }
       setDeleteId(null);
     }
   };

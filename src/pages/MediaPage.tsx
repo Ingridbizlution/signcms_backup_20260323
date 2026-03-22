@@ -539,6 +539,7 @@ const MediaPage = () => {
       toast.error(error.message);
     } else {
       toast.success(`${t("mediaDeleted")}：${item?.name || ""}`);
+      logActivity({ action: "刪除素材", category: "media", targetName: item?.name || "", targetId: deleteId });
       setDeleteId(null);
       setDeleteUsage(null);
       if (previewItem?.id === deleteId) setPreviewItem(null);

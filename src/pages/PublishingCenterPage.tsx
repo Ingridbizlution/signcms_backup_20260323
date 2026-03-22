@@ -212,6 +212,7 @@ export default function PublishingCenterPage() {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
       toast.success(publishMode === "now" ? t("publishSuccessNow") : t("publishSuccessScheduled"));
+      logActivity({ action: publishMode === "now" ? "立即發佈" : "排程發佈", category: "publish", detail: `${selectedScreenIds.size} 個螢幕` });
       setSelectedScheduleId(null);
       setSelectedScreenIds(new Set());
       setPublishMode("now");
