@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2, FolderPlus, Layers } from "lucide-react";
+import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2, FolderPlus, Layers, MoreHorizontal } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,10 +15,15 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+
+const UNGROUPED = "__ungrouped__";
 
 interface Screen {
   id: string;
@@ -52,13 +57,20 @@ export default function ScreensPage() {
   const [isCreatingInForm, setIsCreatingInForm] = useState(false);
   const [inlineNewGroup, setInlineNewGroup] = useState("");
 
+  // Group rename
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [renameTarget, setRenameTarget] = useState("");
+  const [renameValue, setRenameValue] = useState("");
+
+  // Group delete
+  const [deleteGroupTarget, setDeleteGroupTarget] = useState<string | null>(null);
+
   const fetchScreens = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online").order("created_at", { ascending: true });
     if (error) { toast.error(error.message); }
     else {
       setScreens(data || []);
-      // Derive unique groups from existing screens
       const uniqueGroups = Array.from(new Set((data || []).map((s: Screen) => s.branch).filter(Boolean))) as string[];
       setGroups((prev) => {
         const merged = new Set([...prev, ...uniqueGroups]);
@@ -70,16 +82,19 @@ export default function ScreensPage() {
 
   useEffect(() => { fetchScreens(); }, []);
 
+  const ungroupedCount = screens.filter((s) => !s.branch).length;
+
   const filtered = screens.filter((s) => {
-    const matchSearch = s.name.includes(search) || s.branch.includes(search) || s.location.includes(search);
-    const matchGroup = groupFilter === "all" || s.branch === groupFilter;
-    return matchSearch && matchGroup;
+    const matchSearch = s.name.includes(search) || (s.branch || "").includes(search) || s.location.includes(search);
+    if (groupFilter === "all") return matchSearch;
+    if (groupFilter === UNGROUPED) return matchSearch && !s.branch;
+    return matchSearch && s.branch === groupFilter;
   });
 
   const openAdd = () => { setEditingId(null); setForm(emptyForm); setIsCreatingInForm(false); setInlineNewGroup(""); setDialogOpen(true); };
   const openEdit = (screen: Screen) => {
     setEditingId(screen.id);
-    setForm({ name: screen.name, branch: screen.branch, location: screen.location, resolution: screen.resolution });
+    setForm({ name: screen.name, branch: screen.branch || "", location: screen.location, resolution: screen.resolution });
     setIsCreatingInForm(false);
     setInlineNewGroup("");
     setDialogOpen(true);
@@ -87,18 +102,17 @@ export default function ScreensPage() {
 
   const handleSave = async () => {
     const finalBranch = isCreatingInForm ? inlineNewGroup.trim() : form.branch;
-    if (!form.name || !finalBranch) { toast.error(t("screensFillRequired")); return; }
+    if (!form.name) { toast.error(t("screensFillRequired")); return; }
     setSaving(true);
     if (editingId) {
-      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch, location: form.location, resolution: form.resolution, updated_at: new Date().toISOString() }).eq("id", editingId);
+      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, updated_at: new Date().toISOString() }).eq("id", editingId);
       if (error) toast.error(error.message);
       else toast.success(t("screensUpdated"));
     } else {
-      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch, location: form.location, resolution: form.resolution, uploaded_by: user?.id });
+      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, uploaded_by: user?.id });
       if (error) toast.error(error.message);
       else toast.success(t("screensAdded"));
     }
-    // Add new group to local list
     if (isCreatingInForm && inlineNewGroup.trim()) {
       setGroups((prev) => Array.from(new Set([...prev, inlineNewGroup.trim()])).sort());
     }
@@ -121,11 +135,44 @@ export default function ScreensPage() {
   const handleAddGroup = () => {
     const name = newGroupName.trim();
     if (!name) return;
-    if (groups.includes(name)) { toast.error("Group already exists"); return; }
+    if (groups.includes(name)) { toast.error(t("screensGroupExists")); return; }
     setGroups((prev) => [...prev, name].sort());
     toast.success(t("screensGroupCreated"));
     setNewGroupName("");
     setNewGroupDialogOpen(false);
+  };
+
+  const handleRenameGroup = async () => {
+    const newName = renameValue.trim();
+    if (!newName || !renameTarget) return;
+    if (newName === renameTarget) { setRenameDialogOpen(false); return; }
+    if (groups.includes(newName)) { toast.error(t("screensGroupExists")); return; }
+    // Update all screens with old group name
+    const { error } = await (supabase as any).from("screens").update({ branch: newName, updated_at: new Date().toISOString() }).eq("branch", renameTarget);
+    if (error) { toast.error(error.message); return; }
+    setGroups((prev) => prev.map((g) => g === renameTarget ? newName : g).sort());
+    if (groupFilter === renameTarget) setGroupFilter(newName);
+    toast.success(t("screensGroupRenamed"));
+    setRenameDialogOpen(false);
+    fetchScreens();
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!deleteGroupTarget) return;
+    // Set screens in this group to empty (ungrouped)
+    const { error } = await (supabase as any).from("screens").update({ branch: "", updated_at: new Date().toISOString() }).eq("branch", deleteGroupTarget);
+    if (error) { toast.error(error.message); return; }
+    setGroups((prev) => prev.filter((g) => g !== deleteGroupTarget));
+    if (groupFilter === deleteGroupTarget) setGroupFilter("all");
+    toast.success(t("screensGroupDeleted"));
+    setDeleteGroupTarget(null);
+    fetchScreens();
+  };
+
+  const openRename = (group: string) => {
+    setRenameTarget(group);
+    setRenameValue(group);
+    setRenameDialogOpen(true);
   };
 
   return (
@@ -158,25 +205,41 @@ export default function ScreensPage() {
           <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("allGroups")} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allGroups")}</SelectItem>
+            <SelectItem value={UNGROUPED}>{t("screensUngrouped")}</SelectItem>
             {groups.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
 
       {/* Group chips */}
-      {groups.length > 0 && (
-        <div className="flex flex-wrap gap-2 animate-fade-in">
-          {groups.map((g) => {
-            const count = screens.filter((s) => s.branch === g).length;
-            return (
+      <div className="flex flex-wrap gap-2 animate-fade-in">
+        {/* Ungrouped chip */}
+        <button
+          onClick={() => setGroupFilter(groupFilter === UNGROUPED ? "all" : UNGROUPED)}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            groupFilter === UNGROUPED
+              ? "bg-muted-foreground text-background"
+              : "bg-muted text-muted-foreground hover:bg-accent"
+          }`}
+        >
+          <Layers className="w-3 h-3" />
+          {t("screensUngrouped")}
+          <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+            groupFilter === UNGROUPED ? "bg-background/20" : "bg-background"
+          }`}>{ungroupedCount}</span>
+        </button>
+
+        {groups.map((g) => {
+          const count = screens.filter((s) => s.branch === g).length;
+          return (
+            <div key={g} className="inline-flex items-center group relative">
               <button
-                key={g}
                 onClick={() => setGroupFilter(groupFilter === g ? "all" : g)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   groupFilter === g
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-accent"
-                }`}
+                } ${isAdmin ? "pr-7" : ""}`}
               >
                 <Layers className="w-3 h-3" />
                 {g}
@@ -184,10 +247,29 @@ export default function ScreensPage() {
                   groupFilter === g ? "bg-primary-foreground/20" : "bg-background"
                 }`}>{count}</span>
               </button>
-            );
-          })}
-        </div>
-      )}
+              {isAdmin && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/10">
+                      <MoreHorizontal className="w-3.5 h-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[140px]">
+                    <DropdownMenuItem onClick={() => openRename(g)} className="gap-2 text-xs">
+                      <Pencil className="w-3.5 h-3.5" />
+                      {t("screensRenameGroup")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDeleteGroupTarget(g)} className="gap-2 text-xs text-destructive focus:text-destructive">
+                      <Trash2 className="w-3.5 h-3.5" />
+                      {t("screensDeleteGroup")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
@@ -215,8 +297,10 @@ export default function ScreensPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Layers className="w-3 h-3" />{screen.branch || t("screensUngrouped")}</span>
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{screen.location}</span>
+                  <span className={`flex items-center gap-1 ${!screen.branch ? "italic opacity-60" : ""}`}>
+                    <Layers className="w-3 h-3" />{screen.branch || t("screensUngrouped")}
+                  </span>
+                  {screen.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{screen.location}</span>}
                   <span>{screen.resolution}</span>
                 </div>
               </div>
@@ -243,7 +327,7 @@ export default function ScreensPage() {
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t("screensNamePlaceholder")} />
             </div>
             <div className="space-y-2">
-              <Label>{t("screensBranch")} *</Label>
+              <Label>{t("screensBranch")}</Label>
               {isCreatingInForm ? (
                 <div className="flex gap-2">
                   <Input
@@ -259,9 +343,10 @@ export default function ScreensPage() {
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <Select value={form.branch} onValueChange={(v) => setForm({ ...form, branch: v })}>
+                  <Select value={form.branch || UNGROUPED} onValueChange={(v) => setForm({ ...form, branch: v === UNGROUPED ? "" : v })}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder={t("screensSelectBranch")} /></SelectTrigger>
                     <SelectContent>
+                      <SelectItem value={UNGROUPED}>{t("screensUngrouped")}</SelectItem>
                       {groups.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -338,7 +423,34 @@ export default function ScreensPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
+      {/* Rename Group Dialog */}
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Pencil className="w-5 h-5 text-primary" />{t("screensRenameGroup")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>{t("screensRenameGroup")}</Label>
+              <Input
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                placeholder={t("screensRenameGroupPlaceholder")}
+                onKeyDown={(e) => e.key === "Enter" && handleRenameGroup()}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">{t("cancel")}</Button></DialogClose>
+            <Button onClick={handleRenameGroup} disabled={!renameValue.trim()} className="gap-2">
+              {t("screensSaveChanges")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Screen Confirm */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -348,6 +460,20 @@ export default function ScreensPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("confirmDelete")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Group Confirm */}
+      <AlertDialog open={deleteGroupTarget !== null} onOpenChange={(open) => !open && setDeleteGroupTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("screensDeleteGroup")}：{deleteGroupTarget}</AlertDialogTitle>
+            <AlertDialogDescription>{t("screensDeleteGroupDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteGroup} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("confirmDelete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
