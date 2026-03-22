@@ -615,10 +615,10 @@ export default function MediaPage() {
             <div className="space-y-2">
               <Label>{t("widgetType")}</Label>
               <div className="grid grid-cols-4 gap-2">
-                {(["clock", "date", "webpage", "marquee"] as WidgetSubType[]).map((wt) => {
+                {(["clock", "date", "webpage", "marquee", "qrcode", "countdown", "youtube", "weather"] as WidgetSubType[]).map((wt) => {
                   const Icon = WIDGET_ICONS[wt];
-                  const labels: Record<WidgetSubType, string> = { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee") };
-                  const descs: Record<WidgetSubType, string> = { date: t("widgetDateDesc"), clock: t("widgetClockDesc"), webpage: t("widgetWebpageDesc"), marquee: t("widgetMarqueeDesc") };
+                  const labels: Record<WidgetSubType, string> = { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee"), qrcode: t("widgetQrcode"), countdown: t("widgetCountdown"), youtube: t("widgetYoutube"), weather: t("widgetWeather") };
+                  const descs: Record<WidgetSubType, string> = { date: t("widgetDateDesc"), clock: t("widgetClockDesc"), webpage: t("widgetWebpageDesc"), marquee: t("widgetMarqueeDesc"), qrcode: t("widgetQrcodeDesc"), countdown: t("widgetCountdownDesc"), youtube: t("widgetYoutubeDesc"), weather: t("widgetWeatherDesc") };
                   return (
                     <button key={wt} type="button" onClick={() => setWidgetForm({ ...widgetForm, widgetType: wt })}
                       className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all text-center ${
