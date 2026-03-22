@@ -337,8 +337,13 @@ export default function SchedulesPage() {
           {isAdmin && (
             <Button onClick={openAdd} className="gap-2"><Plus className="w-4 h-4" />{t("schedAdd")}</Button>
           )}
-        </div>
-          {schedules.length === 0 && (
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+      ) : (
+        <>
+          {filteredSchedules.length === 0 && (
             <Card className="p-12 text-center text-muted-foreground">
               <CalendarClock className="w-10 h-10 mx-auto mb-3 opacity-40" />
               <p>{t("schedNoResult")}</p>
