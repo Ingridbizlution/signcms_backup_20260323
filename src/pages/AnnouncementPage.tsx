@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Megaphone, Upload, CalendarIcon, Send, Monitor, Smartphone, Trash2, ImageIcon } from "lucide-react";
+import { Megaphone, Upload, CalendarIcon, Send, Monitor, Smartphone, Trash2, ImageIcon, Pin } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
