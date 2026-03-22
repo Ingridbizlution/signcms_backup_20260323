@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -38,14 +38,36 @@ interface ChatMessage {
   time: string;
 }
 
-const MOCK_MESSAGES: ChatMessage[] = [
-  { id: "1", sender: "customer", content: "你好，我的螢幕突然無法顯示內容了", time: "14:32" },
-  { id: "2", sender: "ai", content: "您好！我是 AI 智慧助手。請問您的螢幕型號是？目前螢幕是否有電源指示燈亮起？", time: "14:32" },
-  { id: "3", sender: "customer", content: "有亮燈，但畫面是黑的，型號是 BZ-55Pro", time: "14:33" },
-  { id: "4", sender: "ai", content: "根據您的描述，可能是 HDMI 訊號問題。建議您：\n1. 檢查 HDMI 線是否鬆脫\n2. 嘗試更換 HDMI 埠\n3. 重新啟動播放器", time: "14:33" },
-  { id: "5", sender: "customer", content: "我試過了，還是不行，可以轉接真人客服嗎？", time: "14:35" },
-  { id: "6", sender: "agent", content: "您好，我是客服人員小陳。我來為您進一步排查問題，請問您的播放器型號是什麼？", time: "14:36" },
-];
+const INITIAL_MESSAGES: Record<string, ChatMessage[]> = {
+  "1": [
+    { id: "1-1", sender: "customer", content: "你好，我的螢幕突然無法顯示內容了", time: "14:32" },
+    { id: "1-2", sender: "ai", content: "您好！我是 AI 智慧助手。請問您的螢幕型號是？目前螢幕是否有電源指示燈亮起？", time: "14:32" },
+    { id: "1-3", sender: "customer", content: "有亮燈，但畫面是黑的，型號是 BZ-55Pro", time: "14:33" },
+    { id: "1-4", sender: "ai", content: "根據您的描述，可能是 HDMI 訊號問題。建議您：\n1. 檢查 HDMI 線是否鬆脫\n2. 嘗試更換 HDMI 埠\n3. 重新啟動播放器", time: "14:33" },
+    { id: "1-5", sender: "customer", content: "我試過了，還是不行，可以轉接真人客服嗎？", time: "14:35" },
+    { id: "1-6", sender: "agent", content: "您好，我是客服人員小陳。我來為您進一步排查問題，請問您的播放器型號是什麼？", time: "14:36" },
+  ],
+  "2": [
+    { id: "2-1", sender: "customer", content: "請問排程功能怎麼使用？", time: "15:01" },
+    { id: "2-2", sender: "ai", content: "您好！排程功能可以在「播放清單排程」頁面設定。您可以：\n1. 選擇播放清單\n2. 設定播放時段與日期\n3. 指定目標螢幕\n\n需要我為您詳細說明哪個步驟嗎？", time: "15:01" },
+  ],
+  "3": [
+    { id: "3-1", sender: "customer", content: "帳號無法登入，一直顯示密碼錯誤", time: "14:50" },
+    { id: "3-2", sender: "agent", content: "您好，請問您使用的是哪個帳號？我先幫您確認帳號狀態。", time: "14:51" },
+    { id: "3-3", sender: "customer", content: "我的帳號是 store_taipei01@company.com", time: "14:52" },
+  ],
+  "4": [
+    { id: "4-1", sender: "customer", content: "之前的問題已經解決了，謝謝！", time: "14:20" },
+    { id: "4-2", sender: "ai", content: "很高興能幫到您！如果之後有任何問題，歡迎隨時聯繫我們 😊", time: "14:20" },
+    { id: "4-3", sender: "customer", content: "感謝您的協助！", time: "14:21" },
+  ],
+  "5": [
+    { id: "5-1", sender: "customer", content: "我上傳素材一直失敗，檔案大小是 15MB", time: "13:45" },
+    { id: "5-2", sender: "ai", content: "目前系統支援的單檔上傳上限為 20MB，15MB 應在範圍內。請問您上傳的是什麼格式的檔案？是否有顯示錯誤訊息？", time: "13:45" },
+  ],
+};
+
+const now = () => new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });
 
 const statusConfig = {
   waiting: { label: "等待中", color: "bg-warning text-warning-foreground" },
@@ -57,11 +79,36 @@ const CustomerServicePage = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<string>("1");
   const [inputText, setInputText] = useState("");
   const [searchText, setSearchText] = useState("");
+  const [messagesMap, setMessagesMap] = useState<Record<string, ChatMessage[]>>(INITIAL_MESSAGES);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const currentMessages = messagesMap[selectedCustomer] || [];
 
   const selected = MOCK_CUSTOMERS.find((c) => c.id === selectedCustomer);
   const filtered = MOCK_CUSTOMERS.filter((c) =>
     c.name.includes(searchText) || c.lastMessage.includes(searchText)
   );
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [currentMessages.length, selectedCustomer]);
+
+  const handleSend = useCallback(() => {
+    if (!inputText.trim()) return;
+    const agentMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender: "agent",
+      content: inputText,
+      time: now(),
+    };
+    setMessagesMap((prev) => ({
+      ...prev,
+      [selectedCustomer]: [...(prev[selectedCustomer] || []), agentMsg],
+    }));
+    setInputText("");
+  }, [inputText, selectedCustomer]);
 
   return (
     <DashboardLayout>
@@ -173,8 +220,8 @@ const CustomerServicePage = () => {
 
                 {/* Messages */}
                 <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4 max-w-3xl mx-auto">
-                    {MOCK_MESSAGES.map((msg) => {
+                  <div className="space-y-4 max-w-3xl mx-auto" ref={scrollRef}>
+                    {currentMessages.map((msg) => {
                       const isCustomer = msg.sender === "customer";
                       const isAI = msg.sender === "ai";
                       return (
@@ -217,12 +264,12 @@ const CustomerServicePage = () => {
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       className="flex-1 h-10 bg-muted/50"
-                      onKeyDown={(e) => e.key === "Enter" && setInputText("")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSend()}
                     />
                     <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title="語音轉文字">
                       <Mic className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" className="h-9 w-9 shrink-0" onClick={() => setInputText("")}>
+                    <Button size="icon" className="h-9 w-9 shrink-0" onClick={handleSend}>
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>
