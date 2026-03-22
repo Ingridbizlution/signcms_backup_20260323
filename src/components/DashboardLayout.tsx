@@ -16,7 +16,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 連鎖店電子看板管理系統
               </span>
             </div>
-            <Button size="sm" className="gap-2">
+            <Button size="sm" className="gap-2 transition-transform duration-200 hover:scale-105">
               <Upload className="w-4 h-4" />
               上傳素材
             </Button>
