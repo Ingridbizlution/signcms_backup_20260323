@@ -373,12 +373,28 @@ export default function ScreensPage() {
                     {screen.online ? t("online") : t("offline")}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
                   <span className={`flex items-center gap-1 ${!screen.branch ? "italic opacity-60" : ""}`}>
                     <Layers className="w-3 h-3" />{screen.branch || t("screensUngrouped")}
                   </span>
                   {screen.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{screen.location}</span>}
                   <span>{screen.resolution}</span>
+                  {screen.serial_number && <span className="flex items-center gap-1 font-mono text-[11px]">SN: {screen.serial_number}</span>}
+                  {screen.ip_address && <span className="flex items-center gap-1 font-mono text-[11px]">IP: {screen.ip_address}</span>}
+                  {screen.connection_type && (
+                    <span className="flex items-center gap-1">
+                      {screen.connection_type === "wired" ? <Cable className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
+                      {screen.connection_type === "wired" ? "有線" : "無線"}
+                    </span>
+                  )}
+                  {(screen.avg_upload_speed || screen.avg_download_speed) && (
+                    <span className="flex items-center gap-1">
+                      <ArrowUpDown className="w-3 h-3" />
+                      {screen.avg_upload_speed && `↑${screen.avg_upload_speed}`}
+                      {screen.avg_upload_speed && screen.avg_download_speed && " / "}
+                      {screen.avg_download_speed && `↓${screen.avg_download_speed}`}
+                    </span>
+                  )}
                 </div>
               </div>
               {isAdmin && (
