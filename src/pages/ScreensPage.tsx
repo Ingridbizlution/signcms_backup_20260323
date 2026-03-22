@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2 } from "lucide-react";
+import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2, FolderPlus, Layers } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,7 +29,6 @@ interface Screen {
   online: boolean;
 }
 
-const branches = ["台北信義店", "台中逢甲店", "高雄巨蛋店", "新竹竹北店", "台南永康店"];
 const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080" };
 
 export default function ScreensPage() {
@@ -39,18 +38,33 @@ export default function ScreensPage() {
   const [screens, setScreens] = useState<Screen[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [branchFilter, setBranchFilter] = useState("all");
+  const [groupFilter, setGroupFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // Dynamic groups
+  const [groups, setGroups] = useState<string[]>([]);
+  const [newGroupDialogOpen, setNewGroupDialogOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [isCreatingInForm, setIsCreatingInForm] = useState(false);
+  const [inlineNewGroup, setInlineNewGroup] = useState("");
+
   const fetchScreens = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online").order("created_at", { ascending: true });
     if (error) { toast.error(error.message); }
-    else { setScreens(data || []); }
+    else {
+      setScreens(data || []);
+      // Derive unique groups from existing screens
+      const uniqueGroups = Array.from(new Set((data || []).map((s: Screen) => s.branch).filter(Boolean))) as string[];
+      setGroups((prev) => {
+        const merged = new Set([...prev, ...uniqueGroups]);
+        return Array.from(merged).sort();
+      });
+    }
     setLoading(false);
   };
 
@@ -58,31 +72,40 @@ export default function ScreensPage() {
 
   const filtered = screens.filter((s) => {
     const matchSearch = s.name.includes(search) || s.branch.includes(search) || s.location.includes(search);
-    const matchBranch = branchFilter === "all" || s.branch === branchFilter;
-    return matchSearch && matchBranch;
+    const matchGroup = groupFilter === "all" || s.branch === groupFilter;
+    return matchSearch && matchGroup;
   });
 
-  const openAdd = () => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); };
+  const openAdd = () => { setEditingId(null); setForm(emptyForm); setIsCreatingInForm(false); setInlineNewGroup(""); setDialogOpen(true); };
   const openEdit = (screen: Screen) => {
     setEditingId(screen.id);
     setForm({ name: screen.name, branch: screen.branch, location: screen.location, resolution: screen.resolution });
+    setIsCreatingInForm(false);
+    setInlineNewGroup("");
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.branch) { toast.error(t("screensFillRequired")); return; }
+    const finalBranch = isCreatingInForm ? inlineNewGroup.trim() : form.branch;
+    if (!form.name || !finalBranch) { toast.error(t("screensFillRequired")); return; }
     setSaving(true);
     if (editingId) {
-      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: form.branch, location: form.location, resolution: form.resolution, updated_at: new Date().toISOString() }).eq("id", editingId);
+      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch, location: form.location, resolution: form.resolution, updated_at: new Date().toISOString() }).eq("id", editingId);
       if (error) toast.error(error.message);
       else toast.success(t("screensUpdated"));
     } else {
-      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: form.branch, location: form.location, resolution: form.resolution, uploaded_by: user?.id });
+      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch, location: form.location, resolution: form.resolution, uploaded_by: user?.id });
       if (error) toast.error(error.message);
       else toast.success(t("screensAdded"));
     }
+    // Add new group to local list
+    if (isCreatingInForm && inlineNewGroup.trim()) {
+      setGroups((prev) => Array.from(new Set([...prev, inlineNewGroup.trim()])).sort());
+    }
     setSaving(false);
     setDialogOpen(false);
+    setIsCreatingInForm(false);
+    setInlineNewGroup("");
     fetchScreens();
   };
 
@@ -95,6 +118,16 @@ export default function ScreensPage() {
     }
   };
 
+  const handleAddGroup = () => {
+    const name = newGroupName.trim();
+    if (!name) return;
+    if (groups.includes(name)) { toast.error("Group already exists"); return; }
+    setGroups((prev) => [...prev, name].sort());
+    toast.success(t("screensGroupCreated"));
+    setNewGroupName("");
+    setNewGroupDialogOpen(false);
+  };
+
   return (
     <div className="space-y-6 max-w-6xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
@@ -103,10 +136,16 @@ export default function ScreensPage() {
           <p className="text-sm text-muted-foreground mt-1">{t("screensSubtitle")}</p>
         </div>
         {isAdmin && (
-          <Button onClick={openAdd} className="gap-2 self-start">
-            <Plus className="w-4 h-4" />
-            {t("screensAdd")}
-          </Button>
+          <div className="flex gap-2 self-start">
+            <Button variant="outline" onClick={() => setNewGroupDialogOpen(true)} className="gap-2">
+              <FolderPlus className="w-4 h-4" />
+              {t("screensNewGroup")}
+            </Button>
+            <Button onClick={openAdd} className="gap-2">
+              <Plus className="w-4 h-4" />
+              {t("screensAdd")}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -115,14 +154,40 @@ export default function ScreensPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder={t("screensSearchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={branchFilter} onValueChange={setBranchFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("allBranches")} /></SelectTrigger>
+        <Select value={groupFilter} onValueChange={setGroupFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("allGroups")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("allBranches")}</SelectItem>
-            {branches.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+            <SelectItem value="all">{t("allGroups")}</SelectItem>
+            {groups.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
+
+      {/* Group chips */}
+      {groups.length > 0 && (
+        <div className="flex flex-wrap gap-2 animate-fade-in">
+          {groups.map((g) => {
+            const count = screens.filter((s) => s.branch === g).length;
+            return (
+              <button
+                key={g}
+                onClick={() => setGroupFilter(groupFilter === g ? "all" : g)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  groupFilter === g
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                <Layers className="w-3 h-3" />
+                {g}
+                <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                  groupFilter === g ? "bg-primary-foreground/20" : "bg-background"
+                }`}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
@@ -150,8 +215,8 @@ export default function ScreensPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{screen.branch}</span>
-                  <span>{screen.location}</span>
+                  <span className="flex items-center gap-1"><Layers className="w-3 h-3" />{screen.branch || t("screensUngrouped")}</span>
+                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{screen.location}</span>
                   <span>{screen.resolution}</span>
                 </div>
               </div>
@@ -166,6 +231,7 @@ export default function ScreensPage() {
         </div>
       )}
 
+      {/* Add/Edit Screen Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -178,10 +244,32 @@ export default function ScreensPage() {
             </div>
             <div className="space-y-2">
               <Label>{t("screensBranch")} *</Label>
-              <Select value={form.branch} onValueChange={(v) => setForm({ ...form, branch: v })}>
-                <SelectTrigger><SelectValue placeholder={t("screensSelectBranch")} /></SelectTrigger>
-                <SelectContent>{branches.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
-              </Select>
+              {isCreatingInForm ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={inlineNewGroup}
+                    onChange={(e) => setInlineNewGroup(e.target.value)}
+                    placeholder={t("screensNewGroupPlaceholder")}
+                    className="flex-1"
+                    autoFocus
+                  />
+                  <Button variant="outline" size="sm" onClick={() => { setIsCreatingInForm(false); setInlineNewGroup(""); }}>
+                    {t("cancel")}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Select value={form.branch} onValueChange={(v) => setForm({ ...form, branch: v })}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder={t("screensSelectBranch")} /></SelectTrigger>
+                    <SelectContent>
+                      {groups.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" className="shrink-0" onClick={() => setIsCreatingInForm(true)} title={t("screensNewGroup")}>
+                    <FolderPlus className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t("screensLocation")}</Label>
@@ -210,6 +298,47 @@ export default function ScreensPage() {
         </DialogContent>
       </Dialog>
 
+      {/* New Group Dialog */}
+      <Dialog open={newGroupDialogOpen} onOpenChange={setNewGroupDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><FolderPlus className="w-5 h-5 text-primary" />{t("screensNewGroup")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>{t("screensNewGroup")} *</Label>
+              <Input
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder={t("screensNewGroupPlaceholder")}
+                onKeyDown={(e) => e.key === "Enter" && handleAddGroup()}
+              />
+            </div>
+            {groups.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">{t("screensManageGroups")}</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {groups.map((g) => (
+                    <span key={g} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-xs text-muted-foreground">
+                      <Layers className="w-3 h-3" />
+                      {g}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">{t("cancel")}</Button></DialogClose>
+            <Button onClick={handleAddGroup} disabled={!newGroupName.trim()} className="gap-2">
+              <Plus className="w-4 h-4" />
+              {t("screensNewGroup")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
