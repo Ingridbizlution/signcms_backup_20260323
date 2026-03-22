@@ -511,6 +511,11 @@ const translations = {
   restoreNormalSuccess: { zh: "已恢復正常播放！", en: "Normal Playback Restored!", ja: "通常再生に復帰しました！" },
   restoreNormalSuccessDesc: { zh: "所有螢幕已恢復正常排程播放", en: "All screens have returned to normal scheduled playback", ja: "全スクリーンが通常のスケジュール再生に復帰しました" },
   restoreNormalNoEmergency: { zh: "目前沒有緊急插播中的螢幕", en: "No screens currently in emergency mode", ja: "現在緊急配信中のスクリーンはありません" },
+
+  // Dashboard Emergency
+  dashEmergencyTitle: { zh: "⚠️ 緊急插播進行中", en: "⚠️ Emergency Broadcast Active", ja: "⚠️ 緊急配信が進行中" },
+  dashEmergencyDesc: { zh: "目前有 {count} 個螢幕正處於緊急插播模式，正常排程已被覆蓋。", en: "{count} screen(s) are currently in emergency broadcast mode. Normal schedules are overridden.", ja: "現在 {count} 台のスクリーンが緊急配信モードです。通常スケジュールは上書きされています。" },
+  dashEmergencyAction: { zh: "前往處理", en: "Go to Publishing", ja: "発行管理へ" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
