@@ -414,8 +414,8 @@ export default function ScreensPage() {
                     };
                     const up = parseSpeed(screen.avg_upload_speed);
                     const down = parseSpeed(screen.avg_download_speed);
-                    const UPLOAD_THRESHOLD = 10; // Mbps
-                    const DOWNLOAD_THRESHOLD = 20; // Mbps
+                    const UPLOAD_THRESHOLD = uploadThreshold;
+                    const DOWNLOAD_THRESHOLD = downloadThreshold;
                     const hasData = up !== null || down !== null;
                     const isUpLow = up !== null && up < UPLOAD_THRESHOLD;
                     const isDownLow = down !== null && down < DOWNLOAD_THRESHOLD;
