@@ -384,9 +384,9 @@ export default function PublishingCenterPage() {
           </h2>
           <Separator />
           <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
-            {schedules.length === 0 ? (
+            {filteredSchedules.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center">{t("publishNoPlaylists")}</p>
-            ) : schedules.map((s) => (
+            ) : filteredSchedules.map((s) => (
               <button
                 key={s.id}
                 onClick={() => setSelectedScheduleId(s.id === selectedScheduleId ? null : s.id)}
