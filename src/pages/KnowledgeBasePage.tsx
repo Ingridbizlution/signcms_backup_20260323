@@ -4,28 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BookOpen, Plus, Search, Upload, Brain, Building2, Store,
   FileText, Trash2, Edit2, FolderOpen, ChevronRight, Sparkles, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface KnowledgeItem {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  subCategory: string;
-  fileCount: number;
-  lastUpdated: string;
-  synced: boolean;
-}
+import { useKnowledgeItems } from "@/hooks/useKnowledgeItems";
 
 const CATEGORIES = [
   {
@@ -44,16 +33,8 @@ const CATEGORIES = [
   },
 ];
 
-const INITIAL_ITEMS: KnowledgeItem[] = [
-  { id: "1", title: "品牌識別系統規範 v3.2", description: "包含 Logo 使用規範、色彩系統、字型規範等完整品牌視覺指引", category: "hq", subCategory: "品牌視覺規範", fileCount: 5, lastUpdated: "2026-03-20", synced: true },
-  { id: "2", title: "內容發佈標準作業流程", description: "從內容製作到審核發佈的完整 SOP 文件", category: "hq", subCategory: "發佈流程 SOP", fileCount: 3, lastUpdated: "2026-03-18", synced: true },
-  { id: "3", title: "螢幕故障排除指南", description: "常見螢幕問題的診斷與排除步驟", category: "store", subCategory: "螢幕報修流程", fileCount: 8, lastUpdated: "2026-03-19", synced: false },
-  { id: "4", title: "門市日常清潔 SOP", description: "螢幕、展示區域的標準清潔程序", category: "store", subCategory: "店鋪清潔規範", fileCount: 2, lastUpdated: "2026-03-15", synced: true },
-  { id: "5", title: "行銷活動企劃範本", description: "季度行銷活動的標準企劃書模板與案例", category: "hq", subCategory: "行銷策略", fileCount: 4, lastUpdated: "2026-03-17", synced: false },
-];
-
 const KnowledgeBasePage = () => {
-  const [items, setItems] = useState<KnowledgeItem[]>(INITIAL_ITEMS);
+  const { items, loading, addItem, deleteItem, syncAll } = useKnowledgeItems();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [addOpen, setAddOpen] = useState(false);
@@ -65,36 +46,11 @@ const KnowledgeBasePage = () => {
     return matchSearch && matchCat;
   });
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newItem.title || !newItem.category) return;
-    setItems((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        title: newItem.title,
-        description: newItem.description,
-        category: newItem.category,
-        subCategory: newItem.subCategory,
-        fileCount: 0,
-        lastUpdated: new Date().toISOString().slice(0, 10),
-        synced: false,
-      },
-    ]);
+    await addItem(newItem);
     setNewItem({ title: "", description: "", category: "", subCategory: "" });
     setAddOpen(false);
-    toast.success("知識點已新增");
-  };
-
-  const handleSyncAll = () => {
-    setItems((prev) => prev.map((i) => ({ ...i, synced: true })));
-    toast.success("所有知識已同步至 AI 學習模型", {
-      description: "AI 助手將能根據最新知識庫回答客戶問題",
-    });
-  };
-
-  const handleDelete = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    toast.success("知識點已刪除");
   };
 
   const selectedCategory = CATEGORIES.find((c) => c.id === newItem.category);
@@ -114,7 +70,7 @@ const KnowledgeBasePage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleSyncAll} className="gap-2">
+            <Button variant="outline" onClick={syncAll} className="gap-2">
               <Brain className="h-4 w-4" />
               <Sparkles className="h-3 w-3" />
               同步至 AI 學習
@@ -192,59 +148,67 @@ const KnowledgeBasePage = () => {
             </Tabs>
           </div>
 
-          <div className="grid gap-3">
-            {filtered.map((item) => {
-              const cat = CATEGORIES.find((c) => c.id === item.category);
-              return (
-                <Card key={item.id} className="hover-lift">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className={cn("h-10 w-10 rounded-lg bg-gradient-to-br flex items-center justify-center shrink-0", cat?.color || "from-gray-400 to-gray-500")}>
-                      <FileText className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-foreground truncate">{item.title}</h3>
-                        {item.synced ? (
-                          <Badge variant="outline" className="text-[10px] border-success/30 text-success shrink-0">
-                            <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" /> 已同步
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] border-warning/30 text-warning shrink-0">
-                            待同步
-                          </Badge>
-                        )}
+          {loading ? (
+            <div className="grid gap-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {filtered.map((item) => {
+                const cat = CATEGORIES.find((c) => c.id === item.category);
+                return (
+                  <Card key={item.id} className="hover-lift">
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className={cn("h-10 w-10 rounded-lg bg-gradient-to-br flex items-center justify-center shrink-0", cat?.color || "from-gray-400 to-gray-500")}>
+                        <FileText className="h-5 w-5 text-white" />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.description}</p>
-                      <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                        <span>{cat?.name}</span>
-                        <ChevronRight className="h-3 w-3" />
-                        <span>{item.subCategory}</span>
-                        <span className="ml-2">{item.fileCount} 個檔案</span>
-                        <span>更新於 {item.lastUpdated}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold text-foreground truncate">{item.title}</h3>
+                          {item.synced ? (
+                            <Badge variant="outline" className="text-[10px] border-success/30 text-success shrink-0">
+                              <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" /> 已同步
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] border-warning/30 text-warning shrink-0">
+                              待同步
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.description}</p>
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                          <span>{cat?.name}</span>
+                          <ChevronRight className="h-3 w-3" />
+                          <span>{item.sub_category}</span>
+                          <span className="ml-2">{item.file_count} 個檔案</span>
+                          <span>更新於 {item.updated_at?.slice(0, 10)}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" title="上傳文件">
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" title="編輯">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="刪除" onClick={() => handleDelete(item.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            {filtered.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p>尚無知識點</p>
-              </div>
-            )}
-          </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="上傳文件">
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="編輯">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="刪除" onClick={() => deleteItem(item.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+              {filtered.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p>尚無知識點</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
