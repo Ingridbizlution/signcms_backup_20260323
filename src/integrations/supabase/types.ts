@@ -47,6 +47,7 @@ export type Database = {
       media_items: {
         Row: {
           created_at: string
+          design_project_id: string | null
           dimensions: string
           duration: string | null
           id: string
@@ -59,6 +60,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          design_project_id?: string | null
           dimensions?: string
           duration?: string | null
           id?: string
@@ -71,6 +73,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          design_project_id?: string | null
           dimensions?: string
           duration?: string | null
           id?: string
@@ -81,7 +84,15 @@ export type Database = {
           uploaded_by?: string | null
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "media_items_design_project_id_fkey"
+            columns: ["design_project_id"]
+            isOneToOne: false
+            referencedRelation: "design_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
