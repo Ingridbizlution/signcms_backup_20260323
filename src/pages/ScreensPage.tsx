@@ -451,6 +451,7 @@ export default function ScreensPage() {
                   <span title="解析度">{screen.resolution}</span>
                   <span className="flex items-center gap-1 font-mono text-[11px]" title="序號">SN: {screen.serial_number || "—"}</span>
                   <span className="flex items-center gap-1 font-mono text-[11px]" title="網路 IP 位址">IP: {screen.ip_address || "—"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title="韌體版本">FW: {screen.firmware_version || "—"}</span>
                   {screen.connection_type && (
                     <span className="flex items-center gap-1" title="連線方式">
                       {screen.connection_type === "wired" ? <Cable className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
