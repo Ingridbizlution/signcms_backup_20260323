@@ -823,6 +823,37 @@ export default function ContentStudioPage() {
 
   // Delete project
   const handleDelete = useCallback(async (id: string) => {
+    // Check if bound in schedule items
+    const { data: scheduleUsage } = await (supabase as any)
+      .from("schedule_items")
+      .select("id, schedule_id, schedules(name)")
+      .eq("design_project_id", id)
+      .limit(10);
+
+    // Check if bound in media items
+    const { data: mediaUsage } = await (supabase as any)
+      .from("media_items")
+      .select("id, name")
+      .eq("design_project_id", id)
+      .limit(10);
+
+    const hasScheduleUsage = scheduleUsage && scheduleUsage.length > 0;
+    const hasMediaUsage = mediaUsage && mediaUsage.length > 0;
+
+    if (hasScheduleUsage || hasMediaUsage) {
+      const parts: string[] = [];
+      if (hasScheduleUsage) {
+        const scheduleNames = [...new Set(scheduleUsage.map((s: any) => s.schedules?.name).filter(Boolean))];
+        parts.push(`${t("studioDeleteBoundSchedule")}: ${scheduleNames.join(", ")}`);
+      }
+      if (hasMediaUsage) {
+        const mediaNames = mediaUsage.map((m: any) => m.name).filter(Boolean);
+        parts.push(`${t("studioDeleteBoundMedia")}: ${mediaNames.join(", ")}`);
+      }
+      toast.error(t("studioDeleteBoundError"), { description: parts.join("\n") });
+      return;
+    }
+
     await (supabase as any).from("design_projects").delete().eq("id", id);
     if (currentProject?.id === id) { setCurrentProject(null); }
     loadProjects();
