@@ -47,7 +47,7 @@ export default function AdminPage() {
     await supabase.from("user_roles").delete().eq("user_id", user.user_id);
     const { error } = await supabase.from("user_roles").insert({ user_id: user.user_id, role: newRole });
     if (error) { toast.error(`${t("adminRoleUpdateFailed")}：${error.message}`); }
-    else { toast.success(t("adminRoleUpdated")); fetchUsers(); }
+    else { toast.success(t("adminRoleUpdated")); logActivity({ action: "變更角色", category: "admin", targetName: user.display_name || user.email, detail: `→ ${newRole}` }); fetchUsers(); }
     setSaving(false); setChangeDialog(null);
   };
 
