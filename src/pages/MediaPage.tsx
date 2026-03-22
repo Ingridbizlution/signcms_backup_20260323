@@ -61,7 +61,26 @@ const WIDGET_ICONS: Record<WidgetSubType, typeof Calendar> = {
   marquee: Type,
 };
 
-function WidgetPreviewCard({ config }: { config: WidgetConfig }) {
+const TIMEZONE_OPTIONS = [
+  { value: "Asia/Taipei", label: "🇹🇼 台北 (UTC+8)" },
+  { value: "Asia/Tokyo", label: "🇯🇵 東京 (UTC+9)" },
+  { value: "Asia/Shanghai", label: "🇨🇳 上海 (UTC+8)" },
+  { value: "Asia/Hong_Kong", label: "🇭🇰 香港 (UTC+8)" },
+  { value: "Asia/Singapore", label: "🇸🇬 新加坡 (UTC+8)" },
+  { value: "Asia/Seoul", label: "🇰🇷 首爾 (UTC+9)" },
+  { value: "Asia/Bangkok", label: "🇹🇭 曼谷 (UTC+7)" },
+  { value: "Asia/Kolkata", label: "🇮🇳 孟買 (UTC+5:30)" },
+  { value: "Asia/Dubai", label: "🇦🇪 杜拜 (UTC+4)" },
+  { value: "Europe/London", label: "🇬🇧 倫敦 (UTC+0/+1)" },
+  { value: "Europe/Paris", label: "🇫🇷 巴黎 (UTC+1/+2)" },
+  { value: "Europe/Berlin", label: "🇩🇪 柏林 (UTC+1/+2)" },
+  { value: "America/New_York", label: "🇺🇸 紐約 (UTC-5/-4)" },
+  { value: "America/Chicago", label: "🇺🇸 芝加哥 (UTC-6/-5)" },
+  { value: "America/Los_Angeles", label: "🇺🇸 洛杉磯 (UTC-8/-7)" },
+  { value: "Pacific/Auckland", label: "🇳🇿 奧克蘭 (UTC+12/+13)" },
+  { value: "Australia/Sydney", label: "🇦🇺 雪梨 (UTC+10/+11)" },
+];
+
   const { t } = useLanguage();
   const Icon = WIDGET_ICONS[config.widgetType] || Code2;
   const labels: Record<WidgetSubType, string> = {
