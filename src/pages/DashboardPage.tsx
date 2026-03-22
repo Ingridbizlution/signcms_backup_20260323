@@ -47,11 +47,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [screensRes, schedulesRes, mediaRes, itemsRes] = await Promise.all([
+      const [screensRes, schedulesRes, mediaRes, itemsRes, emergencyRes] = await Promise.all([
         (supabase as any).from("screens").select("id, name, branch, online").order("created_at"),
         (supabase as any).from("schedules").select("id, name, screen_id, enabled, start_time, end_time").order("created_at"),
         (supabase as any).from("media_items").select("id, name, type").order("created_at", { ascending: false }),
         (supabase as any).from("schedule_items").select("id, schedule_id, media_id, duration").order("sort_order"),
+        (supabase as any).from("publish_records").select("id").eq("status", "emergency"),
       ]);
       setScreens(screensRes.data || []);
       setSchedules(schedulesRes.data || []);
