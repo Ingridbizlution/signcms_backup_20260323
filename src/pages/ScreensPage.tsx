@@ -731,6 +731,11 @@ export default function ScreensPage() {
               {t("save")}
             </Button>
           </DialogFooter>
+            </TabsContent>
+            <TabsContent value="logs">
+              {settingsScreen && <ScreenLogPanel screenId={settingsScreen.id} />}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 
