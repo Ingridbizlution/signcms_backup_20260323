@@ -773,6 +773,10 @@ export default function ContentStudioPage() {
               <Smartphone className="w-3.5 h-3.5" /> 9:16
             </Button>
           </div>
+          <div className="w-px h-6 bg-border mx-1" />
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={addOverlay}>
+            <Layers className="w-3.5 h-3.5" /> {t("studioAddOverlay")}
+          </Button>
         </div>
       </div>
 
