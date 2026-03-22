@@ -38,7 +38,7 @@ interface Screen {
   org_id?: string | null;
 }
 
-const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080" };
+const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "" };
 
 export default function ScreensPage() {
   const { isAdmin } = useUserRole();
