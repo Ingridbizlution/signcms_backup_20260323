@@ -386,7 +386,7 @@ export default function MediaPage() {
     else {
       toast.success(t("widgetCreated"));
       setWidgetDialogOpen(false);
-      setWidgetForm({ name: "", widgetType: "clock", url: "", text: "歡迎光臨！今日特惠中", speed: "normal", format: "24", clockStyle: "digital", showDate: false, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, bgColor: "#1a1a2e", textColor: "#ffffff" });
+      setWidgetForm({ ...defaultWidgetForm });
       fetchMedia();
     }
   };
