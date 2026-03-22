@@ -106,8 +106,11 @@ export function ScreenLogPanel({ screenId }: ScreenLogPanelProps) {
                   {log.event_detail && (
                     <p className="text-[11px] text-muted-foreground mt-0.5">{log.event_detail}</p>
                   )}
-                  <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                    {format(new Date(log.created_at), "yyyy-MM-dd HH:mm:ss")}
+                  <p className="text-[10px] text-muted-foreground/60 mt-0.5 flex items-center gap-2">
+                    {log.operator_name && (
+                      <span className="flex items-center gap-0.5"><User className="w-2.5 h-2.5" />{log.operator_name}</span>
+                    )}
+                    <span>{format(new Date(log.created_at), "yyyy-MM-dd HH:mm:ss")}</span>
                   </p>
                 </div>
               </div>
