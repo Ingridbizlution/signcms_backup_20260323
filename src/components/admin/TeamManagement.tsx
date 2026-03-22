@@ -109,7 +109,7 @@ export default function TeamManagement() {
   const handleDelete = async () => {
     if (!deleteDialog) return;
     const { error } = await supabase.from("teams").delete().eq("id", deleteDialog.id);
-    if (error) toast.error(error.message); else { toast.success(t("teamDeleted")); fetchData(); }
+    if (error) toast.error(error.message); else { toast.success(t("teamDeleted")); logActivity({ action: "刪除團隊", category: "admin", targetName: deleteDialog.name, targetId: deleteDialog.id }); fetchData(); }
     setDeleteDialog(null);
   };
 

@@ -76,7 +76,7 @@ export default function OrgManagement() {
   const handleDelete = async () => {
     if (!deleteDialog) return;
     const { error } = await supabase.from("organizations").delete().eq("id", deleteDialog.id);
-    if (error) toast.error(error.message); else { toast.success(t("orgDeleted")); fetchOrgs(); }
+    if (error) toast.error(error.message); else { toast.success(t("orgDeleted")); logActivity({ action: "刪除組織", category: "admin", targetName: deleteDialog.name, targetId: deleteDialog.id }); fetchOrgs(); }
     setDeleteDialog(null);
   };
 
