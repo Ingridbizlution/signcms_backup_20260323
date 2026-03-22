@@ -60,11 +60,12 @@ interface Zone {
 
 interface OverlayBlock {
   id: string;
-  x: number; // px position relative to canvas
+  x: number;
   y: number;
-  w: number; // px size
+  w: number;
   h: number;
   label: string;
+  opacity: number; // 0-100
   content?: ZoneContent;
 }
 
