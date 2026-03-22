@@ -121,3 +121,28 @@
 .animate-marquee {
   animation: marquee 15s linear infinite;
 }
+
+@keyframes widgetFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes widgetSlideUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes widgetBounce {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.08); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes widgetZoomIn {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes widgetFlipIn {
+  0% { opacity: 0; transform: perspective(400px) rotateY(90deg); }
+  40% { opacity: 1; transform: perspective(400px) rotateY(-10deg); }
+  70% { transform: perspective(400px) rotateY(5deg); }
+  100% { opacity: 1; transform: perspective(400px) rotateY(0deg); }
+}

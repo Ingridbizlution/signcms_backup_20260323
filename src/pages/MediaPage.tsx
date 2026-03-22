@@ -25,6 +25,8 @@ import { toast } from "sonner";
 
 type WidgetSubType = "date" | "clock" | "webpage" | "marquee" | "qrcode" | "countdown" | "youtube" | "weather";
 
+type WidgetAnimation = "none" | "fadeIn" | "slideUp" | "bounce" | "zoomIn" | "flipIn";
+
 interface WidgetConfig {
   widgetType: WidgetSubType;
   url?: string;
@@ -43,6 +45,7 @@ interface WidgetConfig {
   city?: string;
   fontSize?: "small" | "medium" | "large" | "xlarge";
   qrcodeSize?: number;
+  animation?: WidgetAnimation;
 }
 
 interface MediaItem {
@@ -125,6 +128,15 @@ const FONT_SIZE_MAP = {
   medium: { time: "text-4xl", date: "text-sm", title: "text-lg", countdown: "text-4xl", marquee: "text-2xl", weather: "text-3xl", weatherCity: "text-lg", weatherIcon: "w-16 h-16" },
   large: { time: "text-6xl", date: "text-lg", title: "text-2xl", countdown: "text-6xl", marquee: "text-4xl", weather: "text-5xl", weatherCity: "text-xl", weatherIcon: "w-20 h-20" },
   xlarge: { time: "text-8xl", date: "text-xl", title: "text-3xl", countdown: "text-8xl", marquee: "text-6xl", weather: "text-7xl", weatherCity: "text-2xl", weatherIcon: "w-24 h-24" },
+};
+
+const ANIMATION_CSS: Record<WidgetAnimation, string> = {
+  none: "",
+  fadeIn: "animate-[widgetFadeIn_0.8s_ease-out_both]",
+  slideUp: "animate-[widgetSlideUp_0.6s_ease-out_both]",
+  bounce: "animate-[widgetBounce_0.8s_ease-out_both]",
+  zoomIn: "animate-[widgetZoomIn_0.5s_ease-out_both]",
+  flipIn: "animate-[widgetFlipIn_0.7s_ease-out_both]",
 };
 
 function WidgetLivePreview({ config }: { config: WidgetConfig }) {
@@ -301,6 +313,14 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   return null;
 }
 
+function AnimatedWidgetWrapper({ config, children }: { config: WidgetConfig; children: React.ReactNode }) {
+  const [key, setKey] = useState(0);
+  const anim = config.animation || "none";
+  useEffect(() => { setKey((k) => k + 1); }, [anim]);
+  if (anim === "none") return <>{children}</>;
+  return <div key={key} className={`w-full h-full ${ANIMATION_CSS[anim]}`}>{children}</div>;
+}
+
 function extractYoutubeId(url: string): string | null {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
   return match ? match[1] : null;
@@ -362,6 +382,7 @@ export default function MediaPage() {
     city: "Taipei",
     fontSize: "medium" as "small" | "medium" | "large" | "xlarge",
     qrcodeSize: 140,
+    animation: "none" as WidgetAnimation,
   };
   const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
 
@@ -464,6 +485,7 @@ export default function MediaPage() {
       bgColor: widgetForm.bgColor,
       textColor: widgetForm.textColor,
       fontSize: widgetForm.fontSize,
+      animation: widgetForm.animation,
     };
     if (widgetForm.widgetType === "webpage") config.url = widgetForm.url;
     if (widgetForm.widgetType === "marquee") { config.text = widgetForm.text; config.speed = widgetForm.speed; }
@@ -668,7 +690,7 @@ export default function MediaPage() {
           <div className="space-y-4">
             <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
               {previewItem?.type === "widget" ? (
-                (() => { const c = parseWidgetConfig(previewItem.url); return c ? <WidgetLivePreview config={c} /> : <Code2 className="w-16 h-16 opacity-30" />; })()
+                (() => { const c = parseWidgetConfig(previewItem.url); return c ? <AnimatedWidgetWrapper config={c}><WidgetLivePreview config={c} /></AnimatedWidgetWrapper> : <Code2 className="w-16 h-16 opacity-30" />; })()
               ) : previewItem?.url && previewItem.type === "image" ? (
                 <img src={previewItem.url} alt={previewItem.name} className="w-full h-full object-contain" />
               ) : previewItem?.url && previewItem.type === "video" ? (
@@ -893,29 +915,51 @@ export default function MediaPage() {
               </div>
             )}
 
+            {/* Animation */}
+            <div className="space-y-2">
+              <Label>{t("widgetAnimation")}</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["none", "fadeIn", "slideUp", "bounce", "zoomIn", "flipIn"] as WidgetAnimation[]).map((anim) => {
+                  const animLabels: Record<WidgetAnimation, string> = { none: t("widgetAnimNone"), fadeIn: t("widgetAnimFadeIn"), slideUp: t("widgetAnimSlideUp"), bounce: t("widgetAnimBounce"), zoomIn: t("widgetAnimZoomIn"), flipIn: t("widgetAnimFlipIn") };
+                  return (
+                    <button key={anim} type="button" onClick={() => setWidgetForm({ ...widgetForm, animation: anim })}
+                      className={`p-2 rounded-lg border-2 transition-all text-sm text-center ${widgetForm.animation === anim ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
+                      {animLabels[anim]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Live Preview */}
             <div className="space-y-2">
               <Label>{t("mediaPreviewUnavailable").replace("（範例素材）", "").replace("(sample)", "Preview")}</Label>
               <div className="aspect-video rounded-lg overflow-hidden border border-border">
-                <WidgetLivePreview config={{
+                <AnimatedWidgetWrapper config={{
+                  animation: widgetForm.animation,
                   widgetType: widgetForm.widgetType,
-                  url: widgetForm.url,
-                  text: widgetForm.text,
-                  speed: widgetForm.speed,
-                  format: widgetForm.format,
-                  clockStyle: widgetForm.clockStyle,
-                  showDate: widgetForm.showDate,
-                  timezone: widgetForm.timezone,
-                  bgColor: widgetForm.bgColor,
-                  textColor: widgetForm.textColor,
-                  qrcodeContent: widgetForm.qrcodeContent,
-                  targetDate: widgetForm.targetDate,
-                  countdownTitle: widgetForm.countdownTitle,
-                  youtubeUrl: widgetForm.youtubeUrl,
-                  city: widgetForm.city,
-                  fontSize: widgetForm.fontSize,
-                  qrcodeSize: widgetForm.qrcodeSize,
-                }} />
+                }}>
+                  <WidgetLivePreview config={{
+                    widgetType: widgetForm.widgetType,
+                    url: widgetForm.url,
+                    text: widgetForm.text,
+                    speed: widgetForm.speed,
+                    format: widgetForm.format,
+                    clockStyle: widgetForm.clockStyle,
+                    showDate: widgetForm.showDate,
+                    timezone: widgetForm.timezone,
+                    bgColor: widgetForm.bgColor,
+                    textColor: widgetForm.textColor,
+                    qrcodeContent: widgetForm.qrcodeContent,
+                    targetDate: widgetForm.targetDate,
+                    countdownTitle: widgetForm.countdownTitle,
+                    youtubeUrl: widgetForm.youtubeUrl,
+                    city: widgetForm.city,
+                    fontSize: widgetForm.fontSize,
+                    qrcodeSize: widgetForm.qrcodeSize,
+                    animation: widgetForm.animation,
+                  }} />
+                </AnimatedWidgetWrapper>
               </div>
             </div>
           </div>
