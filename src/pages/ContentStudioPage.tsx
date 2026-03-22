@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   Utensils, PartyPopper, ShoppingBag, Sun, Gift, Coffee,
   X, Plus, AlignLeft, AlignCenter, AlignRight, Minus,
   Save, FolderOpen, FilePlus, ChevronLeft, ChevronRightIcon, Play, Pause,
-  Layers, Code2, Clock, Calendar, Globe, CloudSun, QrCode, Timer, Youtube, Move, Maximize2, Lock, Unlock
+  Layers, Code2, Clock, Calendar, Globe, CloudSun, QrCode, Timer, Youtube, Move, Maximize2, Lock, Unlock, Check
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { QRCodeSVG } from "qrcode.react";
@@ -225,8 +225,61 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
   const { t } = useLanguage();
   const content: ZoneContent = zone.content || { type: "color", value: "", bgColor: "hsl(var(--muted))" };
   const mediaItems = content.mediaItems || [];
-  const [showMediaPicker, setShowMediaPicker] = useState(false);
-  const [showWidgetPicker, setShowWidgetPicker] = useState(false);
+  const [showContentPicker, setShowContentPicker] = useState(false);
+  const [selectedPickerIds, setSelectedPickerIds] = useState<Set<string>>(new Set());
+
+  const pickerItems = useMemo(() => {
+    const items: { id: string; kind: "media" | "widget"; name: string; type?: string; icon: React.ReactNode; raw: any }[] = [];
+    dbMedia.forEach((m) => {
+      items.push({
+        id: `media-${m.id}`, kind: "media", name: m.name, type: m.type,
+        icon: m.type === "image" ? <ImageIcon className="w-3.5 h-3.5 text-primary shrink-0" /> : <Film className="w-3.5 h-3.5 text-primary shrink-0" />,
+        raw: m,
+      });
+    });
+    dbWidgets.forEach((w) => {
+      let config: any = null;
+      try { if (w.url.startsWith("{")) config = JSON.parse(w.url); } catch {}
+      const WidgetIcon = config?.widgetType === "clock" ? Clock : config?.widgetType === "date" ? Calendar : config?.widgetType === "webpage" ? Globe : Code2;
+      items.push({
+        id: `widget-${w.id}`, kind: "widget", name: w.name,
+        icon: <WidgetIcon className="w-3.5 h-3.5 text-accent-foreground shrink-0" />,
+        raw: { ...w, config },
+      });
+    });
+    return items;
+  }, [dbMedia, dbWidgets]);
+
+  const togglePickerItem = (id: string) => {
+    setSelectedPickerIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const confirmPickerSelection = () => {
+    let updatedContent = { ...content };
+    let updatedMediaItems = [...mediaItems];
+    selectedPickerIds.forEach((pickerId) => {
+      const item = pickerItems.find((p) => p.id === pickerId);
+      if (!item) return;
+      if (item.kind === "media") {
+        const m = item.raw;
+        const dur = m.type === "video" && m.duration ? parseFloat(m.duration) || 10 : 5;
+        updatedMediaItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
+      } else {
+        const w = item.raw;
+        updatedContent = { ...updatedContent, type: "widget", widgetId: w.id, widgetName: w.name, widgetConfig: w.config };
+      }
+    });
+    if (updatedMediaItems.length > mediaItems.length) {
+      updatedContent = { ...updatedContent, type: "media", mediaItems: updatedMediaItems };
+    }
+    onUpdate(updatedContent);
+    setSelectedPickerIds(new Set());
+    setShowContentPicker(false);
+  };
 
   const addMedia = (m: typeof dbMedia[0]) => {
     const dur = m.type === "video" && m.duration ? parseFloat(m.duration) || 10 : 5;
@@ -241,14 +294,16 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
 
   const innerContent = (
       <div className="space-y-3">
-        {/* Media carousel section */}
+        {/* Unified content section: Media & Widgets */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs text-muted-foreground flex items-center gap-1"><Layers className="w-3 h-3" /> {t("studioMediaCarousel")}</label>
-            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => setShowMediaPicker(!showMediaPicker)}>
-              <Plus className="w-3 h-3" /> {t("add")}
+            <label className="text-xs text-muted-foreground flex items-center gap-1"><Layers className="w-3 h-3" /> {t("studioContentPicker")}</label>
+            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => { setShowContentPicker(!showContentPicker); setSelectedPickerIds(new Set()); }}>
+              <Plus className="w-3 h-3" /> {t("studioAddContent")}
             </Button>
           </div>
+
+          {/* Currently added media items */}
           {mediaItems.length > 0 && (
             <div className="space-y-1 mb-2">
               {mediaItems.map((m, i) => (
@@ -279,6 +334,17 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
               ))}
             </div>
           )}
+
+          {/* Currently added widget */}
+          {content.type === "widget" && content.widgetName && (
+            <div className="flex items-center gap-2 p-1.5 rounded-md bg-muted/50 text-xs mb-2">
+              <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
+              <span className="truncate flex-1 text-foreground">{content.widgetName}</span>
+              <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => onUpdate({ ...content, type: "color", widgetId: undefined, widgetName: undefined, widgetConfig: undefined })}><X className="w-3 h-3" /></Button>
+            </div>
+          )}
+
+          {/* Carousel transition options */}
           {mediaItems.length > 1 && (
             <div className="space-y-2 mt-1">
               <div>
@@ -297,53 +363,38 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
               </div>
             </div>
           )}
-          {showMediaPicker && (
-            <div className="mt-2 border border-border rounded-md p-2 bg-card max-h-32 overflow-y-auto space-y-1">
-              {dbMedia.length === 0 ? (
-                <p className="text-[11px] text-muted-foreground text-center py-2">{t("mediaNoResult")}</p>
-              ) : dbMedia.map((m) => (
-                <button key={m.id} className="w-full flex items-center gap-2 p-1.5 rounded hover:bg-muted transition-colors text-left text-xs" onClick={() => { addMedia(m); setShowMediaPicker(false); }}>
-                  {m.type === "image" ? <ImageIcon className="w-3.5 h-3.5 text-primary shrink-0" /> : <Film className="w-3.5 h-3.5 text-primary shrink-0" />}
-                  <span className="truncate text-foreground">{m.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Widget section */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs text-muted-foreground flex items-center gap-1"><Code2 className="w-3 h-3" /> Widget</label>
-            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => setShowWidgetPicker(!showWidgetPicker)}>
-              <Plus className="w-3 h-3" /> {t("add")}
-            </Button>
-          </div>
-          {content.type === "widget" && content.widgetName && (
-            <div className="flex items-center gap-2 p-1.5 rounded-md bg-muted/50 text-xs mb-2">
-              <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
-              <span className="truncate flex-1 text-foreground">{content.widgetName}</span>
-              <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => onUpdate({ ...content, type: "color", widgetId: undefined, widgetName: undefined, widgetConfig: undefined })}><X className="w-3 h-3" /></Button>
-            </div>
-          )}
-          {showWidgetPicker && (
-            <div className="mt-2 border border-border rounded-md p-2 bg-card max-h-32 overflow-y-auto space-y-1">
-              {dbWidgets.length === 0 ? (
+          {/* Unified multi-select picker */}
+          {showContentPicker && (
+            <div className="mt-2 border border-border rounded-md p-2 bg-card max-h-40 overflow-y-auto space-y-0.5">
+              {pickerItems.length === 0 ? (
                 <p className="text-[11px] text-muted-foreground text-center py-2">{t("mediaNoResult")}</p>
-              ) : dbWidgets.map((w) => {
-                let config: any = null;
-                try { if (w.url.startsWith("{")) config = JSON.parse(w.url); } catch {}
-                const WidgetIcon = config?.widgetType === "clock" ? Clock : config?.widgetType === "date" ? Calendar : config?.widgetType === "webpage" ? Globe : Code2;
-                return (
-                  <button key={w.id} className="w-full flex items-center gap-2 p-1.5 rounded hover:bg-muted transition-colors text-left text-xs" onClick={() => {
-                    onUpdate({ ...content, type: "widget", widgetId: w.id, widgetName: w.name, widgetConfig: config });
-                    setShowWidgetPicker(false);
-                  }}>
-                    <WidgetIcon className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
-                    <span className="truncate text-foreground">{w.name}</span>
-                  </button>
-                );
-              })}
+              ) : (
+                <>
+                  {pickerItems.map((item) => {
+                    const isSelected = selectedPickerIds.has(item.id);
+                    return (
+                      <button key={item.id} className={`w-full flex items-center gap-2 p-1.5 rounded text-left text-xs transition-colors ${isSelected ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-muted"}`}
+                        onClick={() => togglePickerItem(item.id)}>
+                        <div className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-primary border-primary" : "border-muted-foreground/30"}`}>
+                          {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                        {item.icon}
+                        <span className="truncate text-foreground flex-1">{item.name}</span>
+                        <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">{item.kind === "media" ? (item.type === "image" ? "IMG" : "VID") : "Widget"}</Badge>
+                      </button>
+                    );
+                  })}
+                  <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                    <span className="text-[10px] text-muted-foreground">
+                      {t("studioSelectedCount").replace("{count}", String(selectedPickerIds.size))}
+                    </span>
+                    <Button size="sm" className="h-6 text-[10px] gap-1" disabled={selectedPickerIds.size === 0} onClick={confirmPickerSelection}>
+                      <Check className="w-3 h-3" /> {t("studioConfirmAdd")}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
