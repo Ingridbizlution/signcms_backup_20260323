@@ -122,6 +122,13 @@ const translations = {
   screenSettingsRebooting: { zh: "已發送重新開機指令", en: "Reboot command sent", ja: "再起動コマンドを送信しました" },
   screenLiveView: { zh: "遠端監視", en: "Live View", ja: "ライブビュー" },
   screenLiveViewPlaceholder: { zh: "遠端監視功能開發中", en: "Live View coming soon", ja: "ライブビュー機能は開発中です" },
+  screenDefaultPlayback: { zh: "無排程預設播放", en: "Default Playback", ja: "デフォルト再生" },
+  screenDefaultPlaybackDesc: { zh: "當螢幕沒有排程播放時的預設行為", en: "Default behavior when no schedule is active", ja: "スケジュールがないときのデフォルト動作" },
+  screenDefaultSleep: { zh: "螢幕休眠", en: "Screen Sleep", ja: "スクリーンスリープ" },
+  screenDefaultMedia: { zh: "播放素材", en: "Play Media", ja: "メディア再生" },
+  screenDefaultDesign: { zh: "播放設計專案", en: "Play Design Project", ja: "デザインプロジェクト再生" },
+  screenDefaultSelectMedia: { zh: "選擇素材", en: "Select Media", ja: "メディアを選択" },
+  screenDefaultSelectProject: { zh: "選擇設計專案", en: "Select Project", ja: "プロジェクトを選択" },
 
   // Media
   mediaTitle: { zh: "廣告素材庫", en: "Media Library", ja: "メディアライブラリ" },
