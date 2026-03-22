@@ -66,6 +66,7 @@ interface OverlayBlock {
   h: number;
   label: string;
   opacity: number; // 0-100
+  zIndex: number;
   content?: ZoneContent;
 }
 
@@ -609,13 +610,31 @@ export default function ContentStudioPage() {
   const addOverlay = useCallback(() => {
     const id = `overlay-${Date.now()}`;
     const label = String.fromCharCode(65 + overlays.length); // A, B, C...
-    setOverlays((prev) => [...prev, { id, x: 50, y: 50, w: 200, h: 120, label: `OV-${label}`, opacity: 100, content: { type: "text", value: "", bgColor: "transparent", fontSize: 20, textColor: "hsl(0 0% 100%)" } }]);
+    setOverlays((prev) => [...prev, { id, x: 50, y: 50, w: 200, h: 120, label: `OV-${label}`, opacity: 100, zIndex: prev.length + 1, content: { type: "text", value: "", bgColor: "transparent", fontSize: 20, textColor: "hsl(0 0% 100%)" } }]);
   }, [overlays.length]);
 
   const deleteOverlay = useCallback((id: string) => {
     setOverlays((prev) => prev.filter((o) => o.id !== id));
     if (selectedOverlay === id) setSelectedOverlay(null);
   }, [selectedOverlay]);
+
+  const moveOverlayLayer = useCallback((id: string, direction: "up" | "down") => {
+    setOverlays((prev) => {
+      const sorted = [...prev].sort((a, b) => a.zIndex - b.zIndex);
+      const idx = sorted.findIndex((o) => o.id === id);
+      if (direction === "up" && idx < sorted.length - 1) {
+        const swapId = sorted[idx + 1].id;
+        const myZ = sorted[idx].zIndex, otherZ = sorted[idx + 1].zIndex;
+        return prev.map((o) => o.id === id ? { ...o, zIndex: otherZ } : o.id === swapId ? { ...o, zIndex: myZ } : o);
+      }
+      if (direction === "down" && idx > 0) {
+        const swapId = sorted[idx - 1].id;
+        const myZ = sorted[idx].zIndex, otherZ = sorted[idx - 1].zIndex;
+        return prev.map((o) => o.id === id ? { ...o, zIndex: otherZ } : o.id === swapId ? { ...o, zIndex: myZ } : o);
+      }
+      return prev;
+    });
+  }, []);
 
   // Save project
   const handleSave = useCallback(async (name?: string) => {
@@ -911,8 +930,8 @@ export default function ContentStudioPage() {
               const mediaItems = overlay.content?.mediaItems || [];
               return (
                 <div key={overlay.id}
-                  className={`absolute cursor-move flex items-center justify-center overflow-hidden rounded-lg ${isSelected ? "ring-2 ring-accent-foreground ring-offset-1 z-40" : "z-30 hover:ring-1 hover:ring-accent-foreground/50"}`}
-                  style={{ left: overlay.x, top: overlay.y, width: overlay.w, height: overlay.h, background: bg, opacity: (overlay.opacity ?? 100) / 100 }}
+                  className={`absolute cursor-move flex items-center justify-center overflow-hidden rounded-lg ${isSelected ? "ring-2 ring-accent-foreground ring-offset-1" : "hover:ring-1 hover:ring-accent-foreground/50"}`}
+                  style={{ left: overlay.x, top: overlay.y, width: overlay.w, height: overlay.h, background: bg, opacity: (overlay.opacity ?? 100) / 100, zIndex: 30 + (overlay.zIndex ?? 0) + (isSelected ? 10 : 0) }}
                   onClick={(e) => { e.stopPropagation(); setSelectedZone(null); setSelectedOverlay(isSelected ? null : overlay.id); }}
                   onMouseDown={(e) => { if ((e.target as HTMLElement).dataset.resize) return; handleOverlayDragStart(e, overlay.id); }}
                 >
@@ -972,6 +991,22 @@ export default function ContentStudioPage() {
                   </div>
                   <Slider value={[activeOverlay.opacity ?? 100]} min={10} max={100} step={5} onValueChange={([v]) => setOverlays((prev) => prev.map((o) => o.id === activeOverlay.id ? { ...o, opacity: v } : o))} />
                 </div>
+                {/* Layer order */}
+                {overlays.length > 1 && (
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-muted-foreground">{t("studioLayerOrder")}</label>
+                      <div className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 px-2" onClick={() => moveOverlayLayer(activeOverlay.id, "down")}>
+                          <ChevronLeft className="w-3 h-3" /> {t("studioLayerDown")}
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 px-2" onClick={() => moveOverlayLayer(activeOverlay.id, "up")}>
+                          {t("studioLayerUp")} <ChevronRight className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Reuse ZoneEditor content inline - delegate to ZoneEditor */}
                 <ZoneEditor zone={{ id: activeOverlay.id, x: 0, y: 0, w: 100, h: 100, label: activeOverlay.label, content: activeOverlay.content }} onUpdate={(content) => updateOverlayContent(activeOverlay.id, content)} onClose={() => setSelectedOverlay(null)} dbMedia={dbMedia} dbWidgets={dbWidgets} isEmbedded />
               </Card>
