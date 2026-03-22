@@ -315,14 +315,26 @@ export default function PublishingCenterPage() {
           <p className="text-muted-foreground mt-1">{t("publishSubtitle")}</p>
         </div>
         {isAdmin && (
-          <Button
-            variant="destructive"
-            className="gap-2 shadow-lg shadow-red-600/20 font-bold"
-            onClick={() => setEmergencyOpen(true)}
-          >
-            <AlertTriangle className="w-4 h-4" />
-            {t("emergencyBroadcast")}
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasActiveEmergency && (
+              <Button
+                variant="outline"
+                className="gap-2 font-bold border-sky-500/40 text-sky-600 hover:bg-sky-500/10 hover:text-sky-700 shadow-lg shadow-sky-600/10"
+                onClick={() => setRestoreOpen(true)}
+              >
+                <RotateCcw className="w-4 h-4" />
+                {t("restoreNormal")}
+              </Button>
+            )}
+            <Button
+              variant="destructive"
+              className="gap-2 shadow-lg shadow-red-600/20 font-bold"
+              onClick={() => setEmergencyOpen(true)}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              {t("emergencyBroadcast")}
+            </Button>
+          </div>
         )}
       </div>
 
