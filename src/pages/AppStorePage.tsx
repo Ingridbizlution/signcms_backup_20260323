@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Megaphone, Users, CloudSun, Instagram, Check, Download, Monitor } from "lucide-react";
 import { toast } from "sonner";
+import { useInstalledApps } from "@/contexts/InstalledAppsContext";
 
 interface AppItem {
   id: string;
@@ -73,9 +75,18 @@ const APPS: AppItem[] = [
 
 const AppStorePage = () => {
   const { language } = useLanguage();
-  const [installedApps, setInstalledApps] = useState<Set<string>>(new Set());
+  const { installedApps, installApp } = useInstalledApps();
+  const [searchParams] = useSearchParams();
   const [queueDialogOpen, setQueueDialogOpen] = useState(false);
   const [queueNumber, setQueueNumber] = useState("105");
+
+  // Handle deep-link from sidebar
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (openId === "queue" && installedApps.has("queue")) {
+      setQueueDialogOpen(true);
+    }
+  }, [searchParams, installedApps]);
 
   const texts = {
     bannerTitle: { zh: "探索更多商用插件", en: "Discover Business Plugins", ja: "ビジネスプラグインを探す" },
@@ -103,7 +114,7 @@ const AppStorePage = () => {
       setQueueDialogOpen(true);
       return;
     }
-    setInstalledApps((prev) => new Set(prev).add(app.id));
+    installApp(app.id);
     toast.success(`${app.name[language]} ${t("successInstall")}`);
     if (app.hasConfig) {
       setQueueDialogOpen(true);
