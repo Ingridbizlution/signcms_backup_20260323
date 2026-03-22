@@ -152,10 +152,17 @@ export default function SystemLogsPage() {
     setActivityLoading(false);
   };
 
+  const fetchPlaybackLogs = async () => {
+    setPlaybackLoading(true);
+    const { data } = await (supabase as any).from("playback_logs").select("*").order("played_at", { ascending: false }).limit(1000);
+    setPlaybackLogs(data || []);
+    setPlaybackLoading(false);
+  };
+
   const fetchAll = async () => {
     const pMap = await fetchProfiles();
     setProfileMap(pMap);
-    await Promise.all([fetchDeviceLogs(pMap), fetchActivityLogs(pMap)]);
+    await Promise.all([fetchDeviceLogs(pMap), fetchActivityLogs(pMap), fetchPlaybackLogs()]);
   };
 
   useEffect(() => { fetchAll(); }, []);
