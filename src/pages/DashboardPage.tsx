@@ -237,7 +237,7 @@ export default function DashboardPage() {
         {/* Today's Publish */}
         <Card className="p-4 hover-lift shadow-sm opacity-0 animate-count-up stagger-5">
           <div className="flex items-center justify-between mb-2">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center" title={t("dashPublishToday")}>
               <Send className="w-4.5 h-4.5 text-emerald-500" />
             </div>
           </div>
