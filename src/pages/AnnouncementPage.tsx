@@ -758,6 +758,16 @@ const AnnouncementPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Settings Dialog */}
+      <AnnouncementSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        departments={DEPARTMENTS}
+        categories={CATEGORIES}
+        onDepartmentsChange={handleDepartmentsChange}
+        onCategoriesChange={handleCategoriesChange}
+      />
     </div>
   );
 };
