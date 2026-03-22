@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      design_projects: {
+        Row: {
+          aspect: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+          zones: Json
+        }
+        Insert: {
+          aspect?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          zones?: Json
+        }
+        Update: {
+          aspect?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          zones?: Json
+        }
+        Relationships: []
+      }
       media_items: {
         Row: {
           created_at: string
