@@ -1,9 +1,12 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Upload, LogOut, User } from "lucide-react";
+import { Upload, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +18,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const { isAdmin } = useUserRole();
+  const { t } = useLanguage();
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "使用者";
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || t("user");
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
   const initials = displayName.slice(0, 2).toUpperCase();
 
@@ -29,16 +33,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <SidebarTrigger />
               <span className="text-sm text-muted-foreground hidden sm:inline">
-                連鎖店電子看板管理系統
+                {t("appSubtitle")}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {isAdmin && (
                 <Button size="sm" className="gap-2 transition-transform duration-200 hover:scale-105">
                   <Upload className="w-4 h-4" />
-                  上傳素材
+                  {t("uploadMedia")}
                 </Button>
               )}
+              <LanguageSwitcher />
+              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full w-8 h-8">
@@ -57,7 +63,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   </div>
                   <DropdownMenuItem onClick={signOut} className="text-destructive cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
-                    登出
+                    {t("logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

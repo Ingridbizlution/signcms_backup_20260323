@@ -2,6 +2,7 @@ import { LayoutDashboard, Monitor, Image, CalendarClock, ShieldCheck } from "luc
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Sidebar,
   SidebarContent,
@@ -13,19 +14,20 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const navItems = [
-  { title: "總覽儀表板", url: "/", icon: LayoutDashboard, adminOnly: false },
-  { title: "螢幕管理", url: "/screens", icon: Monitor, adminOnly: false },
-  { title: "廣告素材庫", url: "/media", icon: Image, adminOnly: false },
-  { title: "播放清單排程", url: "/schedules", icon: CalendarClock, adminOnly: false },
-  { title: "使用者管理", url: "/admin", icon: ShieldCheck, adminOnly: true },
-];
-
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { isAdmin } = useUserRole();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { titleKey: "navDashboard" as const, url: "/", icon: LayoutDashboard, adminOnly: false },
+    { titleKey: "navScreens" as const, url: "/screens", icon: Monitor, adminOnly: false },
+    { titleKey: "navMedia" as const, url: "/media", icon: Image, adminOnly: false },
+    { titleKey: "navSchedules" as const, url: "/schedules", icon: CalendarClock, adminOnly: false },
+    { titleKey: "navAdmin" as const, url: "/admin", icon: ShieldCheck, adminOnly: true },
+  ];
 
   const filteredItems = navItems.filter((item) => !item.adminOnly || isAdmin);
 
@@ -37,7 +39,7 @@ export function AppSidebar() {
         </div>
         {!collapsed && (
           <span className="font-semibold text-foreground text-sm tracking-tight">
-            SignBoard CMS
+            {t("appName")}
           </span>
         )}
       </div>
@@ -46,7 +48,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
@@ -55,7 +57,7 @@ export function AppSidebar() {
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     >
                       <item.icon className="mr-3 h-[18px] w-[18px]" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && <span>{t(item.titleKey)}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
