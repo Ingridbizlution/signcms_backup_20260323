@@ -285,7 +285,6 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
   };
 
   const confirmPickerSelection = () => {
-    const existingKeys = new Set(mediaItems.map((item) => `${item.type}-${item.id}`));
     const appendedItems: MediaItem[] = [];
 
     Array.from(selectedPickerIds).forEach((pickerId) => {
@@ -294,18 +293,12 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
 
       if (item.kind === "media") {
         const m = item.raw;
-        const key = `${m.type}-${m.id}`;
-        if (existingKeys.has(key)) return;
-        existingKeys.add(key);
         const dur = m.type === "video" && m.duration ? parseFloat(m.duration) || 10 : 5;
         appendedItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
         return;
       }
 
       const w = item.raw;
-      const key = `widget-${w.id}`;
-      if (existingKeys.has(key)) return;
-      existingKeys.add(key);
       appendedItems.push({ id: w.id, type: "widget", url: "", name: w.name, duration: 5, widgetConfig: w.config });
     });
 
@@ -334,8 +327,8 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
     onUpdate({ ...content, type: "media", mediaItems: [...mediaItems, newItem] });
   };
 
-  const removeMedia = (id: string) => {
-    const updated = mediaItems.filter((m) => m.id !== id);
+  const removeMedia = (id: string, index?: number) => {
+    const updated = mediaItems.filter((m, i) => !(m.id === id && (index === undefined || i === index)));
     onUpdate({ ...content, mediaItems: updated, type: updated.length > 0 ? "media" : "color" });
   };
 
@@ -377,7 +370,7 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
                       </>
                     )}
                   </div>
-                  <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => removeMedia(m.id)}><X className="w-3 h-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => removeMedia(m.id, i)}><X className="w-3 h-3" /></Button>
                 </div>
               ))}
             </div>
