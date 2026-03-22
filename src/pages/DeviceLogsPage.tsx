@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2, Search, Wifi, Settings, CalendarClock, AlertTriangle, Monitor,
   RefreshCw, Building2, FileText, Download, User, LogIn, LogOut, Plus, Pencil,
-  Trash2, Send, ShieldCheck, Image, Brush,
+  Trash2, Send, ShieldCheck, Image, Brush, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { format, startOfDay, startOfWeek, startOfMonth, isAfter } from "date-fns";
 import * as XLSX from "xlsx";
@@ -112,6 +112,8 @@ export default function SystemLogsPage() {
   const [activityFilterCategory, setActivityFilterCategory] = useState("all");
   const [activityFilterOrg, setActivityFilterOrg] = useState("all");
   const [activityFilterTime, setActivityFilterTime] = useState("all");
+  const [activityPage, setActivityPage] = useState(1);
+  const ACTIVITY_PAGE_SIZE = 50;
 
   // --- Shared ---
   const [profileMap, setProfileMap] = useState<Map<string, string>>(new Map());
@@ -139,7 +141,7 @@ export default function SystemLogsPage() {
 
   const fetchActivityLogs = async (pMap: Map<string, string>) => {
     setActivityLoading(true);
-    const { data } = await (supabase as any).from("activity_logs").select("*").order("created_at", { ascending: false }).limit(200);
+    const { data } = await (supabase as any).from("activity_logs").select("*").order("created_at", { ascending: false }).limit(1000);
     setActivityLogs((data || []).map((l: any) => ({
       ...l,
       user_name: pMap.get(l.user_id) || "Unknown",
@@ -183,6 +185,12 @@ export default function SystemLogsPage() {
       return true;
     });
   }, [activityLogs, activityFilterCategory, activityFilterOrg, activityFilterTime, activitySearch]);
+
+  // Reset page when filters change
+  useEffect(() => { setActivityPage(1); }, [activityFilterCategory, activityFilterOrg, activityFilterTime, activitySearch]);
+
+  const activityTotalPages = Math.max(1, Math.ceil(filteredActivity.length / ACTIVITY_PAGE_SIZE));
+  const paginatedActivity = filteredActivity.slice((activityPage - 1) * ACTIVITY_PAGE_SIZE, activityPage * ACTIVITY_PAGE_SIZE);
 
   const labels = {
     title: { zh: "系統紀錄", en: "System Logs", ja: "システムログ" },
@@ -390,7 +398,7 @@ export default function SystemLogsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredActivity.map((log) => {
+                  {paginatedActivity.map((log) => {
                     const colors = getActionColor(log.action, log.category);
                     return (
                       <TableRow key={log.id} className={`${colors.bg} border-b border-border/50 transition-colors`}>
@@ -421,6 +429,21 @@ export default function SystemLogsPage() {
                   })}
                 </TableBody>
               </Table>
+              {activityTotalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground">
+                    {{ zh: `第 ${activityPage} / ${activityTotalPages} 頁`, en: `Page ${activityPage} of ${activityTotalPages}`, ja: `${activityPage} / ${activityTotalPages} ページ` }[language]}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={activityPage <= 1} onClick={() => setActivityPage(p => p - 1)}>
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={activityPage >= activityTotalPages} onClick={() => setActivityPage(p => p + 1)}>
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
           )}
         </TabsContent>
