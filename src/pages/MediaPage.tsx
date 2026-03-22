@@ -477,6 +477,7 @@ export default function MediaPage() {
       bgColor: widgetForm.bgColor,
       textColor: widgetForm.textColor,
       fontSize: widgetForm.fontSize,
+      animation: widgetForm.animation,
     };
     if (widgetForm.widgetType === "webpage") config.url = widgetForm.url;
     if (widgetForm.widgetType === "marquee") { config.text = widgetForm.text; config.speed = widgetForm.speed; }
