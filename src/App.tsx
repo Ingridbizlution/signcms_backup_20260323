@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
+import Admin from "./pages/Admin.tsx";
 import Screens from "./pages/Screens.tsx";
 import Media from "./pages/Media.tsx";
 import Schedules from "./pages/Schedules.tsx";
