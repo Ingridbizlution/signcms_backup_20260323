@@ -64,6 +64,7 @@ interface MediaItemRow {
   duration?: string | null;
   created_at: string;
   design_project_id?: string | null;
+  is_system?: boolean;
 }
 
 interface ProjectItem {
@@ -323,7 +324,7 @@ const MediaPage = () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from("media_items")
-      .select("id, name, type, url, thumbnail, size, dimensions, duration, created_at, design_project_id")
+      .select("id, name, type, url, thumbnail, size, dimensions, duration, created_at, design_project_id, is_system")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -512,6 +513,11 @@ const MediaPage = () => {
   };
 
   const requestDelete = async (itemId: string) => {
+    const item = media.find((m) => m.id === itemId);
+    if (item?.is_system) {
+      toast.error(t("widgetSystemCannotDelete"));
+      return;
+    }
     setDeleteId(itemId);
     await checkMediaUsage(itemId);
   };
@@ -793,6 +799,11 @@ const MediaPage = () => {
                 <Badge variant={getTypeBadgeVariant(item.type)} className="absolute left-2 top-2 text-[10px]">
                   {item.type === "image" ? t("image") : item.type === "video" ? t("video") : t("widget")}
                 </Badge>
+                {item.type === "widget" && (
+                  <Badge variant={item.is_system ? "destructive" : "outline"} className="absolute right-2 top-2 text-[10px]">
+                    {item.is_system ? t("widgetSystem") : t("widgetRegular")}
+                  </Badge>
+                )}
               </div>
 
               <div className="space-y-2 p-3">
@@ -832,6 +843,11 @@ const MediaPage = () => {
                   <Badge variant={item.type === "widget" ? "default" : "outline"} className="text-[10px] px-1.5 py-0 h-4">
                     {item.type === "image" ? t("image") : item.type === "video" ? t("video") : t("widget")}
                   </Badge>
+                  {item.type === "widget" && (
+                    <Badge variant={item.is_system ? "destructive" : "secondary"} className="text-[10px] px-1.5 py-0 h-4">
+                      {item.is_system ? t("widgetSystem") : t("widgetRegular")}
+                    </Badge>
+                  )}
                   <span className="flex items-center gap-1"><HardDrive className="w-3 h-3" />{item.size}</span>
                   {item.type !== "widget" && <span>{item.dimensions}</span>}
                   {item.duration && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{item.duration}</span>}
@@ -844,7 +860,7 @@ const MediaPage = () => {
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}>
                   <Eye className="w-4 h-4" />
                 </Button>
-                {isAdmin && (
+                {isAdmin && !item.is_system && (
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); requestDelete(item.id); }}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -876,7 +892,7 @@ const MediaPage = () => {
             {previewItem && (
               <PreviewInfoPanel item={previewItem} getProjectName={getProjectName} t={t} />
             )}
-            {isAdmin && previewItem && (
+            {isAdmin && previewItem && !previewItem.is_system && (
               <div className="flex justify-end">
                 <Button variant="destructive" size="sm" className="gap-2" onClick={() => { requestDelete(previewItem.id); setPreviewItem(null); }}>
                   <Trash2 className="w-4 h-4" />

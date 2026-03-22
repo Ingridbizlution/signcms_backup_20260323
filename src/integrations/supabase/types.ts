@@ -51,6 +51,7 @@ export type Database = {
           dimensions: string
           duration: string | null
           id: string
+          is_system: boolean
           name: string
           size: string
           thumbnail: string
@@ -64,6 +65,7 @@ export type Database = {
           dimensions?: string
           duration?: string | null
           id?: string
+          is_system?: boolean
           name: string
           size?: string
           thumbnail?: string
@@ -77,6 +79,7 @@ export type Database = {
           dimensions?: string
           duration?: string | null
           id?: string
+          is_system?: boolean
           name?: string
           size?: string
           thumbnail?: string
