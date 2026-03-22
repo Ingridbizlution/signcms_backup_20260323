@@ -18,8 +18,9 @@ import {
   Utensils, PartyPopper, ShoppingBag, Sun, Gift, Coffee,
   X, Plus, AlignLeft, AlignCenter, AlignRight, Minus,
   Save, FolderOpen, FilePlus, ChevronLeft, ChevronRightIcon, Play, Pause,
-  Layers
+  Layers, Code2, Clock, Calendar, Globe
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Types ──────────────────────────────────────────────────────────
 type AspectRatio = "16:9" | "9:16";
@@ -35,7 +36,7 @@ interface MediaItem {
 type CarouselTransition = "fade" | "slide" | "zoom" | "none";
 
 interface ZoneContent {
-  type: "text" | "media" | "color";
+  type: "text" | "media" | "color" | "widget";
   value: string;
   bgColor?: string;
   fontSize?: number;
@@ -44,6 +45,9 @@ interface ZoneContent {
   mediaItems?: MediaItem[];
   carouselInterval?: number; // seconds
   carouselTransition?: CarouselTransition;
+  widgetId?: string;
+  widgetName?: string;
+  widgetConfig?: any;
 }
 
 interface Zone {
@@ -195,16 +199,18 @@ function CarouselPreview({ items, transition = "fade" }: { items: MediaItem[]; t
 }
 
 // ── Zone Editor ────────────────────────────────────────────────────
-function ZoneEditor({ zone, onUpdate, onClose, dbMedia }: {
+function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets }: {
   zone: Zone;
   onUpdate: (content: ZoneContent) => void;
   onClose: () => void;
   dbMedia: { id: string; name: string; type: string; url: string; thumbnail: string; duration: string | null }[];
+  dbWidgets: { id: string; name: string; url: string }[];
 }) {
   const { t } = useLanguage();
   const content: ZoneContent = zone.content || { type: "color", value: "", bgColor: "hsl(var(--muted))" };
   const mediaItems = content.mediaItems || [];
   const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [showWidgetPicker, setShowWidgetPicker] = useState(false);
 
   const addMedia = (m: typeof dbMedia[0]) => {
     const dur = m.type === "video" && m.duration ? parseFloat(m.duration) || 10 : 5;
@@ -294,6 +300,43 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia }: {
           )}
         </div>
 
+        {/* Widget section */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs text-muted-foreground flex items-center gap-1"><Code2 className="w-3 h-3" /> Widget</label>
+            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => setShowWidgetPicker(!showWidgetPicker)}>
+              <Plus className="w-3 h-3" /> {t("add")}
+            </Button>
+          </div>
+          {content.type === "widget" && content.widgetName && (
+            <div className="flex items-center gap-2 p-1.5 rounded-md bg-muted/50 text-xs mb-2">
+              <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
+              <span className="truncate flex-1 text-foreground">{content.widgetName}</span>
+              <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => onUpdate({ ...content, type: "color", widgetId: undefined, widgetName: undefined, widgetConfig: undefined })}><X className="w-3 h-3" /></Button>
+            </div>
+          )}
+          {showWidgetPicker && (
+            <div className="mt-2 border border-border rounded-md p-2 bg-card max-h-32 overflow-y-auto space-y-1">
+              {dbWidgets.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground text-center py-2">{t("mediaNoResult")}</p>
+              ) : dbWidgets.map((w) => {
+                let config: any = null;
+                try { if (w.url.startsWith("{")) config = JSON.parse(w.url); } catch {}
+                const WidgetIcon = config?.widgetType === "clock" ? Clock : config?.widgetType === "date" ? Calendar : config?.widgetType === "webpage" ? Globe : Code2;
+                return (
+                  <button key={w.id} className="w-full flex items-center gap-2 p-1.5 rounded hover:bg-muted transition-colors text-left text-xs" onClick={() => {
+                    onUpdate({ ...content, type: "widget", widgetId: w.id, widgetName: w.name, widgetConfig: config });
+                    setShowWidgetPicker(false);
+                  }}>
+                    <WidgetIcon className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
+                    <span className="truncate text-foreground">{w.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Text input */}
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">{t("studioText")}</label>
@@ -335,6 +378,93 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia }: {
   );
 }
 
+// ── Widget Zone Preview ────────────────────────────────────────────
+function WidgetZonePreview({ config }: { config: any }) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    if (config?.widgetType === "clock" || config?.widgetType === "date") {
+      const timer = setInterval(() => setNow(new Date()), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [config?.widgetType]);
+
+  if (!config) return null;
+  const bg = config.bgColor || "#1a1a2e";
+  const fg = config.textColor || "#ffffff";
+
+  if (config.widgetType === "clock") {
+    const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (config.clockStyle === "analog") {
+      const hParts = now.toLocaleString("en-US", { hour: "numeric", minute: "numeric", second: "numeric", hour12: false, timeZone: tz }).split(":");
+      const h = parseInt(hParts[0]), m = parseInt(hParts[1]), s = parseInt(hParts[2]);
+      const hDeg = (h % 12) * 30 + m * 0.5, mDeg = m * 6, sDeg = s * 6;
+      return (
+        <div className="w-full h-full flex items-center justify-center" style={{ background: bg }}>
+          <svg viewBox="0 0 200 200" className="w-[70%] max-w-[160px]">
+            <circle cx="100" cy="100" r="96" fill="none" stroke={fg} strokeWidth="2" opacity="0.15" />
+            {[...Array(12)].map((_, i) => {
+              const num = i === 0 ? 12 : i;
+              const angle = (i * 30 - 90) * Math.PI / 180;
+              return <text key={i} x={100 + 78 * Math.cos(angle)} y={100 + 78 * Math.sin(angle)} textAnchor="middle" dominantBaseline="central" fill={fg} fontSize="14" fontWeight="600" opacity="0.8">{num}</text>;
+            })}
+            {[...Array(60)].map((_, i) => {
+              const angle = (i * 6 - 90) * Math.PI / 180;
+              const isH = i % 5 === 0;
+              return <line key={i} x1={100 + (isH ? 86 : 89) * Math.cos(angle)} y1={100 + (isH ? 86 : 89) * Math.sin(angle)} x2={100 + 92 * Math.cos(angle)} y2={100 + 92 * Math.sin(angle)} stroke={fg} strokeWidth={isH ? 2 : 0.8} opacity={isH ? 0.6 : 0.3} />;
+            })}
+            <polygon points={`${100 + 45 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 + 45 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 + 5 * Math.cos(hDeg * Math.PI / 180)},${100 + 5 * Math.sin(hDeg * Math.PI / 180)} ${100 - 10 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 - 10 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 - 5 * Math.cos(hDeg * Math.PI / 180)},${100 - 5 * Math.sin(hDeg * Math.PI / 180)}`} fill={fg} opacity="0.9" />
+            <polygon points={`${100 + 65 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 + 65 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 + 4 * Math.cos(mDeg * Math.PI / 180)},${100 + 4 * Math.sin(mDeg * Math.PI / 180)} ${100 - 12 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 - 12 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 - 4 * Math.cos(mDeg * Math.PI / 180)},${100 - 4 * Math.sin(mDeg * Math.PI / 180)}`} fill={fg} opacity="0.85" />
+            <line x1={100 - 18 * Math.cos((sDeg - 90) * Math.PI / 180)} y1={100 - 18 * Math.sin((sDeg - 90) * Math.PI / 180)} x2={100 + 72 * Math.cos((sDeg - 90) * Math.PI / 180)} y2={100 + 72 * Math.sin((sDeg - 90) * Math.PI / 180)} stroke="hsl(0 70% 55%)" strokeWidth="1.2" strokeLinecap="round" />
+            <circle cx="100" cy="100" r="5" fill={fg} />
+            <circle cx="100" cy="100" r="2.5" fill="hsl(0 70% 55%)" />
+          </svg>
+        </div>
+      );
+    }
+    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: config.format === "12", timeZone: tz };
+    const timeStr = now.toLocaleTimeString("en-US", opts);
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        <span className="text-2xl font-mono font-bold tracking-wider">{timeStr}</span>
+        {config.showDate && <span className="text-[10px] opacity-60">{now.toLocaleDateString("zh-TW", { month: "short", day: "numeric", timeZone: tz })}</span>}
+      </div>
+    );
+  }
+
+  if (config.widgetType === "date") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        <span className="text-sm font-medium opacity-70">{now.toLocaleDateString("zh-TW", { weekday: "long" })}</span>
+        <span className="text-xl font-bold">{now.toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" })}</span>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "marquee" && config.text) {
+    return (
+      <div className="w-full h-full flex items-center overflow-hidden" style={{ background: bg, color: fg }}>
+        <div className="animate-marquee whitespace-nowrap text-sm font-medium">{config.text}</div>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "webpage") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        <Globe className="w-6 h-6 opacity-50" />
+        <span className="text-[10px] opacity-60 truncate max-w-[80%]">{config.url || "URL"}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex items-center justify-center" style={{ background: bg, color: fg }}>
+      <Code2 className="w-6 h-6 opacity-50" />
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────────
 export default function ContentStudioPage() {
   const { t } = useLanguage();
@@ -354,10 +484,13 @@ export default function ContentStudioPage() {
 
   // DB media for picker
   const [dbMedia, setDbMedia] = useState<{ id: string; name: string; type: string; url: string; thumbnail: string; duration: string | null }[]>([]);
+  const [dbWidgets, setDbWidgets] = useState<{ id: string; name: string; url: string }[]>([]);
 
   useEffect(() => {
     (supabase as any).from("media_items").select("id, name, type, url, thumbnail, duration").order("created_at", { ascending: false }).then((res: any) => {
-      setDbMedia(res.data || []);
+      const all = res.data || [];
+      setDbMedia(all.filter((m: any) => m.type !== "widget"));
+      setDbWidgets(all.filter((m: any) => m.type === "widget"));
     });
   }, []);
 
@@ -575,7 +708,9 @@ export default function ContentStudioPage() {
                   onClick={() => setSelectedZone(isSelected ? null : zone.id)}
                 >
                   {/* Content render */}
-                  {zone.content?.type === "media" && mediaItems.length > 0 ? (
+                  {zone.content?.type === "widget" && zone.content.widgetConfig ? (
+                    <WidgetZonePreview config={zone.content.widgetConfig} />
+                  ) : zone.content?.type === "media" && mediaItems.length > 0 ? (
                     <CarouselPreview items={mediaItems} transition={zone.content.carouselTransition || "fade"} />
                   ) : zone.content?.type === "text" && zone.content.value ? (
                     <div className="p-3 w-full" style={{ color: zone.content.textColor || "hsl(0 0% 100%)", fontSize: Math.min(zone.content.fontSize || 24, 52), textAlign: zone.content.textAlign || "center" }}>
@@ -605,7 +740,7 @@ export default function ContentStudioPage() {
             })}
 
             {activeZone && (
-              <ZoneEditor zone={activeZone} onUpdate={(content) => updateZoneContent(activeZone.id, content)} onClose={() => setSelectedZone(null)} dbMedia={dbMedia} />
+              <ZoneEditor zone={activeZone} onUpdate={(content) => updateZoneContent(activeZone.id, content)} onClose={() => setSelectedZone(null)} dbMedia={dbMedia} dbWidgets={dbWidgets} />
             )}
           </div>
         </div>
