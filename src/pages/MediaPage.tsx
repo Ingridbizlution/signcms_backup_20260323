@@ -690,7 +690,7 @@ export default function MediaPage() {
           <div className="space-y-4">
             <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
               {previewItem?.type === "widget" ? (
-                (() => { const c = parseWidgetConfig(previewItem.url); return c ? <WidgetLivePreview config={c} /> : <Code2 className="w-16 h-16 opacity-30" />; })()
+                (() => { const c = parseWidgetConfig(previewItem.url); return c ? <AnimatedWidgetWrapper config={c}><WidgetLivePreview config={c} /></AnimatedWidgetWrapper> : <Code2 className="w-16 h-16 opacity-30" />; })()
               ) : previewItem?.url && previewItem.type === "image" ? (
                 <img src={previewItem.url} alt={previewItem.name} className="w-full h-full object-contain" />
               ) : previewItem?.url && previewItem.type === "video" ? (
