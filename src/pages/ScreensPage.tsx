@@ -39,9 +39,14 @@ interface Screen {
   resolution: string;
   online: boolean;
   org_id?: string | null;
+  serial_number?: string;
+  ip_address?: string;
+  connection_type?: string;
+  avg_upload_speed?: string;
+  avg_download_speed?: string;
 }
 
-const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "" };
+const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "", serial_number: "", ip_address: "", connection_type: "wired", avg_upload_speed: "", avg_download_speed: "" };
 
 export default function ScreensPage() {
   const { isAdmin } = useUserRole();
