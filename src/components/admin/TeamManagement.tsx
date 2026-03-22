@@ -206,7 +206,7 @@ export default function TeamManagement() {
                             {m.role === "leader" ? t("memberRoleLeader") : t("memberRoleMember")}
                           </Badge>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setRemoveMemberDialog({ team, member: m })}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setRemoveMemberDialog({ team, member: m })} title={t("memberRemove")}>
                           <UserMinus className="w-3.5 h-3.5" />
                         </Button>
                       </div>

@@ -77,7 +77,7 @@ export function ScreenLogPanel({ screenId }: ScreenLogPanelProps) {
             ))}
           </SelectContent>
         </Select>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={fetchLogs}>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={fetchLogs} title={labels.title[language]}>
           <RefreshCw className="w-3.5 h-3.5" />
         </Button>
       </div>

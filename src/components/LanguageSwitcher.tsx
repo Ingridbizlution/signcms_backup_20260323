@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8" title={language === "zh" ? "切換語言" : language === "ja" ? "言語切替" : "Switch Language"}>
           <Globe className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>

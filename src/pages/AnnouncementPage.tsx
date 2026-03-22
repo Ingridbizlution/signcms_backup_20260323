@@ -296,7 +296,7 @@ const AnnouncementPage = () => {
           </div>
           <h1 className="text-2xl font-bold text-foreground">{t("pageTitle")}</h1>
         </div>
-        <Button variant="outline" size="icon" onClick={() => setSettingsOpen(true)} className="h-10 w-10 rounded-xl">
+        <Button variant="outline" size="icon" onClick={() => setSettingsOpen(true)} className="h-10 w-10 rounded-xl" title={language === "zh" ? "系統設定" : language === "ja" ? "システム設定" : "Settings"}>
           <Settings className="h-5 w-5" />
         </Button>
       </div>

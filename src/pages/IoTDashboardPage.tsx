@@ -227,7 +227,7 @@ export default function IoTDashboardPage() {
           <span className="text-xs text-muted-foreground">
             {language === "en" ? "Updated" : "更新"}: {lastRefresh.toLocaleTimeString()}
           </span>
-          <Button variant="outline" size="sm" onClick={() => fetchReadings(devices)} className="gap-1.5">
+          <Button variant="outline" size="sm" onClick={() => fetchReadings(devices)} className="gap-1.5" title={language === "en" ? "Refresh" : "重新整理"}>
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
           <Button

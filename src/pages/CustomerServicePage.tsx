@@ -338,7 +338,7 @@ const CustomerServicePage = () => {
                     <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title="語音轉文字">
                       <Mic className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" className="h-9 w-9 shrink-0" onClick={handleSend}>
+                    <Button size="icon" className="h-9 w-9 shrink-0" onClick={handleSend} title="送出訊息">
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>

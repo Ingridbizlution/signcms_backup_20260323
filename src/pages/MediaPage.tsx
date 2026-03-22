@@ -1000,10 +1000,10 @@ const MediaPage = () => {
                       <Badge variant="outline" className="shrink-0 text-[10px]">
                         {media.filter((item) => item.design_project_id === project.id).length}
                       </Badge>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100" onClick={() => { setEditingProject(project); setEditProjectName(project.name); }}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100" onClick={() => { setEditingProject(project); setEditProjectName(project.name); }} title={t("edit")}>
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-destructive hover:text-destructive" onClick={() => setDeleteProjectId(project.id)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-destructive hover:text-destructive" onClick={() => setDeleteProjectId(project.id)} title={t("confirmDelete")}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </>

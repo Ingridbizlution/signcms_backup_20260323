@@ -205,7 +205,7 @@ const MeetingRoomPage = () => {
                       "relative bg-card border rounded-2xl p-5 transition-all duration-300 hover:shadow-lg",
                       status === "in-use" ? "border-red-500/40" : status === "upcoming" ? "border-amber-500/40" : "border-border"
                     )}>
-                      <button onClick={() => handleDeleteRoom(room.id)} className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors">
+                      <button onClick={() => handleDeleteRoom(room.id)} className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors" title={t("deleted")}>
                         <Trash2 className="h-4 w-4" />
                       </button>
 
