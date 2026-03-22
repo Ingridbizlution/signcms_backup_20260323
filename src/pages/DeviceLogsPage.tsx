@@ -104,6 +104,8 @@ export default function SystemLogsPage() {
   const [deviceFilterType, setDeviceFilterType] = useState("all");
   const [deviceFilterScreen, setDeviceFilterScreen] = useState("all");
   const [deviceFilterOrg, setDeviceFilterOrg] = useState("all");
+  const [devicePage, setDevicePage] = useState(1);
+  const DEVICE_PAGE_SIZE = 50;
 
   // --- Activity logs state ---
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
@@ -126,7 +128,7 @@ export default function SystemLogsPage() {
   const fetchDeviceLogs = async (pMap: Map<string, string>) => {
     setDeviceLoading(true);
     const [logsRes, screensRes] = await Promise.all([
-      (supabase as any).from("screen_logs").select("id, screen_id, org_id, event_type, event_title, event_detail, created_at, created_by").order("created_at", { ascending: false }).limit(200),
+      (supabase as any).from("screen_logs").select("id, screen_id, org_id, event_type, event_title, event_detail, created_at, created_by").order("created_at", { ascending: false }).limit(1000),
       (supabase as any).from("screens").select("id, name"),
     ]);
     const sMap = new Map((screensRes.data || []).map((s: any) => [s.id, s.name]));
@@ -168,6 +170,12 @@ export default function SystemLogsPage() {
       return true;
     });
   }, [deviceLogs, deviceFilterType, deviceFilterScreen, deviceFilterOrg, deviceSearch]);
+
+  // Reset device page when filters change
+  useEffect(() => { setDevicePage(1); }, [deviceFilterType, deviceFilterScreen, deviceFilterOrg, deviceSearch]);
+
+  const deviceTotalPages = Math.max(1, Math.ceil(filteredDevice.length / DEVICE_PAGE_SIZE));
+  const paginatedDevice = filteredDevice.slice((devicePage - 1) * DEVICE_PAGE_SIZE, devicePage * DEVICE_PAGE_SIZE);
 
   // --- Activity filters ---
   const filteredActivity = useMemo(() => {
@@ -316,7 +324,7 @@ export default function SystemLogsPage() {
             <Card className="p-12 text-center text-muted-foreground"><FileText className="w-10 h-10 mx-auto mb-3 opacity-40" /><p>{labels.noLogs[language]}</p></Card>
           ) : (
             <div className="space-y-2">
-              {filteredDevice.map((log, i) => {
+              {paginatedDevice.map((log, i) => {
                 const cfg = DEVICE_TYPE_CONFIG[log.event_type] || DEVICE_TYPE_CONFIG.system;
                 const Icon = cfg.icon;
                 return (
@@ -337,6 +345,21 @@ export default function SystemLogsPage() {
                   </Card>
                 );
               })}
+              {deviceTotalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {{ zh: `第 ${devicePage} / ${deviceTotalPages} 頁`, en: `Page ${devicePage} of ${deviceTotalPages}`, ja: `${devicePage} / ${deviceTotalPages} ページ` }[language]}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={devicePage <= 1} onClick={() => setDevicePage(p => p - 1)}>
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={devicePage >= deviceTotalPages} onClick={() => setDevicePage(p => p + 1)}>
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
