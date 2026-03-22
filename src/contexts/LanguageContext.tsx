@@ -14,6 +14,7 @@ const translations = {
   navSchedules: { zh: "播放清單排程", en: "Schedules", ja: "スケジュール" },
   navPublishing: { zh: "發佈管理", en: "Publishing Center", ja: "配信管理" },
   navDeviceLogs: { zh: "系統紀錄", en: "System Logs", ja: "システムログ" },
+  navIoTDashboard: { zh: "IoT 監控", en: "IoT Monitor", ja: "IoT モニター" },
   navAdmin: { zh: "使用者管理", en: "User Management", ja: "ユーザー管理" },
   navAppStore: { zh: "擴充應用商店", en: "App Store", ja: "アプリストア" },
 

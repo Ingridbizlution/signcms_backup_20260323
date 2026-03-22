@@ -22,6 +22,7 @@ import Queue from "./pages/Queue.tsx";
 import MeetingRoom from "./pages/MeetingRoom.tsx";
 import CustomerServicePage from "./pages/CustomerServicePage.tsx";
 import KnowledgeBasePage from "./pages/KnowledgeBasePage.tsx";
+import IoTDashboard from "./pages/IoTDashboard.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
@@ -59,6 +60,7 @@ const App = () => (
                   <Route path="/customer-service" element={<ProtectedRoute><CustomerServicePage /></ProtectedRoute>} />
                   <Route path="/knowledge-base" element={<ProtectedRoute><KnowledgeBasePage /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                  <Route path="/iot-dashboard" element={<ProtectedRoute><IoTDashboard /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <ChatWidget />
