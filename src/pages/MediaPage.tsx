@@ -395,7 +395,7 @@ export default function MediaPage() {
     fontSize: "medium" as "small" | "medium" | "large" | "xlarge",
     qrcodeSize: 140,
     animation: "none" as WidgetAnimation,
-    projectId: "",
+    projectId: "__none__",
   }), [defaultTextColor]);
   const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
 
