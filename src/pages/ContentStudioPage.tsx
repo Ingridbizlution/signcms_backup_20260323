@@ -261,6 +261,9 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
   const confirmPickerSelection = () => {
     let updatedContent = { ...content };
     let updatedMediaItems = [...mediaItems];
+    let hasNewMedia = false;
+    let hasNewWidget = false;
+
     selectedPickerIds.forEach((pickerId) => {
       const item = pickerItems.find((p) => p.id === pickerId);
       if (!item) return;
@@ -268,14 +271,23 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
         const m = item.raw;
         const dur = m.type === "video" && m.duration ? parseFloat(m.duration) || 10 : 5;
         updatedMediaItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
+        hasNewMedia = true;
       } else {
         const w = item.raw;
-        updatedContent = { ...updatedContent, type: "widget", widgetId: w.id, widgetName: w.name, widgetConfig: w.config };
+        updatedContent = { ...updatedContent, widgetId: w.id, widgetName: w.name, widgetConfig: w.config };
+        hasNewWidget = true;
       }
     });
-    if (updatedMediaItems.length > mediaItems.length) {
+
+    // Always persist media items if any exist
+    if (hasNewMedia) {
       updatedContent = { ...updatedContent, type: "media", mediaItems: updatedMediaItems };
     }
+    // If only widget was selected (no media), set type to widget
+    if (hasNewWidget && !hasNewMedia && updatedMediaItems.length === 0) {
+      updatedContent = { ...updatedContent, type: "widget" };
+    }
+
     onUpdate(updatedContent);
     setSelectedPickerIds(new Set());
     setShowContentPicker(false);
