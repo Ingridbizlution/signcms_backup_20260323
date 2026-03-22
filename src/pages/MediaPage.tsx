@@ -393,8 +393,8 @@ const MediaPage = () => {
       return;
     }
 
-    // base64 encoding increases size ~33%, and Supabase REST has payload limits
-    const MAX_FILE_SIZE = 1.5 * 1024 * 1024; // 1.5 MB raw → ~2 MB base64
+    // Allow up to 50 MB via edge function
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       toast.error(t("mediaFileTooLarge"));
       event.target.value = "";
@@ -404,81 +404,69 @@ const MediaPage = () => {
     setUploading(true);
 
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
+      // Get dimensions/duration client-side before uploading
       let dimensions = "-";
       let duration: string | null = null;
-      let thumbnail: string | null = isImage ? base64 : null;
 
       if (isImage) {
+        const objectUrl = URL.createObjectURL(file);
         dimensions = await new Promise<string>((resolve) => {
           const img = new Image();
-          img.onload = () => resolve(`${img.width}×${img.height}`);
-          img.onerror = () => resolve("-");
-          img.src = base64;
+          img.onload = () => { resolve(`${img.width}×${img.height}`); URL.revokeObjectURL(objectUrl); };
+          img.onerror = () => { resolve("-"); URL.revokeObjectURL(objectUrl); };
+          img.src = objectUrl;
         });
       }
 
       if (isVideo) {
-        const videoMeta = await new Promise<{ dimensions: string; duration: string | null; thumb: string | null }>((resolve) => {
+        const objectUrl = URL.createObjectURL(file);
+        const videoMeta = await new Promise<{ dimensions: string; duration: string | null }>((resolve) => {
           const video = document.createElement("video");
           video.preload = "metadata";
           video.muted = true;
-          video.onloadeddata = () => {
+          video.onloadedmetadata = () => {
             const totalSeconds = Number.isFinite(video.duration) ? Math.round(video.duration) : 0;
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
-            // capture first frame as thumbnail
-            try {
-              const canvas = document.createElement("canvas");
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              const ctx = canvas.getContext("2d");
-              ctx?.drawImage(video, 0, 0);
-              const thumbData = canvas.toDataURL("image/jpeg", 0.6);
-              resolve({
-                dimensions: `${video.videoWidth}×${video.videoHeight}`,
-                duration: `${minutes}:${String(seconds).padStart(2, "0")}`,
-                thumb: thumbData,
-              });
-            } catch {
-              resolve({
-                dimensions: `${video.videoWidth}×${video.videoHeight}`,
-                duration: `${minutes}:${String(seconds).padStart(2, "0")}`,
-                thumb: null,
-              });
-            }
+            resolve({
+              dimensions: `${video.videoWidth}×${video.videoHeight}`,
+              duration: `${minutes}:${String(seconds).padStart(2, "0")}`,
+            });
+            URL.revokeObjectURL(objectUrl);
           };
-          video.onerror = () => resolve({ dimensions: "-", duration: null, thumb: null });
-          video.src = base64;
+          video.onerror = () => { resolve({ dimensions: "-", duration: null }); URL.revokeObjectURL(objectUrl); };
+          video.src = objectUrl;
         });
         dimensions = videoMeta.dimensions;
         duration = videoMeta.duration;
-        thumbnail = videoMeta.thumb;
       }
 
-      const { error } = await (supabase as any).from("media_items").insert({
-        name: file.name,
-        type: isImage ? "image" : "video",
-        url: base64,
-        thumbnail: thumbnail || "",
-        size: formatFileSize(file.size),
-        dimensions,
-        duration,
-        uploaded_by: user?.id,
-      });
+      // Upload via edge function (bypasses REST payload limit)
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", file.name);
+      formData.append("type", isImage ? "image" : "video");
+      formData.append("dimensions", dimensions);
+      if (duration) formData.append("duration", duration);
 
-      if (error) {
-        if (error.message?.includes("payload") || error.message?.includes("too large") || error.message?.includes("request entity")) {
-          toast.error(t("mediaFileTooLarge"));
-        } else {
-          toast.error(error.message);
+      const session = await supabase.auth.getSession();
+      const accessToken = session.data.session?.access_token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-media`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: formData,
         }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        toast.error(result.error || t("mediaUnsupported"));
       } else {
         toast.success(`${t("mediaUploaded")}：${file.name}`);
         fetchMedia();
