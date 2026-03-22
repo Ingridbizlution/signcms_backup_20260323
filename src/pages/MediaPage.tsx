@@ -667,6 +667,11 @@ export default function MediaPage() {
             ))}
           </SelectContent>
         </Select>
+        {isAdmin && (
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setProjectDialogOpen(true)} title={t("mediaManageProjects")}>
+            <Settings2 className="w-4 h-4" />
+          </Button>
+        )}
         <div className="flex border border-border rounded-lg overflow-hidden">
           <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-none" onClick={() => setViewMode("grid")}><Grid3X3 className="w-4 h-4" /></Button>
           <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-none" onClick={() => setViewMode("list")}><List className="w-4 h-4" /></Button>
