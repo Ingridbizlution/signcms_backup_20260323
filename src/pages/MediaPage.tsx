@@ -719,11 +719,11 @@ export default function MediaPage() {
                           <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenuLabel className="text-xs">{t("mediaProjectGroup")}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleChangeProject(item.id, null)} className={!item.design_project_id ? "bg-accent" : ""}>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleChangeProject(item.id, null); }} className={!item.design_project_id ? "bg-accent" : ""}>
                               {t("mediaNoProject")}
                             </DropdownMenuItem>
                             {projects.map((p) => (
-                              <DropdownMenuItem key={p.id} onClick={() => handleChangeProject(item.id, p.id)} className={item.design_project_id === p.id ? "bg-accent" : ""}>
+                              <DropdownMenuItem key={p.id} onSelect={(e) => { e.preventDefault(); handleChangeProject(item.id, p.id); }} className={item.design_project_id === p.id ? "bg-accent" : ""}>
                                 {p.name}
                               </DropdownMenuItem>
                             ))}
@@ -771,11 +771,11 @@ export default function MediaPage() {
                           <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenuLabel className="text-xs">{t("mediaProjectGroup")}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleChangeProject(item.id, null)} className={!item.design_project_id ? "bg-accent" : ""}>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleChangeProject(item.id, null); }} className={!item.design_project_id ? "bg-accent" : ""}>
                               {t("mediaNoProject")}
                             </DropdownMenuItem>
                             {projects.map((p) => (
-                              <DropdownMenuItem key={p.id} onClick={() => handleChangeProject(item.id, p.id)} className={item.design_project_id === p.id ? "bg-accent" : ""}>
+                              <DropdownMenuItem key={p.id} onSelect={(e) => { e.preventDefault(); handleChangeProject(item.id, p.id); }} className={item.design_project_id === p.id ? "bg-accent" : ""}>
                                 {p.name}
                               </DropdownMenuItem>
                             ))}
