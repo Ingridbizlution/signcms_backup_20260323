@@ -77,6 +77,11 @@ export default function PublishingCenterPage() {
   const [emergencyPublishing, setEmergencyPublishing] = useState(false);
   const [showEmergencySuccess, setShowEmergencySuccess] = useState(false);
 
+  // Restore normal state
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
+
   // Fetch data
   const fetchData = useCallback(async () => {
     setLoading(true);
