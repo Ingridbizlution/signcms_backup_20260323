@@ -114,6 +114,7 @@ const AnnouncementPage = () => {
     errorFill: { zh: "請填寫主旨、內容、起訖時間", en: "Please fill in subject, content, and dates", ja: "件名・内容・日時を入力してください" },
     deleted: { zh: "已刪除公告", en: "Announcement deleted", ja: "お知らせを削除しました" },
     pinnedTag: { zh: "📌 置頂", en: "📌 Pinned", ja: "📌 固定" },
+    successEdit: { zh: "公告已更新", en: "Announcement updated", ja: "お知らせを更新しました" },
   };
 
   const t = (key: keyof typeof texts) => texts[key][language];
