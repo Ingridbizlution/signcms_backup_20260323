@@ -282,7 +282,7 @@ export default function ScreensPage() {
         </div>
         {isAdmin && (
           <div className="flex gap-2 self-start">
-            <Button variant="outline" onClick={() => setNewGroupDialogOpen(true)} className="gap-2" title="新增螢幕群組">
+            <Button variant="outline" onClick={() => setNewGroupDialogOpen(true)} className="gap-2" title={t("tipAddScreenGroup")}>
               <FolderPlus className="w-4 h-4" />
               {t("screensNewGroup")}
             </Button>
