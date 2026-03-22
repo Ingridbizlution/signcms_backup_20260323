@@ -338,7 +338,20 @@ export default function PublishingCenterPage() {
           <p className="text-muted-foreground mt-1">{t("publishSubtitle")}</p>
         </div>
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {orgs.length > 1 && (
+              <Select value={filterOrgId} onValueChange={setFilterOrgId}>
+                <SelectTrigger className="w-[180px] h-9">
+                  <Building2 className="w-4 h-4 mr-1.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("orgFilterAll")}</SelectItem>
+                  {orgs.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+                  <SelectItem value="none">— 未分配 —</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             {hasActiveEmergency && (
               <Button
                 variant="outline"
