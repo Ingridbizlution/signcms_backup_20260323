@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import {
   Send, CalendarClock, Monitor, CheckCircle2, Clock, Loader2,
-  Radio, Play, Zap, Calendar as CalendarIcon, ListMusic, ChevronRight,
-  CheckCheck, AlertCircle, Search,
+  Play, Zap, Calendar as CalendarIcon, ListMusic,
+  CheckCheck, Search, AlertTriangle, ShieldAlert, X, Layers,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,12 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -66,6 +70,13 @@ export default function PublishingCenterPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchScreen, setSearchScreen] = useState("");
 
+  // Emergency broadcast state
+  const [emergencyOpen, setEmergencyOpen] = useState(false);
+  const [emergencyConfirmOpen, setEmergencyConfirmOpen] = useState(false);
+  const [emergencyMessage, setEmergencyMessage] = useState("");
+  const [emergencyPublishing, setEmergencyPublishing] = useState(false);
+  const [showEmergencySuccess, setShowEmergencySuccess] = useState(false);
+
   // Fetch data
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -75,9 +86,7 @@ export default function PublishingCenterPage() {
       (supabase as any).from("publish_records").select("*").order("created_at", { ascending: false }).limit(50),
     ]);
 
-    // Also get item counts
     const { data: itemCounts } = await (supabase as any).from("schedule_items").select("schedule_id");
-
     const countMap = new Map<string, number>();
     (itemCounts || []).forEach((i: any) => {
       countMap.set(i.schedule_id, (countMap.get(i.schedule_id) || 0) + 1);
@@ -96,7 +105,7 @@ export default function PublishingCenterPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Grouped screens by branch
+  // Grouped screens by group (branch field)
   const groupedScreens = useMemo(() => {
     const groups = new Map<string, ScreenOption[]>();
     const filtered = screens.filter((s) =>
@@ -104,9 +113,9 @@ export default function PublishingCenterPage() {
       s.branch.toLowerCase().includes(searchScreen.toLowerCase())
     );
     filtered.forEach((s) => {
-      const branch = s.branch || t("publishUngrouped");
-      if (!groups.has(branch)) groups.set(branch, []);
-      groups.get(branch)!.push(s);
+      const group = s.branch || t("publishUngrouped");
+      if (!groups.has(group)) groups.set(group, []);
+      groups.get(group)!.push(s);
     });
     return groups;
   }, [screens, searchScreen, t]);
@@ -122,12 +131,12 @@ export default function PublishingCenterPage() {
     });
   };
 
-  const toggleBranch = (branchScreens: ScreenOption[]) => {
+  const toggleGroup = (groupScreens: ScreenOption[]) => {
     setSelectedScreenIds((prev) => {
       const next = new Set(prev);
-      const allIn = branchScreens.every((s) => next.has(s.id));
-      if (allIn) branchScreens.forEach((s) => next.delete(s.id));
-      else branchScreens.forEach((s) => next.add(s.id));
+      const allIn = groupScreens.every((s) => next.has(s.id));
+      if (allIn) groupScreens.forEach((s) => next.delete(s.id));
+      else groupScreens.forEach((s) => next.add(s.id));
       return next;
     });
   };
@@ -183,10 +192,40 @@ export default function PublishingCenterPage() {
     setPublishing(false);
   };
 
+  // Emergency broadcast
+  const handleEmergencyBroadcast = async () => {
+    if (!emergencyMessage.trim()) { toast.error(t("emergencyFillMessage")); return; }
+    setEmergencyPublishing(true);
+
+    const inserts = screens.map((screen) => ({
+      schedule_id: null,
+      screen_id: screen.id,
+      schedule_name: `🚨 ${t("emergencyTitle")}`,
+      screen_name: screen.name,
+      status: "emergency",
+      scheduled_at: null,
+      published_by: user?.id,
+    }));
+
+    const { error } = await (supabase as any).from("publish_records").insert(inserts);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setShowEmergencySuccess(true);
+      setTimeout(() => setShowEmergencySuccess(false), 3000);
+      setEmergencyMessage("");
+      setEmergencyOpen(false);
+      setEmergencyConfirmOpen(false);
+      fetchData();
+    }
+    setEmergencyPublishing(false);
+  };
+
   const getStatusBadge = (status: string) => {
     if (status === "playing") return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 gap-1"><Play className="w-3 h-3" />{t("publishStatusPlaying")}</Badge>;
     if (status === "scheduled") return <Badge variant="outline" className="gap-1 text-amber-600 border-amber-500/30 bg-amber-500/10"><Clock className="w-3 h-3" />{t("publishStatusScheduled")}</Badge>;
     if (status === "sending") return <Badge variant="outline" className="gap-1 text-blue-600 border-blue-500/30 bg-blue-500/10"><Loader2 className="w-3 h-3 animate-spin" />{t("publishStatusSending")}</Badge>;
+    if (status === "emergency") return <Badge className="bg-red-500/15 text-red-600 border-red-500/30 gap-1 animate-pulse"><AlertTriangle className="w-3 h-3" />{t("publishStatusEmergency")}</Badge>;
     return <Badge variant="secondary">{status}</Badge>;
   };
 
@@ -213,13 +252,38 @@ export default function PublishingCenterPage() {
         </div>
       )}
 
+      {/* Emergency success overlay */}
+      {showEmergencySuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-red-950/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="flex flex-col items-center gap-4 animate-in zoom-in-75 duration-500">
+            <div className="w-24 h-24 rounded-full bg-red-500/20 flex items-center justify-center animate-pulse">
+              <ShieldAlert className="w-14 h-14 text-red-500 animate-in zoom-in-50 duration-700" />
+            </div>
+            <p className="text-xl font-bold text-white">{t("emergencyBroadcastSent")}</p>
+            <p className="text-sm text-red-200">{t("emergencyBroadcastSentDesc")}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-          <Send className="w-8 h-8 text-primary" />
-          {t("publishTitle")}
-        </h1>
-        <p className="text-muted-foreground mt-1">{t("publishSubtitle")}</p>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+            <Send className="w-8 h-8 text-primary" />
+            {t("publishTitle")}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t("publishSubtitle")}</p>
+        </div>
+        {isAdmin && (
+          <Button
+            variant="destructive"
+            className="gap-2 shadow-lg shadow-red-600/20 font-bold"
+            onClick={() => setEmergencyOpen(true)}
+          >
+            <AlertTriangle className="w-4 h-4" />
+            {t("emergencyBroadcast")}
+          </Button>
+        )}
       </div>
 
       {/* Main 3-column layout */}
@@ -288,22 +352,23 @@ export default function PublishingCenterPage() {
           </div>
           <Separator />
           <div className="space-y-3 max-h-[340px] overflow-y-auto">
-            {Array.from(groupedScreens.entries()).map(([branch, branchScreens]) => {
-              const branchAllSelected = branchScreens.every((s) => selectedScreenIds.has(s.id));
-              const branchSomeSelected = branchScreens.some((s) => selectedScreenIds.has(s.id));
+            {Array.from(groupedScreens.entries()).map(([group, groupScreens]) => {
+              const groupAllSelected = groupScreens.every((s) => selectedScreenIds.has(s.id));
+              const groupSomeSelected = groupScreens.some((s) => selectedScreenIds.has(s.id));
               return (
-                <div key={branch}>
+                <div key={group}>
                   <div className="flex items-center gap-2 mb-1.5">
                     <Checkbox
-                      checked={branchAllSelected}
-                      onCheckedChange={() => toggleBranch(branchScreens)}
-                      className={branchSomeSelected && !branchAllSelected ? "data-[state=unchecked]:bg-primary/20" : ""}
+                      checked={groupAllSelected}
+                      onCheckedChange={() => toggleGroup(groupScreens)}
+                      className={groupSomeSelected && !groupAllSelected ? "data-[state=unchecked]:bg-primary/20" : ""}
                     />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{branch}</span>
-                    <Badge variant="outline" className="text-[10px] ml-auto">{branchScreens.length}</Badge>
+                    <Layers className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{group}</span>
+                    <Badge variant="outline" className="text-[10px] ml-auto">{groupScreens.length}</Badge>
                   </div>
                   <div className="space-y-0.5 pl-6">
-                    {branchScreens.map((s) => (
+                    {groupScreens.map((s) => (
                       <label
                         key={s.id}
                         className={cn(
@@ -482,8 +547,8 @@ export default function PublishingCenterPage() {
                   <tr key={r.id} className="border-b border-border/40 last:border-0 hover:bg-muted/30 transition-colors">
                     <td className="py-2.5 pr-4">
                       <span className="flex items-center gap-2">
-                        <ListMusic className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                        <span className="font-medium text-foreground">{r.schedule_name}</span>
+                        {r.status === "emergency" ? <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" /> : <ListMusic className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                        <span className={cn("font-medium", r.status === "emergency" ? "text-red-600" : "text-foreground")}>{r.schedule_name}</span>
                       </span>
                     </td>
                     <td className="py-2.5 pr-4">
@@ -506,6 +571,85 @@ export default function PublishingCenterPage() {
           </div>
         )}
       </Card>
+
+      {/* Emergency Broadcast Dialog */}
+      <AlertDialog open={emergencyOpen} onOpenChange={setEmergencyOpen}>
+        <AlertDialogContent className="border-red-500/30 sm:max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <ShieldAlert className="w-6 h-6" />
+              {t("emergencyTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{t("emergencyDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-lg border-2 border-red-500/20 bg-red-500/5 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-red-600">
+                <AlertTriangle className="w-4 h-4" />
+                {t("emergencyWarning")}
+              </div>
+              <ul className="text-xs text-muted-foreground space-y-1 pl-6 list-disc">
+                <li>{t("emergencyWarning1")}</li>
+                <li>{t("emergencyWarning2")}</li>
+                <li>{t("emergencyWarning3")}</li>
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t("emergencyMessage")}</Label>
+              <Textarea
+                value={emergencyMessage}
+                onChange={(e) => setEmergencyMessage(e.target.value)}
+                placeholder={t("emergencyMessagePlaceholder")}
+                className="min-h-[100px] border-red-500/20 focus-visible:ring-red-500/30"
+              />
+            </div>
+            <div className="rounded-lg bg-muted/50 p-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{t("emergencyAffectedScreens")}：</span>
+                <span className="font-bold text-red-600">{t("emergencyAllScreens")} ({screens.length} {t("publishScreensTotal")})</span>
+              </div>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              className="gap-2 font-bold"
+              disabled={!emergencyMessage.trim()}
+              onClick={() => setEmergencyConfirmOpen(true)}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              {t("emergencyConfirmBtn")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Emergency double confirm */}
+      <AlertDialog open={emergencyConfirmOpen} onOpenChange={setEmergencyConfirmOpen}>
+        <AlertDialogContent className="border-red-500/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5" />
+              {t("emergencyDoubleConfirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-red-500 font-medium">
+              {t("emergencyDoubleConfirmDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleEmergencyBroadcast}
+              disabled={emergencyPublishing}
+              className="bg-red-600 hover:bg-red-700 text-white gap-2 font-bold"
+            >
+              {emergencyPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+              {t("emergencyExecute")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
