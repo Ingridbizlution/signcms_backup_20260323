@@ -652,8 +652,10 @@ export default function ContentStudioPage() {
   const handleNew = useCallback(() => {
     setCurrentProject(null);
     setZones(LAYOUT_PRESETS[0].zones.map((z) => ({ ...z })));
+    setOverlays([]);
     setAspect("16:9");
     setSelectedZone(null);
+    setSelectedOverlay(null);
   }, []);
 
   // Resize logic
