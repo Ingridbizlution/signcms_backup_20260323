@@ -364,10 +364,12 @@ export default function SchedulesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Switch
-                  checked={schedule.enabled}
-                  onCheckedChange={() => toggleEnabled(schedule.id)}
-                />
+                {isAdmin && (
+                  <Switch
+                    checked={schedule.enabled}
+                    onCheckedChange={() => toggleEnabled(schedule.id)}
+                  />
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -384,22 +386,26 @@ export default function SchedulesPage() {
                     <ChevronDown className="w-4 h-4" />
                   )}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => openEdit(schedule)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => setDeleteId(schedule.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {isAdmin && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => openEdit(schedule)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => setDeleteId(schedule.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
