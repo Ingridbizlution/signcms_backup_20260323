@@ -25,6 +25,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScreenLogPanel } from "@/components/ScreenLogPanel";
 
 const UNGROUPED = "__ungrouped__";
 
