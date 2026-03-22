@@ -15,7 +15,6 @@ const translations = {
   navPublishing: { zh: "發佈管理", en: "Publishing Center", ja: "配信管理" },
   navDeviceLogs: { zh: "設備紀錄", en: "Device Logs", ja: "デバイスログ" },
   navAdmin: { zh: "使用者管理", en: "User Management", ja: "ユーザー管理" },
-  navAdmin: { zh: "使用者管理", en: "User Management", ja: "ユーザー管理" },
 
   // Common
   cancel: { zh: "取消", en: "Cancel", ja: "キャンセル" },
