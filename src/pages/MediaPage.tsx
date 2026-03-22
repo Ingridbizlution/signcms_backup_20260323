@@ -780,6 +780,11 @@ export default function MediaPage() {
                   timezone: widgetForm.timezone,
                   bgColor: widgetForm.bgColor,
                   textColor: widgetForm.textColor,
+                  qrcodeContent: widgetForm.qrcodeContent,
+                  targetDate: widgetForm.targetDate,
+                  countdownTitle: widgetForm.countdownTitle,
+                  youtubeUrl: widgetForm.youtubeUrl,
+                  city: widgetForm.city,
                 }} />
               </div>
             </div>
