@@ -413,6 +413,18 @@ export default function ScreensPage() {
                 </SelectContent>
               </Select>
             </div>
+            {orgs.length > 0 && (
+              <div className="space-y-2">
+                <Label>{t("teamOrg")}</Label>
+                <Select value={form.org_id || "none"} onValueChange={(v) => setForm({ ...form, org_id: v === "none" ? "" : v })}>
+                  <SelectTrigger><SelectValue placeholder={t("teamSelectOrg")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t("screensUngrouped")}</SelectItem>
+                    {orgs.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline">{t("cancel")}</Button></DialogClose>
