@@ -258,6 +258,7 @@ export default function SystemLogsPage() {
     today: { zh: "今天", en: "Today", ja: "今日" },
     thisWeek: { zh: "本週", en: "This Week", ja: "今週" },
     thisMonth: { zh: "本月", en: "This Month", ja: "今月" },
+    tabPlayback: { zh: "播放日誌", en: "Playback Reports", ja: "再生レポート" },
   };
 
   const handleExportDeviceExcel = () => {
