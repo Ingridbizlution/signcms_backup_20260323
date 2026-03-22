@@ -264,7 +264,7 @@ const CustomerServicePage = () => {
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       className="flex-1 h-10 bg-muted/50"
-                      onKeyDown={(e) => e.key === "Enter" && setInputText("")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSend()}
                     />
                     <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title="語音轉文字">
                       <Mic className="h-4 w-4" />
