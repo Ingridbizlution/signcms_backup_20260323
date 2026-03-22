@@ -126,33 +126,45 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          days: string[]
+          enabled: boolean
           end_date: string | null
+          end_time: string
           id: string
           name: string
           screen_id: string | null
           start_date: string | null
+          start_time: string
           status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          days?: string[]
+          enabled?: boolean
           end_date?: string | null
+          end_time?: string
           id?: string
           name: string
           screen_id?: string | null
           start_date?: string | null
+          start_time?: string
           status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          days?: string[]
+          enabled?: boolean
           end_date?: string | null
+          end_time?: string
           id?: string
           name?: string
           screen_id?: string | null
           start_date?: string | null
+          start_time?: string
           status?: string
           updated_at?: string
         }
@@ -171,7 +183,9 @@ export type Database = {
           branch: string
           created_at: string
           id: string
+          location: string
           name: string
+          online: boolean
           resolution: string
           status: string
           updated_at: string
@@ -181,7 +195,9 @@ export type Database = {
           branch?: string
           created_at?: string
           id?: string
+          location?: string
           name: string
+          online?: boolean
           resolution?: string
           status?: string
           updated_at?: string
@@ -191,7 +207,9 @@ export type Database = {
           branch?: string
           created_at?: string
           id?: string
+          location?: string
           name?: string
+          online?: boolean
           resolution?: string
           status?: string
           updated_at?: string
