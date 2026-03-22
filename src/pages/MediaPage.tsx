@@ -67,6 +67,10 @@ const WIDGET_ICONS: Record<WidgetSubType, typeof Calendar> = {
   clock: Clock,
   webpage: Globe,
   marquee: Type,
+  qrcode: QrCode,
+  countdown: Timer,
+  youtube: Youtube,
+  weather: CloudSun,
 };
 
 const TIMEZONE_OPTIONS = [
