@@ -41,7 +41,7 @@ const mockScreens = [
   { id: 6, name: "台南永康店 - 門口", branch: "台南永康店", online: false, lastSeen: "32 分鐘前" },
 ];
 
-function ScreenCard({ screen }: { screen: typeof mockScreens[0] }) {
+const ScreenCard = ({ screen }: { screen: typeof mockScreens[0] }) => {
   return (
     <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all group cursor-pointer">
       <div className="aspect-video bg-muted relative flex items-center justify-center">
