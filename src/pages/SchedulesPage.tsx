@@ -168,6 +168,12 @@ export default function SchedulesPage() {
 
   useEffect(() => { fetchAll(); }, []);
 
+  const filteredSchedules = useMemo(() => {
+    if (filterOrgId === "all") return schedules;
+    if (filterOrgId === "none") return schedules.filter(s => !s.org_id);
+    return schedules.filter(s => s.org_id === filterOrgId);
+  }, [schedules, filterOrgId]);
+
   const openAdd = () => {
     setEditingId(null);
     setForm({ name: "", screen_id: "", startTime: "09:00", endTime: "18:00", days: ["一", "二", "三", "四", "五"], items: [] });
