@@ -38,7 +38,7 @@ const translations = {
 
   // Dashboard
   dashTitle: { zh: "總覽儀表板", en: "Dashboard", ja: "ダッシュボード" },
-  dashSubtitle: { zh: "即時監控所有分店電子看板狀態", en: "Monitor all branch digital signage in real-time", ja: "全店舗のデジタルサイネージをリアルタイム監視" },
+  dashSubtitle: { zh: "即時監控所有群組電子看板狀態", en: "Monitor all group digital signage in real-time", ja: "全グループのデジタルサイネージをリアルタイム監視" },
   dashOnlineScreens: { zh: "在線螢幕", en: "Online Screens", ja: "オンラインスクリーン" },
   dashRunningNormal: { zh: "運行正常", en: "Running normally", ja: "正常稼働中" },
   dashOfflineWarning: { zh: "離線螢幕警告", en: "Offline Warnings", ja: "オフライン警告" },
