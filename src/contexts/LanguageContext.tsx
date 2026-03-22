@@ -219,6 +219,32 @@ const translations = {
   // Theme
   lightMode: { zh: "淺色模式", en: "Light Mode", ja: "ライトモード" },
   darkMode: { zh: "深色模式", en: "Dark Mode", ja: "ダークモード" },
+
+  // Content Studio
+  navStudio: { zh: "內容設計中心", en: "Content Studio", ja: "コンテンツスタジオ" },
+  studioTitle: { zh: "內容設計中心", en: "Content Studio", ja: "コンテンツスタジオ" },
+  studioSubtitle: { zh: "輕鬆設計廣告看板內容", en: "Design signage content with ease", ja: "サイネージコンテンツを簡単デザイン" },
+  studioLandscape: { zh: "橫式 16:9", en: "Landscape 16:9", ja: "横型 16:9" },
+  studioPortrait: { zh: "直式 9:16", en: "Portrait 9:16", ja: "縦型 9:16" },
+  studioLayouts: { zh: "版面分割", en: "Layouts", ja: "レイアウト" },
+  studioTemplates: { zh: "樣板庫", en: "Templates", ja: "テンプレート" },
+  studioZones: { zh: "個區塊", en: "zones", ja: "ゾーン" },
+  studioEditZone: { zh: "編輯區塊", en: "Edit Zone", ja: "ゾーン編集" },
+  studioUploadImage: { zh: "上傳圖片", en: "Upload Image", ja: "画像アップロード" },
+  studioUploadVideo: { zh: "上傳影片", en: "Upload Video", ja: "動画アップロード" },
+  studioText: { zh: "文字內容", en: "Text Content", ja: "テキスト内容" },
+  studioTextPlaceholder: { zh: "輸入文字...", en: "Enter text...", ja: "テキストを入力..." },
+  studioBgColor: { zh: "背景顏色", en: "Background Color", ja: "背景色" },
+  studioLayoutFull: { zh: "全螢幕單一畫面", en: "Full Screen", ja: "フルスクリーン" },
+  studioLayoutLR: { zh: "左右分割", en: "Left & Right", ja: "左右分割" },
+  studioLayoutTB: { zh: "上下分割 + 跑馬燈", en: "Top + Ticker", ja: "上下分割+テロップ" },
+  studioLayoutGrid: { zh: "四宮格", en: "4-Grid", ja: "4分割グリッド" },
+  studioTplFood: { zh: "餐飲促銷", en: "Food Promo", ja: "飲食プロモ" },
+  studioTplHoliday: { zh: "節日問候", en: "Holiday Greeting", ja: "ホリデー挨拶" },
+  studioTplNew: { zh: "新品上市", en: "New Arrival", ja: "新商品" },
+  studioTplSummer: { zh: "夏日特惠", en: "Summer Sale", ja: "サマーセール" },
+  studioTplGift: { zh: "禮品活動", en: "Gift Event", ja: "ギフトイベント" },
+  studioTplCoffee: { zh: "咖啡時光", en: "Coffee Time", ja: "コーヒータイム" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
