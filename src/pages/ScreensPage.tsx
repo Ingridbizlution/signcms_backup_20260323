@@ -447,15 +447,15 @@ export default function ScreensPage() {
                   <span className={`flex items-center gap-1 ${!screen.branch ? "italic opacity-60" : ""}`} title={t("tipGroup")}>
                     <Layers className="w-3 h-3" />{screen.branch || t("screensUngrouped")}
                   </span>
-                  {screen.location && <span className="flex items-center gap-1" title="位置"><MapPin className="w-3 h-3" />{screen.location}</span>}
-                  <span title="解析度">{screen.resolution}</span>
-                  <span className="flex items-center gap-1 font-mono text-[11px]" title="序號">SN: {screen.serial_number || "—"}</span>
-                  <span className="flex items-center gap-1 font-mono text-[11px]" title="網路 IP 位址">IP: {screen.ip_address || "—"}</span>
-                  <span className="flex items-center gap-1 font-mono text-[11px]" title="韌體版本">FW: {screen.firmware_version || "—"}</span>
+                  {screen.location && <span className="flex items-center gap-1" title={t("tipLocation")}><MapPin className="w-3 h-3" />{screen.location}</span>}
+                  <span title={t("tipResolution")}>{screen.resolution}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title={t("tipSerialNumber")}>SN: {screen.serial_number || "—"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title={t("tipIpAddress")}>IP: {screen.ip_address || "—"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title={t("tipFirmwareVersion")}>FW: {screen.firmware_version || "—"}</span>
                   {screen.connection_type && (
-                    <span className="flex items-center gap-1" title="連線方式">
+                    <span className="flex items-center gap-1" title={t("tipConnectionType")}>
                       {screen.connection_type === "wired" ? <Cable className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
-                      {screen.connection_type === "wired" ? "有線" : "無線"}
+                      {screen.connection_type === "wired" ? t("tipWired") : t("tipWireless")}
                     </span>
                   )}
                   {(() => {
