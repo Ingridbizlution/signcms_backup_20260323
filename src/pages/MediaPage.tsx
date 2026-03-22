@@ -133,33 +133,57 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
       const hDeg = (h % 12) * 30 + m * 0.5;
       const mDeg = m * 6;
       const sDeg = s * 6;
+      const dateStr = config.showDate ? now.toLocaleDateString("zh-TW", { month: "short", day: "numeric", timeZone: tz }) : "";
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
-          <svg viewBox="0 0 200 200" className="w-[60%] max-w-[180px]">
-            <circle cx="100" cy="100" r="95" fill="none" stroke={fg} strokeWidth="3" opacity="0.3" />
+        <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
+          <svg viewBox="0 0 200 200" className="w-[55%] max-w-[170px]">
+            {/* Outer ring */}
+            <circle cx="100" cy="100" r="96" fill="none" stroke={fg} strokeWidth="2" opacity="0.15" />
+            <circle cx="100" cy="100" r="93" fill="none" stroke={fg} strokeWidth="1" opacity="0.08" />
+            {/* Hour numbers */}
             {[...Array(12)].map((_, i) => {
+              const num = i === 0 ? 12 : i;
               const angle = (i * 30 - 90) * Math.PI / 180;
-              const x1 = 100 + 80 * Math.cos(angle), y1 = 100 + 80 * Math.sin(angle);
-              const x2 = 100 + 90 * Math.cos(angle), y2 = 100 + 90 * Math.sin(angle);
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={fg} strokeWidth="2" opacity="0.5" />;
+              const tx = 100 + 78 * Math.cos(angle);
+              const ty = 100 + 78 * Math.sin(angle);
+              return <text key={i} x={tx} y={ty} textAnchor="middle" dominantBaseline="central" fill={fg} fontSize="14" fontWeight="600" opacity="0.8">{num}</text>;
             })}
-            {/* Hour */}
-            <line x1="100" y1="100" x2={100 + 50 * Math.cos((hDeg - 90) * Math.PI / 180)} y2={100 + 50 * Math.sin((hDeg - 90) * Math.PI / 180)} stroke={fg} strokeWidth="4" strokeLinecap="round" />
-            {/* Minute */}
-            <line x1="100" y1="100" x2={100 + 70 * Math.cos((mDeg - 90) * Math.PI / 180)} y2={100 + 70 * Math.sin((mDeg - 90) * Math.PI / 180)} stroke={fg} strokeWidth="3" strokeLinecap="round" />
-            {/* Second */}
-            <line x1="100" y1="100" x2={100 + 75 * Math.cos((sDeg - 90) * Math.PI / 180)} y2={100 + 75 * Math.sin((sDeg - 90) * Math.PI / 180)} stroke="hsl(0 70% 55%)" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="100" cy="100" r="4" fill={fg} />
+            {/* Minute ticks */}
+            {[...Array(60)].map((_, i) => {
+              const angle = (i * 6 - 90) * Math.PI / 180;
+              const isHour = i % 5 === 0;
+              const r1 = isHour ? 86 : 89;
+              const r2 = 92;
+              return <line key={i} x1={100 + r1 * Math.cos(angle)} y1={100 + r1 * Math.sin(angle)} x2={100 + r2 * Math.cos(angle)} y2={100 + r2 * Math.sin(angle)} stroke={fg} strokeWidth={isHour ? 2 : 0.8} opacity={isHour ? 0.6 : 0.3} />;
+            })}
+            {/* Date window */}
+            {config.showDate && (
+              <>
+                <rect x="120" y="92" width="30" height="16" rx="3" fill={fg} opacity="0.1" stroke={fg} strokeWidth="0.5" opacity="0.2" />
+                <text x="135" y="101" textAnchor="middle" dominantBaseline="central" fill={fg} fontSize="8" fontWeight="500" opacity="0.7">{dateStr}</text>
+              </>
+            )}
+            {/* Hour hand - tapered */}
+            <polygon points={`${100 + 45 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 + 45 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 + 5 * Math.cos((hDeg) * Math.PI / 180)},${100 + 5 * Math.sin((hDeg) * Math.PI / 180)} ${100 - 10 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 - 10 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 - 5 * Math.cos((hDeg) * Math.PI / 180)},${100 - 5 * Math.sin((hDeg) * Math.PI / 180)}`} fill={fg} opacity="0.9" />
+            {/* Minute hand - tapered */}
+            <polygon points={`${100 + 65 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 + 65 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 + 4 * Math.cos((mDeg) * Math.PI / 180)},${100 + 4 * Math.sin((mDeg) * Math.PI / 180)} ${100 - 12 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 - 12 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 - 4 * Math.cos((mDeg) * Math.PI / 180)},${100 - 4 * Math.sin((mDeg) * Math.PI / 180)}`} fill={fg} opacity="0.85" />
+            {/* Second hand */}
+            <line x1={100 - 18 * Math.cos((sDeg - 90) * Math.PI / 180)} y1={100 - 18 * Math.sin((sDeg - 90) * Math.PI / 180)} x2={100 + 72 * Math.cos((sDeg - 90) * Math.PI / 180)} y2={100 + 72 * Math.sin((sDeg - 90) * Math.PI / 180)} stroke="hsl(0 70% 55%)" strokeWidth="1.2" strokeLinecap="round" />
+            {/* Center cap */}
+            <circle cx="100" cy="100" r="5" fill={fg} />
+            <circle cx="100" cy="100" r="2.5" fill="hsl(0 70% 55%)" />
           </svg>
           {config.timezone && <span className="text-[10px] opacity-50">{config.timezone}</span>}
         </div>
       );
     }
 
+    const dateStr = config.showDate ? now.toLocaleDateString("zh-TW", { year: "numeric", month: "short", day: "numeric", weekday: "short", timeZone: tz }) : "";
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
         <span className="text-4xl font-mono font-bold tracking-wider">{timeStr}</span>
-        {config.timezone && <span className="text-xs opacity-50">{config.timezone}</span>}
+        {config.showDate && <span className="text-sm opacity-60">{dateStr}</span>}
+        {config.timezone && <span className="text-xs opacity-40">{config.timezone}</span>}
       </div>
     );
   }
