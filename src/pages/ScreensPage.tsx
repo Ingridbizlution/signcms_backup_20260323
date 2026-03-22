@@ -144,11 +144,11 @@ export default function ScreensPage() {
     if (!form.name) { toast.error(t("screensFillRequired")); return; }
     setSaving(true);
     if (editingId) {
-      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, updated_at: new Date().toISOString() }).eq("id", editingId);
+      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, updated_at: new Date().toISOString() }).eq("id", editingId);
       if (error) toast.error(error.message);
       else toast.success(t("screensUpdated"));
     } else {
-      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, uploaded_by: user?.id });
+      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, uploaded_by: user?.id });
       if (error) toast.error(error.message);
       else toast.success(t("screensAdded"));
     }
