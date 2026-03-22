@@ -476,7 +476,7 @@ export default function MediaPage() {
         dimensions,
         duration,
         uploaded_by: user?.id,
-        design_project_id: uploadProjectId || null,
+        design_project_id: uploadProjectId && uploadProjectId !== "__none__" ? uploadProjectId : null,
       });
 
       if (error) toast.error(error.message);
