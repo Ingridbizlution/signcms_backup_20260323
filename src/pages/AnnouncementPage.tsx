@@ -190,6 +190,20 @@ const AnnouncementPage = () => {
     return d ? d.label[language] : val || "—";
   };
 
+  const categoryLabel = (val: string) => {
+    const c = CATEGORIES.find((x) => x.value === val);
+    return c ? c.label[language] : val || "—";
+  };
+
+  // Sort: pinned first, then by createdAt
+  const sortedAnnouncements = useMemo(() => {
+    return [...announcements].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+  }, [announcements]);
+
   const hasContent = subject || content || imageUrl;
 
   return (
