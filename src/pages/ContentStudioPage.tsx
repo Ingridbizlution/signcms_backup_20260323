@@ -383,7 +383,6 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
           </div>
         </div>
       </div>
-    </div>
   );
 
   if (isEmbedded) return innerContent;
