@@ -58,6 +58,12 @@ interface MediaItem {
   dimensions: string;
   duration?: string;
   created_at: string;
+  design_project_id?: string | null;
+}
+
+interface DesignProject {
+  id: string;
+  name: string;
 }
 
 function parseWidgetConfig(url: string): WidgetConfig | null {
