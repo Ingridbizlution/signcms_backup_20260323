@@ -463,27 +463,33 @@ export default function ScreensPage() {
                     };
                     const up = parseSpeed(screen.avg_upload_speed);
                     const down = parseSpeed(screen.avg_download_speed);
-                    const UPLOAD_THRESHOLD = uploadThreshold;
-                    const DOWNLOAD_THRESHOLD = downloadThreshold;
                     const hasData = up !== null || down !== null;
-                    const isUpLow = up !== null && up < UPLOAD_THRESHOLD;
-                    const isDownLow = down !== null && down < DOWNLOAD_THRESHOLD;
-                    const isWarning = isUpLow || isDownLow;
-
-                    if (!hasData) return null;
+                    const isUpLow = up !== null && up < uploadThreshold;
+                    const isDownLow = down !== null && down < downloadThreshold;
+                    const isWarning = hasData && (isUpLow || isDownLow);
 
                     return (
                       <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium ${
-                        isWarning
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-success/10 text-success"
+                        !hasData
+                          ? "bg-muted text-muted-foreground"
+                          : isWarning
+                            ? "bg-destructive/10 text-destructive"
+                            : "bg-success/10 text-success"
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${isWarning ? "bg-destructive animate-pulse" : "bg-success"}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          !hasData ? "bg-muted-foreground/40" : isWarning ? "bg-destructive animate-pulse" : "bg-success"
+                        }`} />
                         <ArrowUpDown className="w-3 h-3" />
-                        {up !== null && <span className={isUpLow ? "font-bold" : ""}>↑{screen.avg_upload_speed}</span>}
-                        {up !== null && down !== null && <span>/</span>}
-                        {down !== null && <span className={isDownLow ? "font-bold" : ""}>↓{screen.avg_download_speed}</span>}
-                        {isWarning && <span className="text-[10px]">⚠</span>}
+                        {!hasData ? (
+                          <span>未設定</span>
+                        ) : (
+                          <>
+                            {up !== null && <span className={isUpLow ? "font-bold" : ""}>↑{screen.avg_upload_speed}</span>}
+                            {up !== null && down !== null && <span>/</span>}
+                            {down !== null && <span className={isDownLow ? "font-bold" : ""}>↓{screen.avg_download_speed}</span>}
+                            {isWarning && <span className="text-[10px]">⚠</span>}
+                          </>
+                        )}
                       </span>
                     );
                   })()}
