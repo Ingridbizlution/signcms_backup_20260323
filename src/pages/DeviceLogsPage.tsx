@@ -212,6 +212,34 @@ export default function SystemLogsPage() {
   const activityTotalPages = Math.max(1, Math.ceil(filteredActivity.length / ACTIVITY_PAGE_SIZE));
   const paginatedActivity = filteredActivity.slice((activityPage - 1) * ACTIVITY_PAGE_SIZE, activityPage * ACTIVITY_PAGE_SIZE);
 
+  // --- Playback computed data ---
+  const CHART_COLORS = ["hsl(var(--primary))", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
+
+  const playbackSummary = useMemo(() => {
+    const map = new Map<string, { count: number; totalSeconds: number }>();
+    playbackLogs.forEach(l => {
+      const existing = map.get(l.media_name) || { count: 0, totalSeconds: 0 };
+      existing.count += 1;
+      existing.totalSeconds += l.duration_seconds;
+      map.set(l.media_name, existing);
+    });
+    return Array.from(map.entries())
+      .map(([name, stats]) => ({ name, ...stats }))
+      .sort((a, b) => b.count - a.count);
+  }, [playbackLogs]);
+
+  const playbackTrend = useMemo(() => {
+    const days: { date: string; count: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const day = subDays(new Date(), i);
+      const dayStr = format(day, "yyyy-MM-dd");
+      const label = format(day, "MM/dd");
+      const count = playbackLogs.filter(l => format(new Date(l.played_at), "yyyy-MM-dd") === dayStr).length;
+      days.push({ date: label, count });
+    }
+    return days;
+  }, [playbackLogs]);
+
   const labels = {
     title: { zh: "系統紀錄", en: "System Logs", ja: "システムログ" },
     subtitle: { zh: "查看設備狀態與使用者操作紀錄", en: "View device status and user activity logs", ja: "デバイスステータスとユーザー操作ログを表示" },
