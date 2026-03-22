@@ -150,8 +150,9 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
     }
   }, [config.widgetType]);
 
-  const bg = config.bgColor || "#1a1a2e";
-  const fg = config.textColor || "#ffffff";
+  const bg = config.bgColor || "transparent";
+  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const fg = config.textColor || (isDark ? "#ffffff" : "#000000");
 
   if (config.widgetType === "clock") {
     const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
