@@ -704,6 +704,40 @@ export default function MediaPage() {
               </>
             )}
 
+            {widgetForm.widgetType === "qrcode" && (
+              <div className="space-y-2">
+                <Label>{t("widgetQrcodeContent")}</Label>
+                <Input value={widgetForm.qrcodeContent || ""} onChange={(e) => setWidgetForm({ ...widgetForm, qrcodeContent: e.target.value })} placeholder={t("widgetQrcodePlaceholder")} />
+              </div>
+            )}
+
+            {widgetForm.widgetType === "countdown" && (
+              <>
+                <div className="space-y-2">
+                  <Label>{t("widgetCountdownTitle")}</Label>
+                  <Input value={widgetForm.countdownTitle || ""} onChange={(e) => setWidgetForm({ ...widgetForm, countdownTitle: e.target.value })} placeholder={t("widgetCountdownTitlePlaceholder")} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("widgetTargetDate")}</Label>
+                  <Input type="datetime-local" value={widgetForm.targetDate || ""} onChange={(e) => setWidgetForm({ ...widgetForm, targetDate: e.target.value })} />
+                </div>
+              </>
+            )}
+
+            {widgetForm.widgetType === "youtube" && (
+              <div className="space-y-2">
+                <Label>{t("widgetYoutubeUrl")}</Label>
+                <Input value={widgetForm.youtubeUrl || ""} onChange={(e) => setWidgetForm({ ...widgetForm, youtubeUrl: e.target.value })} placeholder={t("widgetYoutubeUrlPlaceholder")} />
+              </div>
+            )}
+
+            {widgetForm.widgetType === "weather" && (
+              <div className="space-y-2">
+                <Label>{t("widgetCity")}</Label>
+                <Input value={widgetForm.city || ""} onChange={(e) => setWidgetForm({ ...widgetForm, city: e.target.value })} placeholder={t("widgetCityPlaceholder")} />
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("widgetBgColor")}</Label>
