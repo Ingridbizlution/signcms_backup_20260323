@@ -18,8 +18,9 @@ import {
   Utensils, PartyPopper, ShoppingBag, Sun, Gift, Coffee,
   X, Plus, AlignLeft, AlignCenter, AlignRight, Minus,
   Save, FolderOpen, FilePlus, ChevronLeft, ChevronRightIcon, Play, Pause,
-  Layers
+  Layers, Code2, Clock, Calendar, Globe
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Types ──────────────────────────────────────────────────────────
 type AspectRatio = "16:9" | "9:16";
