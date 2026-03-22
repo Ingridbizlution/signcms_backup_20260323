@@ -34,21 +34,23 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
-              <Routes>
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
-                <Route path="/media" element={<ProtectedRoute><Media /></ProtectedRoute>} />
-                <Route path="/schedules" element={<ProtectedRoute><Schedules /></ProtectedRoute>} />
-                <Route path="/studio" element={<ProtectedRoute><ContentStudio /></ProtectedRoute>} />
-                <Route path="/publishing" element={<ProtectedRoute><Publishing /></ProtectedRoute>} />
-                <Route path="/device-logs" element={<ProtectedRoute><DeviceLogs /></ProtectedRoute>} />
-                <Route path="/app-store" element={<ProtectedRoute><AppStore /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <InstalledAppsProvider>
+                <Routes>
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                  <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
+                  <Route path="/media" element={<ProtectedRoute><Media /></ProtectedRoute>} />
+                  <Route path="/schedules" element={<ProtectedRoute><Schedules /></ProtectedRoute>} />
+                  <Route path="/studio" element={<ProtectedRoute><ContentStudio /></ProtectedRoute>} />
+                  <Route path="/publishing" element={<ProtectedRoute><Publishing /></ProtectedRoute>} />
+                  <Route path="/device-logs" element={<ProtectedRoute><DeviceLogs /></ProtectedRoute>} />
+                  <Route path="/app-store" element={<ProtectedRoute><AppStore /></ProtectedRoute>} />
+                  <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </InstalledAppsProvider>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
