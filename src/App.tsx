@@ -44,6 +44,7 @@ const App = () => (
                 <Route path="/studio" element={<ProtectedRoute><ContentStudio /></ProtectedRoute>} />
                 <Route path="/publishing" element={<ProtectedRoute><Publishing /></ProtectedRoute>} />
                 <Route path="/device-logs" element={<ProtectedRoute><DeviceLogs /></ProtectedRoute>} />
+                <Route path="/app-store" element={<ProtectedRoute><AppStore /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
