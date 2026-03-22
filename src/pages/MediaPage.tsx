@@ -200,8 +200,8 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
     const dateStr = config.showDate ? now.toLocaleDateString("zh-TW", { year: "numeric", month: "short", day: "numeric", weekday: "short", timeZone: tz }) : "";
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
-        <span className="text-4xl font-mono font-bold tracking-wider">{timeStr}</span>
-        {config.showDate && <span className="text-sm opacity-60">{dateStr}</span>}
+        <span className={`${fs.time} font-mono font-bold tracking-wider`}>{timeStr}</span>
+        {config.showDate && <span className={`${fs.date} opacity-60`}>{dateStr}</span>}
         {config.timezone && <span className="text-xs opacity-40">{config.timezone}</span>}
       </div>
     );
@@ -210,8 +210,8 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   if (config.widgetType === "date") {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
-        <span className="text-lg font-medium opacity-70">{now.toLocaleDateString("zh-TW", { weekday: "long" })}</span>
-        <span className="text-3xl font-bold">{now.toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" })}</span>
+        <span className={`${fs.date} font-medium opacity-70`}>{now.toLocaleDateString("zh-TW", { weekday: "long" })}</span>
+        <span className={`${fs.title} font-bold`}>{now.toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" })}</span>
       </div>
     );
   }
