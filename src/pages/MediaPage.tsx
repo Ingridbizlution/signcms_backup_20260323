@@ -621,15 +621,6 @@ export default function MediaPage() {
         </div>
         {isAdmin && (
           <div className="flex gap-2 items-center">
-            <Select value={uploadProjectId} onValueChange={setUploadProjectId}>
-              <SelectTrigger className="w-[150px] h-9"><FolderOpen className="w-4 h-4 mr-1 text-muted-foreground shrink-0" /><SelectValue placeholder={t("mediaNoProject")} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">{t("mediaNoProject")}</SelectItem>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Button variant="outline" onClick={() => setWidgetDialogOpen(true)} className="gap-2">
               <Code2 className="w-4 h-4" />
               {t("mediaAddWidget")}
