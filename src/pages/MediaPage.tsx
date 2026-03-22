@@ -675,6 +675,7 @@ export default function MediaPage() {
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                       <span>{item.size}</span>
                       {item.type !== "widget" && <><span>·</span><span>{item.dimensions}</span></>}
+                      {item.design_project_id && (() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? <><span>·</span><span className="flex items-center gap-0.5"><FolderOpen className="w-3 h-3" />{p.name}</span></> : null; })()}
                     </div>
                   </div>
                 </Card>
