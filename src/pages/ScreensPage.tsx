@@ -44,6 +44,7 @@ export default function ScreensPage() {
   const { isAdmin } = useUserRole();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { orgs, defaultOrgId } = useUserOrgs();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
