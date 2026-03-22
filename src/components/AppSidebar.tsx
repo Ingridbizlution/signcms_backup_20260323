@@ -109,7 +109,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={app.id}>
                     <SidebarMenuButton asChild>
                       <NavLink
-                        to={app.id === "announcement" ? "/announcement" : `/app-store?open=${app.id}`}
+                        to={app.id === "announcement" ? "/announcement" : app.id === "queue" ? "/queue" : `/app-store?open=${app.id}`}
                         className="hover:bg-sidebar-accent/60 rounded-lg transition-all duration-200"
                         activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                       >
