@@ -130,6 +130,15 @@ const FONT_SIZE_MAP = {
   xlarge: { time: "text-8xl", date: "text-xl", title: "text-3xl", countdown: "text-8xl", marquee: "text-6xl", weather: "text-7xl", weatherCity: "text-2xl", weatherIcon: "w-24 h-24" },
 };
 
+const ANIMATION_CSS: Record<WidgetAnimation, string> = {
+  none: "",
+  fadeIn: "animate-[widgetFadeIn_0.8s_ease-out_both]",
+  slideUp: "animate-[widgetSlideUp_0.6s_ease-out_both]",
+  bounce: "animate-[widgetBounce_0.8s_ease-out_both]",
+  zoomIn: "animate-[widgetZoomIn_0.5s_ease-out_both]",
+  flipIn: "animate-[widgetFlipIn_0.7s_ease-out_both]",
+};
+
 function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   const [now, setNow] = useState(new Date());
   const fs = FONT_SIZE_MAP[config.fontSize || "medium"];
