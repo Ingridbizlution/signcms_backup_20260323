@@ -684,7 +684,12 @@ const AnnouncementPage = () => {
             {/* Content */}
             <div className="space-y-2">
               <Label className="text-base font-semibold">{t("contentLabel")}</Label>
-              <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} placeholder={t("contentPh")} className="min-h-[120px] text-base leading-relaxed" />
+              <RichTextEditor
+                content={editContent}
+                onChange={setEditContent}
+                placeholder={t("contentPh")}
+                minHeight="120px"
+              />
             </div>
 
             {/* Image */}
