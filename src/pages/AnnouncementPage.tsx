@@ -19,12 +19,22 @@ interface Announcement {
   id: string;
   subject: string;
   department: string;
+  category: string;
+  pinned: boolean;
   content: string;
   imageUrl: string | null;
   startDate: Date;
   endDate: Date;
   createdAt: Date;
 }
+
+const CATEGORIES = [
+  { value: "general", label: { zh: "一般公告", en: "General", ja: "一般" } },
+  { value: "urgent", label: { zh: "緊急通知", en: "Urgent", ja: "緊急" } },
+  { value: "event", label: { zh: "活動公告", en: "Event", ja: "イベント" } },
+  { value: "policy", label: { zh: "政策規章", en: "Policy", ja: "規定" } },
+  { value: "maintenance", label: { zh: "維護公告", en: "Maintenance", ja: "メンテナンス" } },
+];
 
 const DEPARTMENTS = [
   { value: "hq", label: { zh: "總管理處", en: "Headquarters", ja: "本部" } },
