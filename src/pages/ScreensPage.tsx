@@ -379,8 +379,8 @@ export default function ScreensPage() {
                   </span>
                   {screen.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{screen.location}</span>}
                   <span>{screen.resolution}</span>
-                  {screen.serial_number && <span className="flex items-center gap-1 font-mono text-[11px]">SN: {screen.serial_number}</span>}
-                  {screen.ip_address && <span className="flex items-center gap-1 font-mono text-[11px]">IP: {screen.ip_address}</span>}
+                  <span className="flex items-center gap-1 font-mono text-[11px]">SN: {screen.serial_number || "—"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]">IP: {screen.ip_address || "—"}</span>
                   {screen.connection_type && (
                     <span className="flex items-center gap-1">
                       {screen.connection_type === "wired" ? <Cable className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
