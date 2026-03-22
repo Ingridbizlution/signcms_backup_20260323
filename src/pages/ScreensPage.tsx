@@ -77,7 +77,7 @@ export default function ScreensPage() {
       if (error) toast.error(error.message);
       else toast.success(t("screensUpdated"));
     } else {
-      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: form.branch, location: form.location, resolution: form.resolution, created_by: user?.id });
+      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: form.branch, location: form.location, resolution: form.resolution, uploaded_by: user?.id });
       if (error) toast.error(error.message);
       else toast.success(t("screensAdded"));
     }
