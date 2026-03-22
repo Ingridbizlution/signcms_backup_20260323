@@ -35,6 +35,7 @@ interface Screen {
   location: string;
   resolution: string;
   online: boolean;
+  org_id?: string | null;
 }
 
 const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080" };
