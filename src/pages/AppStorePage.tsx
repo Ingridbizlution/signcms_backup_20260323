@@ -115,7 +115,7 @@ const AppStorePage = () => {
       return;
     }
     installApp(app.id);
-    toast.success(`${app.name[language]} ${tt("successInstall")}`);
+    toast.success(`${app.name[language]} ${t("successInstall")}`);
     if (app.hasConfig) {
       setQueueDialogOpen(true);
     }
