@@ -284,7 +284,7 @@ const AnnouncementPage = () => {
     });
   }, [announcements]);
 
-  const hasContent = subject || content || imageUrl;
+  const hasContent = subject || (content && content !== "<p></p>") || imageUrl;
 
   return (
     <div className="space-y-6 animate-fade-in">
