@@ -14,7 +14,8 @@ import {
   FileText, Trash2, Edit2, FolderOpen, ChevronRight, Sparkles, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useKnowledgeItems } from "@/hooks/useKnowledgeItems";
+import { useKnowledgeItems, KnowledgeItem } from "@/hooks/useKnowledgeItems";
+import { KnowledgeFilePanel } from "@/components/knowledge/KnowledgeFilePanel";
 
 const CATEGORIES = [
   {
