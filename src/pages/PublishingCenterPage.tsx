@@ -229,6 +229,27 @@ export default function PublishingCenterPage() {
     setEmergencyPublishing(false);
   };
 
+  // Restore normal playback
+  const handleRestoreNormal = async () => {
+    setRestoring(true);
+    // Update all emergency records to "restored"
+    const { error } = await (supabase as any)
+      .from("publish_records")
+      .update({ status: "restored" })
+      .eq("status", "emergency");
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setShowRestoreSuccess(true);
+      setTimeout(() => setShowRestoreSuccess(false), 2500);
+      toast.success(t("restoreNormalSuccess"));
+      setRestoreOpen(false);
+      fetchData();
+    }
+    setRestoring(false);
+  };
+
   const getStatusBadge = (status: string) => {
     if (status === "playing") return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 gap-1"><Play className="w-3 h-3" />{t("publishStatusPlaying")}</Badge>;
     if (status === "scheduled") return <Badge variant="outline" className="gap-1 text-amber-600 border-amber-500/30 bg-amber-500/10"><Clock className="w-3 h-3" />{t("publishStatusScheduled")}</Badge>;
