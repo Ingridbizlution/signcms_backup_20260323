@@ -50,6 +50,8 @@ const AnnouncementPage = () => {
   // Form state
   const [subject, setSubject] = useState("");
   const [department, setDepartment] = useState("");
+  const [category, setCategory] = useState("");
+  const [pinned, setPinned] = useState(false);
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>();
