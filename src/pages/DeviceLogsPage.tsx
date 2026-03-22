@@ -349,6 +349,17 @@ export default function SystemLogsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={activityFilterTime} onValueChange={setActivityFilterTime}>
+              <SelectTrigger className="w-[130px]">
+                <CalendarClock className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{labels.allTime[language]}</SelectItem>
+                <SelectItem value="today">{labels.today[language]}</SelectItem>
+                <SelectItem value="week">{labels.thisWeek[language]}</SelectItem>
+                <SelectItem value="month">{labels.thisMonth[language]}</SelectItem>
+              </SelectContent>
+            </Select>
             {isAdmin && orgs.length > 0 && (
               <Select value={activityFilterOrg} onValueChange={setActivityFilterOrg}>
                 <SelectTrigger className="w-[180px]">
