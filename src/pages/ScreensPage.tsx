@@ -48,7 +48,7 @@ interface Screen {
   firmware_version?: string;
 }
 
-const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "", serial_number: "", ip_address: "", connection_type: "wired", avg_upload_speed: "", avg_download_speed: "" };
+const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "", serial_number: "", ip_address: "", connection_type: "wired", avg_upload_speed: "", avg_download_speed: "", firmware_version: "" };
 
 export default function ScreensPage() {
   const { isAdmin } = useUserRole();
