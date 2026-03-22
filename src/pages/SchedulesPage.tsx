@@ -83,6 +83,7 @@ export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [screenOptions, setScreenOptions] = useState<ScreenOption[]>([]);
   const [mediaOptions, setMediaOptions] = useState<MediaOption[]>([]);
+  const [widgetOptions, setWidgetOptions] = useState<WidgetOption[]>([]);
   const [designOptions, setDesignOptions] = useState<DesignProjectOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
