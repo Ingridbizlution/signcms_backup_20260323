@@ -495,6 +495,159 @@ export default function ScreensPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Screen Settings Dialog */}
+      <Dialog open={settingsScreen !== null} onOpenChange={(open) => { if (!open) setSettingsScreen(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5 text-primary" />
+              {t("screenSettings")} — {settingsScreen?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-2">
+            {/* Network Settings */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-primary" />
+                {t("screenSettingsNetwork")}
+              </h3>
+              <div className="space-y-3 pl-6">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t("screenSettingsIpMode")}</Label>
+                  <Select value={settingsForm.ipMode} onValueChange={(v) => setSettingsForm({ ...settingsForm, ipMode: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dhcp">{t("screenSettingsDhcp")}</SelectItem>
+                      <SelectItem value="static">{t("screenSettingsStatic")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {settingsForm.ipMode === "static" && (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t("screenSettingsIpAddress")}</Label>
+                      <Input value={settingsForm.ipAddress} onChange={(e) => setSettingsForm({ ...settingsForm, ipAddress: e.target.value })} placeholder="192.168.1.100" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t("screenSettingsSubnet")}</Label>
+                      <Input value={settingsForm.subnet} onChange={(e) => setSettingsForm({ ...settingsForm, subnet: e.target.value })} placeholder="255.255.255.0" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t("screenSettingsGateway")}</Label>
+                      <Input value={settingsForm.gateway} onChange={(e) => setSettingsForm({ ...settingsForm, gateway: e.target.value })} placeholder="192.168.1.1" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t("screenSettingsDns")}</Label>
+                      <Input value={settingsForm.dns} onChange={(e) => setSettingsForm({ ...settingsForm, dns: e.target.value })} placeholder="8.8.8.8" />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* NTP Server */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-primary" />
+                {t("screenSettingsNtp")}
+              </h3>
+              <div className="pl-6">
+                <Input value={settingsForm.ntpServer} onChange={(e) => setSettingsForm({ ...settingsForm, ntpServer: e.target.value })} placeholder="pool.ntp.org" />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Screen Rotation */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <RotateCw className="w-4 h-4 text-primary" />
+                {t("screenSettingsRotation")}
+              </h3>
+              <div className="pl-6">
+                <Select value={settingsForm.rotation} onValueChange={(v) => setSettingsForm({ ...settingsForm, rotation: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">{t("screenSettingsRotation0")}</SelectItem>
+                    <SelectItem value="90">{t("screenSettingsRotation90")}</SelectItem>
+                    <SelectItem value="180">{t("screenSettingsRotation180")}</SelectItem>
+                    <SelectItem value="270">{t("screenSettingsRotation270")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Schedule On/Off */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Power className="w-4 h-4 text-primary" />
+                {t("screenSettingsScheduleOnOff")}
+              </h3>
+              <div className="space-y-3 pl-6">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">{t("enabled")}</Label>
+                  <Switch checked={settingsForm.scheduleEnabled} onCheckedChange={(v) => setSettingsForm({ ...settingsForm, scheduleEnabled: v })} />
+                </div>
+                {settingsForm.scheduleEnabled && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t("screenSettingsScheduleOn")}</Label>
+                      <Input type="time" value={settingsForm.scheduleOn} onChange={(e) => setSettingsForm({ ...settingsForm, scheduleOn: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t("screenSettingsScheduleOff")}</Label>
+                      <Input type="time" value={settingsForm.scheduleOff} onChange={(e) => setSettingsForm({ ...settingsForm, scheduleOff: e.target.value })} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Reboot */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-destructive" />
+                {t("screenSettingsReboot")}
+              </h3>
+              <div className="pl-6">
+                <Button variant="destructive" size="sm" className="gap-2" onClick={() => setRebootConfirmOpen(true)}>
+                  <RefreshCw className="w-4 h-4" />
+                  {t("screenSettingsReboot")}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">{t("cancel")}</Button></DialogClose>
+            <Button onClick={() => { toast.success(t("screenSettingsSaved")); setSettingsScreen(null); }}>
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reboot Confirm */}
+      <AlertDialog open={rebootConfirmOpen} onOpenChange={setRebootConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("screenSettingsRebootConfirm")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("screenSettingsRebootDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { toast.success(t("screenSettingsRebooting")); setRebootConfirmOpen(false); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t("screenSettingsReboot")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
