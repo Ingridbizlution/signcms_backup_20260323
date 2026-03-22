@@ -609,7 +609,7 @@ export default function ContentStudioPage() {
   const addOverlay = useCallback(() => {
     const id = `overlay-${Date.now()}`;
     const label = String.fromCharCode(65 + overlays.length); // A, B, C...
-    setOverlays((prev) => [...prev, { id, x: 50, y: 50, w: 200, h: 120, label: `OV-${label}`, opacity: 100, content: { type: "text", value: "", bgColor: "hsla(0, 0%, 0%, 0.7)", fontSize: 20, textColor: "hsl(0 0% 100%)" } }]);
+    setOverlays((prev) => [...prev, { id, x: 50, y: 50, w: 200, h: 120, label: `OV-${label}`, opacity: 100, content: { type: "text", value: "", bgColor: "transparent", fontSize: 20, textColor: "hsl(0 0% 100%)" } }]);
   }, [overlays.length]);
 
   const deleteOverlay = useCallback((id: string) => {
