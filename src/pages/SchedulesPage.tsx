@@ -330,7 +330,7 @@ export default function SchedulesPage() {
               <SelectContent>
                 <SelectItem value="all">{t("orgFilterAll")}</SelectItem>
                 {orgs.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
-                <SelectItem value="none">— {t("unassigned") || "未分配"} —</SelectItem>
+                <SelectItem value="none">— 未分配 —</SelectItem>
               </SelectContent>
             </Select>
           )}
