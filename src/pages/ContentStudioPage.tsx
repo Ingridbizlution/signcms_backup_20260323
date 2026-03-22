@@ -296,6 +296,80 @@ export default function ContentStudioPage() {
     setZones((prev) => prev.map((z) => (z.id === zoneId ? { ...z, content } : z)));
   }, []);
 
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [resizing, setResizing] = useState<{ zoneId: string; edge: "right" | "bottom"; startPos: number; startVal: number } | null>(null);
+
+  // Find adjacent zones that share an edge
+  const getAdjacentZones = useCallback((zone: Zone, edge: "right" | "bottom", allZones: Zone[]) => {
+    if (edge === "right") {
+      const rightEdge = zone.x + zone.w;
+      return allZones.filter((z) => z.id !== zone.id && Math.abs(z.x - rightEdge) < 1 && z.y < zone.y + zone.h && z.y + z.h > zone.y);
+    } else {
+      const bottomEdge = zone.y + zone.h;
+      return allZones.filter((z) => z.id !== zone.id && Math.abs(z.y - bottomEdge) < 1 && z.x < zone.x + zone.w && z.x + z.w > zone.x);
+    }
+  }, []);
+
+  const hasResizeHandle = useCallback((zone: Zone, edge: "right" | "bottom", allZones: Zone[]) => {
+    return getAdjacentZones(zone, edge, allZones).length > 0;
+  }, [getAdjacentZones]);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent, zoneId: string, edge: "right" | "bottom") => {
+    e.stopPropagation();
+    e.preventDefault();
+    const startPos = edge === "right" ? e.clientX : e.clientY;
+    const zone = zones.find((z) => z.id === zoneId);
+    if (!zone) return;
+    const startVal = edge === "right" ? zone.w : zone.h;
+    setResizing({ zoneId, edge, startPos, startVal });
+
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+    const canvasSize = edge === "right" ? canvasRect.width : canvasRect.height;
+
+    const onMove = (ev: MouseEvent) => {
+      const delta = edge === "right" ? ev.clientX - startPos : ev.clientY - startPos;
+      const deltaPercent = (delta / canvasSize) * 100;
+      const newVal = Math.max(10, Math.min(90, startVal + deltaPercent));
+      const diff = newVal - startVal;
+
+      setZones((prev) => {
+        const currentZone = prev.find((z) => z.id === zoneId)!;
+        const adjacent = getAdjacentZones(currentZone, edge, prev);
+        if (adjacent.length === 0) return prev;
+
+        return prev.map((z) => {
+          if (z.id === zoneId) {
+            return edge === "right"
+              ? { ...z, w: startVal + diff }
+              : { ...z, h: startVal + diff };
+          }
+          if (adjacent.some((a) => a.id === z.id)) {
+            if (edge === "right") {
+              const origX = currentZone.x + startVal;
+              const origW = z.x + z.w - origX;
+              return { ...z, x: currentZone.x + startVal + diff, w: Math.max(10, origW - diff) };
+            } else {
+              const origY = currentZone.y + startVal;
+              const origH = z.y + z.h - origY;
+              return { ...z, y: currentZone.y + startVal + diff, h: Math.max(10, origH - diff) };
+            }
+          }
+          return z;
+        });
+      });
+    };
+
+    const onUp = () => {
+      setResizing(null);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, [zones, getAdjacentZones]);
+
   const activeZone = zones.find((z) => z.id === selectedZone);
 
   return (
