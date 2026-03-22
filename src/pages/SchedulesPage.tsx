@@ -228,6 +228,7 @@ export default function SchedulesPage() {
       }));
       await (supabase as any).from("schedule_items").insert(items);
       toast.success(t("schedAdded"));
+      logActivity({ action: "新增排程", category: "schedule", targetName: form.name });
     }
 
     setSaving(false);
