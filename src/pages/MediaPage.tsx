@@ -1233,13 +1233,17 @@ function PreviewInfoPanel({ item, getProjectName, t }: { item: MediaItemRow; get
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 text-sm">
-      {fields.map((f) => (
-        <div key={f.label} className="rounded-lg bg-muted/50 p-3">
-          <p className="text-xs text-muted-foreground">{f.label}</p>
-          <p className="font-medium text-foreground break-all">{f.value}</p>
-        </div>
-      ))}
+    <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs">
+      <table className="w-full">
+        <tbody>
+          {fields.map((f) => (
+            <tr key={f.label} className="border-b border-border/40 last:border-0">
+              <td className="py-1 pr-3 text-muted-foreground whitespace-nowrap w-[1%]">{f.label}</td>
+              <td className="py-1 font-medium text-foreground break-all">{f.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
