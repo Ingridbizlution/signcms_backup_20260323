@@ -527,12 +527,13 @@ const AnnouncementPage = () => {
                         )}>
                           {subject || "…"}
                         </h3>
-                        <p className={cn(
-                          "text-white/80 leading-relaxed line-clamp-4",
-                          previewMode === "landscape" ? "text-sm" : "text-xs"
-                        )}>
-                          {content || "…"}
-                        </p>
+                        <div
+                          className={cn(
+                            "text-white/80 leading-relaxed line-clamp-4 prose prose-sm prose-invert",
+                            previewMode === "landscape" ? "text-sm" : "text-xs"
+                          )}
+                          dangerouslySetInnerHTML={{ __html: content || "<p>…</p>" }}
+                        />
                         {startDate && endDate && (
                           <p className="text-white/50 text-[10px] mt-3">
                             {format(startDate, "MM/dd")} – {format(endDate, "MM/dd")}
