@@ -324,7 +324,7 @@ export default function SystemLogsPage() {
             <Card className="p-12 text-center text-muted-foreground"><FileText className="w-10 h-10 mx-auto mb-3 opacity-40" /><p>{labels.noLogs[language]}</p></Card>
           ) : (
             <div className="space-y-2">
-              {filteredDevice.map((log, i) => {
+              {paginatedDevice.map((log, i) => {
                 const cfg = DEVICE_TYPE_CONFIG[log.event_type] || DEVICE_TYPE_CONFIG.system;
                 const Icon = cfg.icon;
                 return (
@@ -345,6 +345,21 @@ export default function SystemLogsPage() {
                   </Card>
                 );
               })}
+              {deviceTotalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {{ zh: `第 ${devicePage} / ${deviceTotalPages} 頁`, en: `Page ${devicePage} of ${deviceTotalPages}`, ja: `${devicePage} / ${deviceTotalPages} ページ` }[language]}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={devicePage <= 1} onClick={() => setDevicePage(p => p - 1)}>
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={devicePage >= deviceTotalPages} onClick={() => setDevicePage(p => p + 1)}>
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
