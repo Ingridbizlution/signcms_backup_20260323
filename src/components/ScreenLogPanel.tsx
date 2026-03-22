@@ -36,13 +36,20 @@ export function ScreenLogPanel({ screenId }: ScreenLogPanelProps) {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const { data } = await (supabase as any)
-      .from("screen_logs")
-      .select("id, event_type, event_title, event_detail, created_at")
-      .eq("screen_id", screenId)
-      .order("created_at", { ascending: false })
-      .limit(50);
-    setLogs(data || []);
+    const [logsRes, profilesRes] = await Promise.all([
+      (supabase as any)
+        .from("screen_logs")
+        .select("id, event_type, event_title, event_detail, created_at, created_by")
+        .eq("screen_id", screenId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      (supabase as any).from("profiles").select("user_id, display_name"),
+    ]);
+    const profileMap = new Map((profilesRes.data || []).map((p: any) => [p.user_id, p.display_name]));
+    setLogs((logsRes.data || []).map((l: any) => ({
+      ...l,
+      operator_name: l.created_by ? (profileMap.get(l.created_by) || "Unknown") : undefined,
+    })));
     setLoading(false);
   };
 
