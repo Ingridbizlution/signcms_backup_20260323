@@ -234,7 +234,7 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
     const speed = config.speed === "slow" ? "30s" : config.speed === "fast" ? "8s" : "15s";
     return (
       <div className="w-full h-full flex items-center overflow-hidden rounded-lg" style={{ background: bg, color: fg }}>
-        <div className="whitespace-nowrap animate-marquee text-2xl font-bold" style={{ animationDuration: speed }}>
+        <div className={`whitespace-nowrap animate-marquee ${fs.marquee} font-bold`} style={{ animationDuration: speed }}>
           {config.text || "Marquee Text"}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{config.text || "Marquee Text"}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
       </div>
