@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2, FolderPlus, Layers, MoreHorizontal, Settings, RotateCw, Power, RefreshCw, Eye, Moon, Play, Brush, FileText, Radio, Wifi, Cable, ArrowUpDown } from "lucide-react";
+import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2, FolderPlus, Layers, MoreHorizontal, Settings, RotateCw, Power, RefreshCw, Eye, Moon, Play, Brush, FileText, Radio, Wifi, Cable, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserOrgs } from "@/hooks/useUserOrgs";
 import { useLanguage } from "@/contexts/LanguageContext";
