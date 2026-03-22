@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { logActivity } from "@/lib/activityLogger";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScreenLogPanel } from "@/components/ScreenLogPanel";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const UNGROUPED = "__ungrouped__";
 
