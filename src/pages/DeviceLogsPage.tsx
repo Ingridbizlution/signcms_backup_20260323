@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search, Wifi, Settings, CalendarClock, AlertTriangle, Monitor, RefreshCw, Building2, FileText } from "lucide-react";
+import { Loader2, Search, Wifi, Settings, CalendarClock, AlertTriangle, Monitor, RefreshCw, Building2, FileText, Download } from "lucide-react";
 import { format } from "date-fns";
+import * as XLSX from "xlsx";
 
 interface LogEntry {
   id: string;
@@ -77,6 +78,24 @@ export default function DeviceLogsPage() {
     unassigned: { zh: "未分配", en: "Unassigned", ja: "未割当" },
     noLogs: { zh: "暫無紀錄", en: "No logs found", ja: "ログなし" },
     totalLogs: { zh: "共 {count} 筆紀錄", en: "{count} logs", ja: "{count} 件のログ" },
+    exportExcel: { zh: "匯出 Excel", en: "Export Excel", ja: "Excelエクスポート" },
+  };
+
+  const handleExportExcel = () => {
+    const headerMap = { zh: ["時間", "螢幕", "事件類型", "事件標題", "詳細"], en: ["Time", "Screen", "Type", "Title", "Detail"], ja: ["時間", "スクリーン", "タイプ", "タイトル", "詳細"] };
+    const headers = headerMap[language];
+    const rows = filtered.map(l => [
+      format(new Date(l.created_at), "yyyy-MM-dd HH:mm:ss"),
+      l.screen_name || "",
+      (EVENT_TYPE_CONFIG[l.event_type]?.label[language]) || l.event_type,
+      l.event_title,
+      l.event_detail,
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    ws["!cols"] = [{ wch: 20 }, { wch: 16 }, { wch: 12 }, { wch: 24 }, { wch: 36 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, labels.title[language]);
+    XLSX.writeFile(wb, `device-logs-${format(new Date(), "yyyyMMdd-HHmm")}.xlsx`);
   };
 
   return (
@@ -86,9 +105,15 @@ export default function DeviceLogsPage() {
           <h1 className="text-2xl font-bold text-foreground">{labels.title[language]}</h1>
           <p className="text-sm text-muted-foreground mt-1">{labels.subtitle[language]}</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2 self-start" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4" />
-        </Button>
+        <div className="flex gap-2 self-start">
+          <Button variant="outline" size="sm" className="gap-2" onClick={handleExportExcel} disabled={filtered.length === 0}>
+            <Download className="w-4 h-4" />
+            {labels.exportExcel[language]}
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
