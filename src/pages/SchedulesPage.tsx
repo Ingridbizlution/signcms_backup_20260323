@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CalendarClock, Plus, Pencil, Trash2, GripVertical, ChevronUp, ChevronDown,
-  Play, Clock, Monitor, FileImage, FileVideo, X, Loader2, Layers,
+  Play, Clock, Monitor, FileImage, FileVideo, X, Loader2, Layers, Code2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
-type PlaylistItemType = "media" | "design_project";
+type PlaylistItemType = "media" | "design_project" | "widget";
 
 interface PlaylistItem {
   id: string;
@@ -30,7 +30,7 @@ interface PlaylistItem {
   design_project_id: string | null;
   item_type: PlaylistItemType;
   item_name: string;
-  item_sub_type: "image" | "video" | "design";
+  item_sub_type: "image" | "video" | "design" | "widget";
   duration: number;
   sort_order: number;
 }
@@ -48,8 +48,9 @@ interface Schedule {
 }
 
 interface ScreenOption { id: string; label: string; }
-interface MediaOption { id: string; name: string; type: "image" | "video"; }
+interface MediaOption { id: string; name: string; type: "image" | "video" | "widget"; }
 interface DesignProjectOption { id: string; name: string; aspect: string; }
+interface WidgetOption { id: string; name: string; }
 
 interface FormPlaylistItem {
   tempId: number;
@@ -57,18 +58,20 @@ interface FormPlaylistItem {
   design_project_id: string | null;
   item_type: PlaylistItemType;
   item_name: string;
-  item_sub_type: "image" | "video" | "design";
+  item_sub_type: "image" | "video" | "design" | "widget";
   duration: number;
 }
 
-function ItemIcon({ subType }: { subType: "image" | "video" | "design" }) {
+function ItemIcon({ subType }: { subType: "image" | "video" | "design" | "widget" }) {
   if (subType === "design") return <Layers className="w-4 h-4 text-primary shrink-0" />;
+  if (subType === "widget") return <Code2 className="w-4 h-4 text-accent-foreground shrink-0" />;
   if (subType === "video") return <FileVideo className="w-4 h-4 text-muted-foreground shrink-0" />;
   return <FileImage className="w-4 h-4 text-muted-foreground shrink-0" />;
 }
 
-function SmallItemIcon({ subType }: { subType: "image" | "video" | "design" }) {
+function SmallItemIcon({ subType }: { subType: "image" | "video" | "design" | "widget" }) {
   if (subType === "design") return <Layers className="w-3.5 h-3.5 text-primary shrink-0" />;
+  if (subType === "widget") return <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />;
   if (subType === "video") return <FileVideo className="w-3.5 h-3.5 text-muted-foreground shrink-0" />;
   return <FileImage className="w-3.5 h-3.5 text-muted-foreground shrink-0" />;
 }
@@ -80,6 +83,7 @@ export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [screenOptions, setScreenOptions] = useState<ScreenOption[]>([]);
   const [mediaOptions, setMediaOptions] = useState<MediaOption[]>([]);
+  const [widgetOptions, setWidgetOptions] = useState<WidgetOption[]>([]);
   const [designOptions, setDesignOptions] = useState<DesignProjectOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -107,7 +111,9 @@ export default function SchedulesPage() {
     setScreenOptions(opts);
 
     const { data: mediaData } = await (supabase as any).from("media_items").select("id, name, type").order("created_at", { ascending: false });
-    setMediaOptions(mediaData || []);
+    const allMedia = mediaData || [];
+    setMediaOptions(allMedia.filter((m: any) => m.type !== "widget"));
+    setWidgetOptions(allMedia.filter((m: any) => m.type === "widget"));
 
     const { data: designData } = await (supabase as any).from("design_projects").select("id, name, aspect").order("updated_at", { ascending: false });
     setDesignOptions(designData || []);
@@ -118,7 +124,7 @@ export default function SchedulesPage() {
       .select("id, schedule_id, media_id, design_project_id, item_type, sort_order, duration")
       .order("sort_order");
 
-    const mediaMap = new Map((mediaData || []).map((m: any) => [m.id, m]));
+    const mediaMap = new Map(allMedia.map((m: any) => [m.id, m]));
     const designMap = new Map((designData || []).map((d: any) => [d.id, d]));
     const screenMap = new Map(opts.map((s) => [s.id, s.label]));
 
@@ -136,10 +142,11 @@ export default function SchedulesPage() {
             };
           }
           const m = mediaMap.get(i.media_id) as any;
+          const isWidget = m?.type === "widget";
           return {
             id: i.id, media_id: i.media_id, design_project_id: null,
-            item_type: "media" as PlaylistItemType,
-            item_name: m?.name || "Unknown", item_sub_type: (m?.type || "image") as "image" | "video",
+            item_type: (isWidget ? "widget" : "media") as PlaylistItemType,
+            item_name: m?.name || "Unknown", item_sub_type: (isWidget ? "widget" : (m?.type || "image")) as "image" | "video" | "widget",
             duration: i.duration, sort_order: i.sort_order,
           };
         });
@@ -190,7 +197,7 @@ export default function SchedulesPage() {
       await (supabase as any).from("schedule_items").delete().eq("schedule_id", editingId);
       const items = form.items.map((item, i) => ({
         schedule_id: editingId, media_id: item.media_id, design_project_id: item.design_project_id,
-        item_type: item.item_type, sort_order: i, duration: item.duration,
+        item_type: item.item_type === "widget" ? "media" : item.item_type, sort_order: i, duration: item.duration,
       }));
       await (supabase as any).from("schedule_items").insert(items);
       toast.success(t("schedUpdated"));
@@ -204,7 +211,7 @@ export default function SchedulesPage() {
 
       const items = form.items.map((item, i) => ({
         schedule_id: newSched.id, media_id: item.media_id, design_project_id: item.design_project_id,
-        item_type: item.item_type, sort_order: i, duration: item.duration,
+        item_type: item.item_type === "widget" ? "media" : item.item_type, sort_order: i, duration: item.duration,
       }));
       await (supabase as any).from("schedule_items").insert(items);
       toast.success(t("schedAdded"));
@@ -259,6 +266,15 @@ export default function SchedulesPage() {
       tempId: Date.now() + Math.random(), media_id: null, design_project_id: dp.id,
       item_type: "design_project", item_name: dp.name, item_sub_type: "design",
       duration: loopDuration,
+    };
+    setForm((prev) => ({ ...prev, items: [...prev.items, item] }));
+  };
+
+  const addWidgetToForm = (widget: WidgetOption) => {
+    const item: FormPlaylistItem = {
+      tempId: Date.now() + Math.random(), media_id: widget.id, design_project_id: null,
+      item_type: "widget", item_name: widget.name, item_sub_type: "widget",
+      duration: 15,
     };
     setForm((prev) => ({ ...prev, items: [...prev.items, item] }));
   };
@@ -360,6 +376,7 @@ export default function SchedulesPage() {
                             <ItemIcon subType={item.item_sub_type} />
                             <span className="flex-1 truncate text-foreground">{item.item_name}</span>
                             {item.item_sub_type === "design" && <Badge variant="secondary" className="text-[9px] px-1 py-0">{t("schedTabDesign")}</Badge>}
+                            {item.item_sub_type === "widget" && <Badge variant="outline" className="text-[9px] px-1 py-0">{t("schedTabWidget")}</Badge>}
                             <span className="text-xs text-muted-foreground">{item.duration}{t("seconds")}</span>
                           </div>
                         ))}
@@ -431,9 +448,10 @@ export default function SchedulesPage() {
               <div className="border-t border-border pt-3 mt-3">
                 <p className="text-xs text-muted-foreground mb-2">{t("schedClickToAdd")}</p>
                 <Tabs defaultValue="media" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 h-8">
+                  <TabsList className="grid w-full grid-cols-3 h-8">
                     <TabsTrigger value="media" className="text-xs gap-1"><FileImage className="w-3 h-3" />{t("schedTabMedia")}</TabsTrigger>
                     <TabsTrigger value="design" className="text-xs gap-1"><Layers className="w-3 h-3" />{t("schedTabDesign")}</TabsTrigger>
+                    <TabsTrigger value="widget" className="text-xs gap-1"><Code2 className="w-3 h-3" />{t("schedTabWidget")}</TabsTrigger>
                   </TabsList>
                   <TabsContent value="media" className="mt-2">
                     {mediaOptions.length === 0 ? (
@@ -461,6 +479,20 @@ export default function SchedulesPage() {
                               <span className="text-xs text-foreground block truncate">{dp.name}</span>
                               <span className="text-[10px] text-muted-foreground">{dp.aspect}</span>
                             </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="widget" className="mt-2">
+                    {widgetOptions.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-2">{t("mediaNoResult")}</p>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto">
+                        {widgetOptions.map((w) => (
+                          <button key={w.id} type="button" onClick={() => addWidgetToForm(w)} className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-muted/50 hover:bg-muted text-sm text-left transition-colors">
+                            <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
+                            <span className="truncate text-xs text-foreground">{w.name}</span>
                           </button>
                         ))}
                       </div>
