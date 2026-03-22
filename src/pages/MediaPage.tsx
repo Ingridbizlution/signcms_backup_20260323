@@ -685,7 +685,31 @@ export default function MediaPage() {
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                       <span>{item.size}</span>
                       {item.type !== "widget" && <><span>·</span><span>{item.dimensions}</span></>}
-                      {item.design_project_id && (() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? <><span>·</span><span className="flex items-center gap-0.5"><FolderOpen className="w-3 h-3" />{p.name}</span></> : null; })()}
+                      <span>·</span>
+                      {isAdmin ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <button className="flex items-center gap-0.5 hover:text-foreground transition-colors">
+                              <FolderOpen className="w-3 h-3" />
+                              <span>{(() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? p.name : t("mediaNoProject"); })()}</span>
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuLabel className="text-xs">{t("mediaProjectGroup")}</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleChangeProject(item.id, null)} className={!item.design_project_id ? "bg-accent" : ""}>
+                              {t("mediaNoProject")}
+                            </DropdownMenuItem>
+                            {projects.map((p) => (
+                              <DropdownMenuItem key={p.id} onClick={() => handleChangeProject(item.id, p.id)} className={item.design_project_id === p.id ? "bg-accent" : ""}>
+                                {p.name}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <span className="flex items-center gap-0.5"><FolderOpen className="w-3 h-3" />{(() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? p.name : t("mediaNoProject"); })()}</span>
+                      )}
                     </div>
                   </div>
                 </Card>
