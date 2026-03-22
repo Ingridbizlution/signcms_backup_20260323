@@ -257,10 +257,10 @@ const RichTextEditor = ({ content, onChange, placeholder, minHeight = "160px" }:
         <div className="w-px h-6 bg-border mx-1" />
 
         {/* Lists */}
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet List">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title={t("tipBulletList")}>
           <List className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Ordered List">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title={t("tipOrderedList")}>
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
 
