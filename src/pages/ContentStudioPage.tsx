@@ -657,7 +657,7 @@ export default function ContentStudioPage() {
   const [dbWidgets, setDbWidgets] = useState<{ id: string; name: string; url: string; created_at?: string }[]>([]);
 
   useEffect(() => {
-    (supabase as any).from("media_items").select("id, name, type, url, thumbnail, duration").order("created_at", { ascending: false }).then((res: any) => {
+    (supabase as any).from("media_items").select("id, name, type, url, thumbnail, duration, created_at").order("created_at", { ascending: false }).then((res: any) => {
       const all = res.data || [];
       setDbMedia(all.filter((m: any) => m.type !== "widget"));
       setDbWidgets(all.filter((m: any) => m.type === "widget"));
