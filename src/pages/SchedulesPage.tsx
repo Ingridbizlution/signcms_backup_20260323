@@ -215,6 +215,7 @@ export default function SchedulesPage() {
       const { data: newSched, error } = await (supabase as any).from("schedules").insert({
         name: form.name, screen_id: form.screen_id, start_time: form.startTime,
         end_time: form.endTime, days: form.days, created_by: user?.id,
+        org_id: defaultOrgId,
       }).select("id").single();
 
       if (error) { toast.error(error.message); setSaving(false); return; }
