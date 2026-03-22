@@ -23,7 +23,6 @@ import MeetingRoom from "./pages/MeetingRoom.tsx";
 import CustomerServicePage from "./pages/CustomerServicePage.tsx";
 import KnowledgeBasePage from "./pages/KnowledgeBasePage.tsx";
 import IoTDashboard from "./pages/IoTDashboard.tsx";
-import KnowledgeBasePage from "./pages/KnowledgeBasePage.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
