@@ -293,10 +293,12 @@ export default function SchedulesPage() {
             設定各螢幕的播放內容與時段
           </p>
         </div>
-        <Button onClick={openAdd} className="gap-2 self-start">
-          <Plus className="w-4 h-4" />
-          新增排程
-        </Button>
+        {isAdmin && (
+          <Button onClick={openAdd} className="gap-2 self-start">
+            <Plus className="w-4 h-4" />
+            新增排程
+          </Button>
+        )}
       </div>
 
       {schedules.length === 0 && (
