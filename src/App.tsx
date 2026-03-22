@@ -19,6 +19,7 @@ import ContentStudio from "./pages/ContentStudio.tsx";
 import AppStore from "./pages/AppStore.tsx";
 import Announcement from "./pages/Announcement.tsx";
 import Queue from "./pages/Queue.tsx";
+import MeetingRoom from "./pages/MeetingRoom.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
@@ -51,6 +52,7 @@ const App = () => (
                   <Route path="/app-store" element={<ProtectedRoute><AppStore /></ProtectedRoute>} />
                   <Route path="/announcement" element={<ProtectedRoute><Announcement /></ProtectedRoute>} />
                   <Route path="/queue" element={<ProtectedRoute><Queue /></ProtectedRoute>} />
+                  <Route path="/meeting-room" element={<ProtectedRoute><MeetingRoom /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
