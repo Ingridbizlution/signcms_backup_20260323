@@ -199,7 +199,7 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia }: {
   zone: Zone;
   onUpdate: (content: ZoneContent) => void;
   onClose: () => void;
-  dbMedia: { id: string; name: string; type: string; url: string; thumbnail: string }[];
+  dbMedia: { id: string; name: string; type: string; url: string; thumbnail: string; duration: string | null }[];
 }) {
   const { t } = useLanguage();
   const content: ZoneContent = zone.content || { type: "color", value: "", bgColor: "hsl(var(--muted))" };
