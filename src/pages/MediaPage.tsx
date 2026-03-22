@@ -941,7 +941,7 @@ export default function MediaPage() {
 
             {/* Live Preview */}
             <div className="space-y-2">
-              <Label>{t("mediaPreviewUnavailable").replace("（範例素材）", "").replace("(sample)", "Preview")}</Label>
+              <Label>{t("widgetLivePreview")}</Label>
               <div className="aspect-video rounded-lg overflow-hidden border border-border bg-muted/30 shrink-0">
                 <div className="w-full h-full overflow-hidden">
                   <AnimatedWidgetWrapper config={{

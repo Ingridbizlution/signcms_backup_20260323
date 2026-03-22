@@ -185,6 +185,7 @@ const translations = {
   widgetAnimBounce: { zh: "彈跳", en: "Bounce", ja: "バウンス" },
   widgetAnimZoomIn: { zh: "放大", en: "Zoom In", ja: "ズームイン" },
   widgetAnimFlipIn: { zh: "翻轉", en: "Flip In", ja: "フリップイン" },
+  widgetLivePreview: { zh: "即時預覽", en: "Live Preview", ja: "ライブプレビュー" },
 
   // Schedules
   schedTitle: { zh: "播放清單排程", en: "Playlist Schedules", ja: "プレイリストスケジュール" },
