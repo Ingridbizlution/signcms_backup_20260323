@@ -48,6 +48,18 @@ const translations = {
   dashScreenList: { zh: "分店螢幕列表", en: "Branch Screen List", ja: "店舗スクリーン一覧" },
   dashJustNow: { zh: "剛剛", en: "Just now", ja: "たった今" },
   dashMinAgo: { zh: "分鐘前", en: "min ago", ja: "分前" },
+  dashScheduleOverview: { zh: "排程總覽", en: "Schedule Overview", ja: "スケジュール概要" },
+  dashMediaStats: { zh: "素材使用統計", en: "Media Usage", ja: "メディア使用統計" },
+  dashScheduleName: { zh: "排程名稱", en: "Schedule", ja: "スケジュール名" },
+  dashItems: { zh: "素材數", en: "Items", ja: "素材数" },
+  dashDuration: { zh: "時長(秒)", en: "Duration(s)", ja: "時間(秒)" },
+  dashStatus: { zh: "狀態", en: "Status", ja: "ステータス" },
+  dashScreen: { zh: "螢幕", en: "Screen", ja: "スクリーン" },
+  dashUsedIn: { zh: "次", en: "times", ja: "回" },
+  dashTotalMedia: { zh: "素材總數", en: "Total Media", ja: "メディア合計" },
+  dashTotalSchedules: { zh: "啟用排程", en: "Active Schedules", ja: "有効スケジュール" },
+  dashByType: { zh: "素材類型分佈", en: "Media by Type", ja: "メディアタイプ分布" },
+  dashByBranch: { zh: "各分店螢幕數", en: "Screens by Branch", ja: "店舗別スクリーン数" },
 
   // Screens
   screensTitle: { zh: "螢幕管理", en: "Screen Management", ja: "スクリーン管理" },
