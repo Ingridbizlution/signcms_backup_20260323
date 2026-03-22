@@ -93,12 +93,24 @@ export default function ScreensPage() {
 
   // IoT extension
   const [iotScreen, setIotScreen] = useState<Screen | null>(null);
-  const [iotDevices, setIotDevices] = useState<{ id: string; name: string; type: string; status: string }[]>([
-    { id: "1", name: "空氣品質偵測器 AQ-01", type: "air_quality", status: "online" },
-    { id: "2", name: "地震發報器 EQ-03", type: "earthquake", status: "offline" },
-  ]);
+  const [iotDevices, setIotDevices] = useState<{ id: string; name: string; device_type: string; status: string }[]>([]);
+  const [iotLoading, setIotLoading] = useState(false);
   const [addIotOpen, setAddIotOpen] = useState(false);
   const [newIotDevice, setNewIotDevice] = useState({ name: "", type: "air_quality" });
+  const [iotSaving, setIotSaving] = useState(false);
+
+  // Fetch IoT devices when a screen is selected
+  useEffect(() => {
+    if (!iotScreen) return;
+    const fetchIotDevices = async () => {
+      setIotLoading(true);
+      const { data, error } = await (supabase as any).from("iot_devices").select("*").eq("screen_id", iotScreen.id).order("created_at", { ascending: true });
+      if (error) toast.error(error.message);
+      else setIotDevices(data || []);
+      setIotLoading(false);
+    };
+    fetchIotDevices();
+  }, [iotScreen]);
 
   // Fetch media & design projects for default playback selector
   useEffect(() => {
@@ -794,7 +806,9 @@ export default function ScreensPage() {
                     <Plus className="w-3.5 h-3.5" /> 新增裝置
                   </Button>
                 </div>
-                {iotDevices.length === 0 ? (
+                {iotLoading ? (
+                  <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                ) : iotDevices.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-lg">
                     <Radio className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     <p className="text-sm">尚未連接任何 IoT 裝置</p>
@@ -809,7 +823,7 @@ export default function ScreensPage() {
                         temperature: { label: "溫濕度感測", icon: "🌡️", color: "border-emerald-500/30 bg-emerald-500/5" },
                         noise: { label: "噪音偵測", icon: "🔊", color: "border-purple-500/30 bg-purple-500/5" },
                       };
-                      const cfg = typeConfig[device.type] || { label: device.type, icon: "📡", color: "border-border bg-muted/30" };
+                      const cfg = typeConfig[device.device_type] || { label: device.device_type, icon: "📡", color: "border-border bg-muted/30" };
                       return (
                         <div key={device.id} className={`flex items-center gap-3 p-3 rounded-lg border ${cfg.color}`}>
                           <span className="text-xl">{cfg.icon}</span>
@@ -823,7 +837,9 @@ export default function ScreensPage() {
                             <span className={`w-1.5 h-1.5 rounded-full ${device.status === "online" ? "bg-success" : "bg-destructive"}`} />
                             {device.status === "online" ? "連線中" : "離線"}
                           </span>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => {
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={async () => {
+                            const { error } = await (supabase as any).from("iot_devices").delete().eq("id", device.id);
+                            if (error) { toast.error(error.message); return; }
                             setIotDevices((prev) => prev.filter((d) => d.id !== device.id));
                             toast.success("裝置已移除");
                           }}>
@@ -895,18 +911,27 @@ export default function ScreensPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddIotOpen(false)}>取消</Button>
             <Button
-              disabled={!newIotDevice.name.trim()}
-              onClick={() => {
-                setIotDevices((prev) => [
-                  ...prev,
-                  { id: Date.now().toString(), name: newIotDevice.name.trim(), type: newIotDevice.type, status: "online" },
-                ]);
+              disabled={!newIotDevice.name.trim() || iotSaving}
+              onClick={async () => {
+                if (!iotScreen) return;
+                setIotSaving(true);
+                const { data, error } = await (supabase as any).from("iot_devices").insert({
+                  screen_id: iotScreen.id,
+                  org_id: iotScreen.org_id || null,
+                  name: newIotDevice.name.trim(),
+                  device_type: newIotDevice.type,
+                  status: "online",
+                  created_by: user?.id,
+                }).select().single();
+                setIotSaving(false);
+                if (error) { toast.error(error.message); return; }
+                setIotDevices((prev) => [...prev, data]);
                 toast.success("IoT 裝置已新增");
                 setNewIotDevice({ name: "", type: "air_quality" });
                 setAddIotOpen(false);
               }}
             >
-              新增
+              {iotSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "新增"}
             </Button>
           </DialogFooter>
         </DialogContent>
