@@ -171,6 +171,12 @@ export default function SystemLogsPage() {
     });
   }, [deviceLogs, deviceFilterType, deviceFilterScreen, deviceFilterOrg, deviceSearch]);
 
+  // Reset device page when filters change
+  useEffect(() => { setDevicePage(1); }, [deviceFilterType, deviceFilterScreen, deviceFilterOrg, deviceSearch]);
+
+  const deviceTotalPages = Math.max(1, Math.ceil(filteredDevice.length / DEVICE_PAGE_SIZE));
+  const paginatedDevice = filteredDevice.slice((devicePage - 1) * DEVICE_PAGE_SIZE, devicePage * DEVICE_PAGE_SIZE);
+
   // --- Activity filters ---
   const filteredActivity = useMemo(() => {
     let timeStart: Date | null = null;
