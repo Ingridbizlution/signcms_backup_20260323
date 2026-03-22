@@ -1120,13 +1120,13 @@ function PreviewInfoPanel({ item, getProjectName, t }: { item: MediaItemRow; get
   const uploadDate = item.created_at ? new Date(item.created_at).toLocaleString("zh-TW") : "-";
 
   const fields = [
-    { label: t("mediaFileName") || "檔案名稱", value: item.name },
-    { label: t("mediaResolution") || "解析度", value: item.dimensions },
-    { label: t("mediaFileSize") || "檔案大小", value: item.size },
-    { label: "編碼格式", value: encoding },
-    { label: t("mediaUploadDate") || "上傳日期", value: uploadDate },
+    { label: t("mediaFileName"), value: item.name },
+    { label: t("mediaResolution"), value: item.dimensions },
+    { label: t("mediaFileSize"), value: item.size },
+    { label: t("mediaEncoding"), value: encoding },
+    { label: t("mediaUploadDate"), value: uploadDate },
     { label: "MD5", value: hash },
-    { label: t("mediaProjectGroup") || "專案分類", value: getProjectName(item.design_project_id) },
+    { label: t("mediaProjectGroup"), value: getProjectName(item.design_project_id) },
   ];
 
   return (
