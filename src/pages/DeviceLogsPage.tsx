@@ -78,6 +78,24 @@ export default function DeviceLogsPage() {
     unassigned: { zh: "未分配", en: "Unassigned", ja: "未割当" },
     noLogs: { zh: "暫無紀錄", en: "No logs found", ja: "ログなし" },
     totalLogs: { zh: "共 {count} 筆紀錄", en: "{count} logs", ja: "{count} 件のログ" },
+    exportExcel: { zh: "匯出 Excel", en: "Export Excel", ja: "Excelエクスポート" },
+  };
+
+  const handleExportExcel = () => {
+    const headerMap = { zh: ["時間", "螢幕", "事件類型", "事件標題", "詳細"], en: ["Time", "Screen", "Type", "Title", "Detail"], ja: ["時間", "スクリーン", "タイプ", "タイトル", "詳細"] };
+    const headers = headerMap[language];
+    const rows = filtered.map(l => [
+      format(new Date(l.created_at), "yyyy-MM-dd HH:mm:ss"),
+      l.screen_name || "",
+      (EVENT_TYPE_CONFIG[l.event_type]?.label[language]) || l.event_type,
+      l.event_title,
+      l.event_detail,
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    ws["!cols"] = [{ wch: 20 }, { wch: 16 }, { wch: 12 }, { wch: 24 }, { wch: 36 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, labels.title[language]);
+    XLSX.writeFile(wb, `device-logs-${format(new Date(), "yyyyMMdd-HHmm")}.xlsx`);
   };
 
   return (
