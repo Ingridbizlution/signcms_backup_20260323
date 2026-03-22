@@ -31,7 +31,6 @@ interface ZoneContent {
   textColor?: string;
   textAlign?: "left" | "center" | "right";
 }
-}
 
 interface LayoutPreset {
   id: string;
