@@ -23,6 +23,9 @@ const INSTALLED_ICONS: Record<string, React.ElementType> = {
   queue: Users,
   weather: CloudSun,
   social: Instagram,
+  "meeting-room": DoorOpen,
+  multilingual: Languages,
+  attendance: Clock,
 };
 
 export function AppSidebar() {
