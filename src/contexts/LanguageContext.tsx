@@ -137,6 +137,7 @@ const translations = {
   widgetDigital: { zh: "數位時鐘", en: "Digital", ja: "デジタル" },
   widgetAnalog: { zh: "類比時鐘", en: "Analog", ja: "アナログ" },
   widgetTimezone: { zh: "時區", en: "Timezone", ja: "タイムゾーン" },
+  widgetShowDate: { zh: "顯示日期", en: "Show Date", ja: "日付を表示" },
   widgetFillRequired: { zh: "請填寫 Widget 名稱", en: "Please fill in widget name", ja: "ウィジェット名を入力してください" },
 
   // Schedules

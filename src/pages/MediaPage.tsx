@@ -650,6 +650,10 @@ export default function MediaPage() {
                     </Select>
                   </div>
                 )}
+                <div className="flex items-center justify-between">
+                  <Label>{t("widgetShowDate")}</Label>
+                  <Switch checked={widgetForm.showDate} onCheckedChange={(v) => setWidgetForm({ ...widgetForm, showDate: v })} />
+                </div>
                 <div className="space-y-2">
                   <Label>{t("widgetTimezone")}</Label>
                   <Select value={widgetForm.timezone} onValueChange={(v) => setWidgetForm({ ...widgetForm, timezone: v })}>
