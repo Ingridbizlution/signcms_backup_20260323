@@ -202,6 +202,8 @@ export default function MediaPage() {
     text: "歡迎光臨！今日特惠中",
     speed: "normal" as "slow" | "normal" | "fast",
     format: "24" as "12" | "24",
+    clockStyle: "digital" as "digital" | "analog",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     bgColor: "#1a1a2e",
     textColor: "#ffffff",
   });
