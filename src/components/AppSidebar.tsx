@@ -84,6 +84,50 @@ export function AppSidebar() {
 
         <Separator className="mx-3 my-1" />
 
+        {/* Extensions section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider px-3">
+            {!collapsed && sectionLabel[language]}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/app-store"
+                    className="hover:bg-sidebar-accent/60 rounded-lg transition-all duration-200"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                  >
+                    <Store className="mr-3 h-[18px] w-[18px]" />
+                    {!collapsed && <span>{t("navAppStore")}</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              {installedAppDefs.map((app) => {
+                const Icon = INSTALLED_ICONS[app.id] || Store;
+                return (
+                  <SidebarMenuItem key={app.id}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={app.id === "announcement" ? "/announcement" : app.id === "queue" ? "/queue" : app.id === "meeting-room" ? "/meeting-room" : `/app-store?open=${app.id}`}
+                        className="hover:bg-sidebar-accent/60 rounded-lg transition-all duration-200"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      >
+                        <div className={`mr-3 h-[18px] w-[18px] rounded bg-gradient-to-br ${app.color} flex items-center justify-center`}>
+                          <Icon className="h-3 w-3 text-white" />
+                        </div>
+                        {!collapsed && <span className="text-sm">{app.name[language]}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <Separator className="mx-3 my-1" />
+
         {/* Customer Service section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider px-3">
@@ -115,53 +159,6 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <Separator className="mx-3 my-1" />
-
-        {/* Extensions section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider px-3">
-            {!collapsed && sectionLabel[language]}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* App Store link */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/app-store"
-                    className="hover:bg-sidebar-accent/60 rounded-lg transition-all duration-200"
-                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  >
-                    <Store className="mr-3 h-[18px] w-[18px]" />
-                    {!collapsed && <span>{t("navAppStore")}</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {/* Installed apps */}
-              {installedAppDefs.map((app) => {
-                const Icon = INSTALLED_ICONS[app.id] || Store;
-                return (
-                  <SidebarMenuItem key={app.id}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={app.id === "announcement" ? "/announcement" : app.id === "queue" ? "/queue" : app.id === "meeting-room" ? "/meeting-room" : `/app-store?open=${app.id}`}
-                        className="hover:bg-sidebar-accent/60 rounded-lg transition-all duration-200"
-                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                      >
-                        <div className={`mr-3 h-[18px] w-[18px] rounded bg-gradient-to-br ${app.color} flex items-center justify-center`}>
-                          <Icon className="h-3 w-3 text-white" />
-                        </div>
-                        {!collapsed && <span className="text-sm">{app.name[language]}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
