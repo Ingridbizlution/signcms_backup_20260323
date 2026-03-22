@@ -18,7 +18,7 @@ import {
   Utensils, PartyPopper, ShoppingBag, Sun, Gift, Coffee,
   X, Plus, AlignLeft, AlignCenter, AlignRight, Minus,
   Save, FolderOpen, FilePlus, ChevronLeft, ChevronRightIcon, Play, Pause,
-  Layers, Code2, Clock, Calendar, Globe, CloudSun, QrCode, Timer, Youtube, Move, Maximize2
+  Layers, Code2, Clock, Calendar, Globe, CloudSun, QrCode, Timer, Youtube, Move, Maximize2, Lock, Unlock
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { QRCodeSVG } from "qrcode.react";
@@ -67,6 +67,7 @@ interface OverlayBlock {
   label: string;
   opacity: number; // 0-100
   zIndex: number;
+  locked?: boolean;
   content?: ZoneContent;
 }
 
@@ -930,10 +931,10 @@ export default function ContentStudioPage() {
               const mediaItems = overlay.content?.mediaItems || [];
               return (
                 <div key={overlay.id}
-                  className={`absolute cursor-move flex items-center justify-center overflow-hidden rounded-lg ${isSelected ? "ring-2 ring-accent-foreground ring-offset-1" : "hover:ring-1 hover:ring-accent-foreground/50"}`}
+                  className={`absolute flex items-center justify-center overflow-hidden rounded-lg ${overlay.locked ? "cursor-default" : "cursor-move"} ${isSelected ? "ring-2 ring-accent-foreground ring-offset-1" : "hover:ring-1 hover:ring-accent-foreground/50"}`}
                   style={{ left: overlay.x, top: overlay.y, width: overlay.w, height: overlay.h, background: bg, opacity: (overlay.opacity ?? 100) / 100, zIndex: 30 + (overlay.zIndex ?? 0) + (isSelected ? 10 : 0) }}
                   onClick={(e) => { e.stopPropagation(); setSelectedZone(null); setSelectedOverlay(isSelected ? null : overlay.id); }}
-                  onMouseDown={(e) => { if ((e.target as HTMLElement).dataset.resize) return; handleOverlayDragStart(e, overlay.id); }}
+                  onMouseDown={(e) => { if (overlay.locked) return; if ((e.target as HTMLElement).dataset.resize) return; handleOverlayDragStart(e, overlay.id); }}
                 >
                   {/* Content render */}
                   {overlay.content?.type === "widget" && overlay.content.widgetConfig ? (
@@ -955,7 +956,7 @@ export default function ContentStudioPage() {
 
                   {/* Label badge */}
                   <span className="absolute top-1 left-1 bg-accent-foreground/80 text-background text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                    <Layers className="w-2.5 h-2.5" /> {overlay.label}
+                    {overlay.locked ? <Lock className="w-2.5 h-2.5" /> : <Layers className="w-2.5 h-2.5" />} {overlay.label}
                   </span>
 
                   {/* Delete button */}
@@ -966,10 +967,12 @@ export default function ContentStudioPage() {
                   )}
 
                   {/* Resize handle bottom-right */}
-                  <div data-resize="true" className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-50 flex items-end justify-end"
-                    onMouseDown={(e) => handleOverlayResizeStart(e, overlay.id, "se")}>
-                    <Maximize2 className="w-3 h-3 text-white/60 rotate-90" />
-                  </div>
+                  {!overlay.locked && (
+                    <div data-resize="true" className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-50 flex items-end justify-end"
+                      onMouseDown={(e) => handleOverlayResizeStart(e, overlay.id, "se")}>
+                      <Maximize2 className="w-3 h-3 text-white/60 rotate-90" />
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -982,6 +985,14 @@ export default function ContentStudioPage() {
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-semibold text-foreground">{t("studioEditOverlay")} {activeOverlay.label}</span>
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setSelectedOverlay(null)}><X className="w-3.5 h-3.5" /></Button>
+                </div>
+                {/* Lock toggle */}
+                <div className="mb-3">
+                  <Button variant={activeOverlay.locked ? "default" : "outline"} size="sm" className="w-full h-7 text-xs gap-1.5"
+                    onClick={() => setOverlays((prev) => prev.map((o) => o.id === activeOverlay.id ? { ...o, locked: !o.locked } : o))}>
+                    {activeOverlay.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                    {activeOverlay.locked ? t("studioLocked") : t("studioUnlocked")}
+                  </Button>
                 </div>
                 {/* Opacity slider */}
                 <div className="mb-3">

@@ -360,6 +360,8 @@ const translations = {
   studioLayerOrder: { zh: "圖層順序", en: "Layer Order", ja: "レイヤー順序" },
   studioLayerUp: { zh: "上移", en: "Up", ja: "上へ" },
   studioLayerDown: { zh: "下移", en: "Down", ja: "下へ" },
+  studioLocked: { zh: "已鎖定位置", en: "Position Locked", ja: "位置ロック中" },
+  studioUnlocked: { zh: "鎖定位置", en: "Lock Position", ja: "位置をロック" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
