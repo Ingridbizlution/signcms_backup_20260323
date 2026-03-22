@@ -369,7 +369,7 @@ export default function MediaPage() {
   const [widgetDialogOpen, setWidgetDialogOpen] = useState(false);
   const [projects, setProjects] = useState<DesignProject[]>([]);
   const [projectFilter, setProjectFilter] = useState("all");
-  const [uploadProjectId, setUploadProjectId] = useState<string>("");
+  const [uploadProjectId, setUploadProjectId] = useState<string>("__none__");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Widget form state — text color defaults to theme-aware
@@ -395,7 +395,7 @@ export default function MediaPage() {
     fontSize: "medium" as "small" | "medium" | "large" | "xlarge",
     qrcodeSize: 140,
     animation: "none" as WidgetAnimation,
-    projectId: "",
+    projectId: "__none__",
   }), [defaultTextColor]);
   const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
 
@@ -476,7 +476,7 @@ export default function MediaPage() {
         dimensions,
         duration,
         uploaded_by: user?.id,
-        design_project_id: uploadProjectId || null,
+        design_project_id: uploadProjectId && uploadProjectId !== "__none__" ? uploadProjectId : null,
       });
 
       if (error) toast.error(error.message);
@@ -523,7 +523,7 @@ export default function MediaPage() {
       size: "Widget",
       dimensions: "auto",
       uploaded_by: user?.id,
-      design_project_id: (widgetForm as any).projectId || null,
+      design_project_id: (widgetForm as any).projectId && (widgetForm as any).projectId !== "__none__" ? (widgetForm as any).projectId : null,
     });
 
     if (error) toast.error(error.message);
@@ -588,7 +588,7 @@ export default function MediaPage() {
             <Select value={uploadProjectId} onValueChange={setUploadProjectId}>
               <SelectTrigger className="w-[150px] h-9"><FolderOpen className="w-4 h-4 mr-1 text-muted-foreground shrink-0" /><SelectValue placeholder={t("mediaNoProject")} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t("mediaNoProject")}</SelectItem>
+                <SelectItem value="__none__">{t("mediaNoProject")}</SelectItem>
                 {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
@@ -789,10 +789,10 @@ export default function MediaPage() {
             </div>
             <div className="space-y-2">
               <Label>{t("mediaProjectGroup")}</Label>
-              <Select value={(widgetForm as any).projectId || ""} onValueChange={(v) => setWidgetForm({ ...widgetForm, projectId: v } as any)}>
+              <Select value={(widgetForm as any).projectId || "__none__"} onValueChange={(v) => setWidgetForm({ ...widgetForm, projectId: v } as any)}>
                 <SelectTrigger><FolderOpen className="w-4 h-4 mr-1.5 text-muted-foreground" /><SelectValue placeholder={t("mediaNoProject")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t("mediaNoProject")}</SelectItem>
+                  <SelectItem value="__none__">{t("mediaNoProject")}</SelectItem>
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                   ))}
