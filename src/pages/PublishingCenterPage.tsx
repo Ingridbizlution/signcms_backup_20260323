@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useUserOrgs } from "@/hooks/useUserOrgs";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import {
