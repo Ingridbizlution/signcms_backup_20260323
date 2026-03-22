@@ -476,6 +476,7 @@ const MediaPage = () => {
         toast.error(result.error || t("mediaUnsupported"));
       } else {
         toast.success(`${t("mediaUploaded")}：${file.name}`);
+        logActivity({ action: "上傳素材", category: "media", targetName: file.name });
         fetchMedia();
       }
     } catch (error) {
