@@ -305,11 +305,11 @@ export default function SchedulesPage() {
       )}
 
       <div className="grid gap-4">
-        {schedules.map((schedule) => (
+        {schedules.map((schedule, i) => (
           <Card
             key={schedule.id}
-            className={`shadow-sm hover:shadow-md transition-shadow ${
-              !schedule.enabled ? "opacity-60" : ""
+            className={`hover-lift shadow-sm opacity-0 animate-fade-in stagger-${Math.min(i + 1, 8)} ${
+              !schedule.enabled ? "!opacity-60" : ""
             }`}
           >
             <div className="p-4 flex items-start gap-4">
