@@ -95,6 +95,7 @@ Deno.serve(async (req) => {
       duration: duration || null,
       uploaded_by: user.id,
       design_project_id: projectId && projectId !== "__none__" ? projectId : null,
+      org_id: orgId && orgId !== "" ? orgId : null,
     };
 
     const { data, error } = await supabase.from("media_items").insert(insertData).select("id").single();

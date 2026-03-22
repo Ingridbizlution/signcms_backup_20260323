@@ -296,6 +296,7 @@ const MediaPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
+  const { orgs, defaultOrgId } = useUserOrgs();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
