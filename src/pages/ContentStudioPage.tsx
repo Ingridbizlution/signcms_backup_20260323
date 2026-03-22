@@ -485,10 +485,10 @@ function WidgetZonePreview({ config }: { config: any }) {
     const secs = Math.floor((diff % 60000) / 1000);
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
-        {config.countdownTitle && <span className="text-[10px] font-bold opacity-70">{config.countdownTitle}</span>}
+        {config.countdownTitle && <span className={`${zfs.title} font-bold opacity-70`}>{config.countdownTitle}</span>}
         <div className="flex gap-2">
           {[days, hours, mins, secs].map((v, i) => (
-            <span key={i} className="text-lg font-mono font-bold">{String(v).padStart(2, "0")}</span>
+            <span key={i} className={`${zfs.countdown} font-mono font-bold`}>{String(v).padStart(2, "0")}</span>
           ))}
         </div>
       </div>
