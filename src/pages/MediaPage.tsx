@@ -30,6 +30,7 @@ interface WidgetConfig {
   speed?: "slow" | "normal" | "fast";
   format?: "12" | "24";
   clockStyle?: "digital" | "analog";
+  showDate?: boolean;
   timezone?: string;
   bgColor?: string;
   textColor?: string;
