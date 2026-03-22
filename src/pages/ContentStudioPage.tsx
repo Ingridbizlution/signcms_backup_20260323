@@ -117,40 +117,76 @@ const TEMPLATES: TemplateItem[] = [
 ];
 
 // ── Carousel Preview ───────────────────────────────────────────────
-function CarouselPreview({ items, interval = 3 }: { items: MediaItem[]; interval?: number }) {
+function CarouselPreview({ items, interval = 3, transition = "fade" }: { items: MediaItem[]; interval?: number; transition?: CarouselTransition }) {
   const [idx, setIdx] = useState(0);
-  const { t } = useLanguage();
+  const [prevIdx, setPrevIdx] = useState(0);
+  const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
     if (items.length <= 1) return;
-    const timer = setInterval(() => setIdx((i) => (i + 1) % items.length), interval * 1000);
+    const timer = setInterval(() => {
+      setPrevIdx(idx);
+      setAnimating(true);
+      setIdx((i) => (i + 1) % items.length);
+      const timeout = setTimeout(() => setAnimating(false), 600);
+      return () => clearTimeout(timeout);
+    }, interval * 1000);
     return () => clearInterval(timer);
-  }, [items.length, interval]);
+  }, [items.length, interval, idx]);
 
   if (items.length === 0) return null;
-  const item = items[idx];
+
+  const renderItem = (item: MediaItem) => {
+    if (item.type === "image" && (item.url.startsWith("data:") || item.url.startsWith("http"))) {
+      return <img src={item.url} alt={item.name} className="w-full h-full object-cover" />;
+    }
+    const Icon = item.type === "image" ? ImageIcon : Film;
+    return (
+      <div className="flex flex-col items-center gap-1 text-muted-foreground">
+        <Icon className="w-8 h-8 opacity-50" />
+        <span className="text-[10px] opacity-60 truncate max-w-[80%]">{item.name}</span>
+      </div>
+    );
+  };
+
+  const getTransitionStyle = (isCurrent: boolean): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      position: "absolute", inset: 0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+    };
+    if (transition === "fade") {
+      return { ...base, opacity: isCurrent ? 1 : 0 };
+    }
+    if (transition === "slide") {
+      return {
+        ...base,
+        opacity: isCurrent ? 1 : 0,
+        transform: isCurrent ? "translateX(0)" : (animating ? "translateX(-100%)" : "translateX(100%)"),
+      };
+    }
+    if (transition === "zoom") {
+      return {
+        ...base,
+        opacity: isCurrent ? 1 : 0,
+        transform: isCurrent ? "scale(1)" : "scale(1.15)",
+      };
+    }
+    // none
+    return { ...base, opacity: isCurrent ? 1 : 0, transition: "none" };
+  };
 
   return (
-    <div className="w-full h-full relative flex items-center justify-center">
-      {item.type === "image" ? (
-        item.url.startsWith("data:") || item.url.startsWith("http") ? (
-          <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="flex flex-col items-center gap-1 text-muted-foreground">
-            <ImageIcon className="w-8 h-8 opacity-50" />
-            <span className="text-[10px] opacity-60 truncate max-w-[80%]">{item.name}</span>
-          </div>
-        )
-      ) : (
-        <div className="flex flex-col items-center gap-1 text-muted-foreground">
-          <Film className="w-8 h-8 opacity-50" />
-          <span className="text-[10px] opacity-60 truncate max-w-[80%]">{item.name}</span>
+    <div className="w-full h-full relative overflow-hidden">
+      {items.map((item, i) => (
+        <div key={item.id + i} style={getTransitionStyle(i === idx)}>
+          {renderItem(item)}
         </div>
-      )}
+      ))}
       {items.length > 1 && (
-        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
+        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1 z-10">
           {items.map((_, i) => (
-            <span key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? "bg-white" : "bg-white/40"}`} />
+            <span key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === idx ? "bg-white scale-125" : "bg-white/40"}`} />
           ))}
         </div>
       )}
