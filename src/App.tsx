@@ -17,6 +17,7 @@ import Publishing from "./pages/Publishing.tsx";
 import DeviceLogs from "./pages/DeviceLogs.tsx";
 import ContentStudio from "./pages/ContentStudio.tsx";
 import AppStore from "./pages/AppStore.tsx";
+import Announcement from "./pages/Announcement.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
