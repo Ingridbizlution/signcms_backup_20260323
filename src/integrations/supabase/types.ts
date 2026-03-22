@@ -695,6 +695,7 @@ export type Database = {
           branch: string
           connection_type: string
           created_at: string
+          firmware_version: string
           id: string
           ip_address: string
           location: string
@@ -713,6 +714,7 @@ export type Database = {
           branch?: string
           connection_type?: string
           created_at?: string
+          firmware_version?: string
           id?: string
           ip_address?: string
           location?: string
@@ -731,6 +733,7 @@ export type Database = {
           branch?: string
           connection_type?: string
           created_at?: string
+          firmware_version?: string
           id?: string
           ip_address?: string
           location?: string
