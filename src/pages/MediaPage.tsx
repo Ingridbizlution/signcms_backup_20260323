@@ -5,8 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Image, Upload, Trash2, Search, Grid3X3, List, Eye, FileImage, FileVideo, Clock, HardDrive, Loader2,
-  Code2, Calendar, Globe, Type, Plus,
+  Code2, Calendar, Globe, Type, Plus, CloudSun, QrCode, Timer, Youtube,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
-type WidgetSubType = "date" | "clock" | "webpage" | "marquee";
+type WidgetSubType = "date" | "clock" | "webpage" | "marquee" | "qrcode" | "countdown" | "youtube" | "weather";
 
 interface WidgetConfig {
   widgetType: WidgetSubType;
@@ -35,6 +36,11 @@ interface WidgetConfig {
   timezone?: string;
   bgColor?: string;
   textColor?: string;
+  qrcodeContent?: string;
+  targetDate?: string;
+  countdownTitle?: string;
+  youtubeUrl?: string;
+  city?: string;
 }
 
 interface MediaItem {
@@ -61,6 +67,10 @@ const WIDGET_ICONS: Record<WidgetSubType, typeof Calendar> = {
   clock: Clock,
   webpage: Globe,
   marquee: Type,
+  qrcode: QrCode,
+  countdown: Timer,
+  youtube: Youtube,
+  weather: CloudSun,
 };
 
 const TIMEZONE_OPTIONS = [
@@ -87,10 +97,8 @@ function WidgetPreviewCard({ config }: { config: WidgetConfig }) {
   const { t } = useLanguage();
   const Icon = WIDGET_ICONS[config.widgetType] || Code2;
   const labels: Record<WidgetSubType, string> = {
-    date: t("widgetDate"),
-    clock: t("widgetClock"),
-    webpage: t("widgetWebpage"),
-    marquee: t("widgetMarquee"),
+    date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee"),
+    qrcode: t("widgetQrcode"), countdown: t("widgetCountdown"), youtube: t("widgetYoutube"), weather: t("widgetWeather"),
   };
 
   return (
@@ -223,7 +231,90 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
     );
   }
 
+  if (config.widgetType === "qrcode") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
+        <QRCodeSVG value={config.qrcodeContent || "https://example.com"} size={140} bgColor={bg} fgColor={fg} level="M" />
+        {config.qrcodeContent && <span className="text-[10px] opacity-50 truncate max-w-[80%]">{config.qrcodeContent}</span>}
+      </div>
+    );
+  }
+
+  if (config.widgetType === "countdown") {
+    const target = config.targetDate ? new Date(config.targetDate).getTime() : Date.now() + 86400000;
+    const diff = Math.max(0, target - now.getTime());
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-3 rounded-lg" style={{ background: bg, color: fg }}>
+        {config.countdownTitle && <span className="text-lg font-bold opacity-80">{config.countdownTitle}</span>}
+        <div className="flex gap-4">
+          {[{ v: days, l: "天" }, { v: hours, l: "時" }, { v: mins, l: "分" }, { v: secs, l: "秒" }].map(({ v, l }) => (
+            <div key={l} className="flex flex-col items-center">
+              <span className="text-4xl font-mono font-bold">{String(v).padStart(2, "0")}</span>
+              <span className="text-xs opacity-50">{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "youtube") {
+    const videoId = extractYoutubeId(config.youtubeUrl || "");
+    return (
+      <div className="w-full h-full rounded-lg overflow-hidden" style={{ background: bg }}>
+        {videoId ? (
+          <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`} className="w-full h-full border-0" allow="autoplay; encrypted-media" allowFullScreen title="YouTube" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center" style={{ color: fg }}>
+            <Youtube className="w-10 h-10 opacity-30" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (config.widgetType === "weather") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
+        <CloudSun className="w-16 h-16 opacity-60" />
+        <span className="text-lg font-bold">{config.city || "City"}</span>
+        <WeatherDisplay city={config.city || "Taipei"} fg={fg} />
+      </div>
+    );
+  }
+
   return null;
+}
+
+function extractYoutubeId(url: string): string | null {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+function WeatherDisplay({ city, fg }: { city: string; fg: string }) {
+  const [weather, setWeather] = useState<{ temp: string; desc: string } | null>(null);
+
+  useEffect(() => {
+    fetch(`https://wttr.in/${encodeURIComponent(city)}?format=%t|%C&lang=zh`)
+      .then(r => r.text())
+      .then(text => {
+        const [temp, desc] = text.split("|");
+        setWeather({ temp: temp?.trim() || "--", desc: desc?.trim() || "" });
+      })
+      .catch(() => setWeather({ temp: "--", desc: "" }));
+  }, [city]);
+
+  if (!weather) return <span className="text-xs opacity-40">Loading...</span>;
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="text-3xl font-bold">{weather.temp}</span>
+      <span className="text-sm opacity-60">{weather.desc}</span>
+    </div>
+  );
 }
 
 export default function MediaPage() {
@@ -241,7 +332,7 @@ export default function MediaPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Widget form state
-  const [widgetForm, setWidgetForm] = useState({
+  const defaultWidgetForm = {
     name: "",
     widgetType: "clock" as WidgetSubType,
     url: "",
@@ -253,7 +344,13 @@ export default function MediaPage() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     bgColor: "#1a1a2e",
     textColor: "#ffffff",
-  });
+    qrcodeContent: "",
+    targetDate: "",
+    countdownTitle: "",
+    youtubeUrl: "",
+    city: "Taipei",
+  };
+  const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
 
   const fetchMedia = async () => {
     setLoading(true);
@@ -357,6 +454,10 @@ export default function MediaPage() {
     if (widgetForm.widgetType === "webpage") config.url = widgetForm.url;
     if (widgetForm.widgetType === "marquee") { config.text = widgetForm.text; config.speed = widgetForm.speed; }
     if (widgetForm.widgetType === "clock") { config.format = widgetForm.format; config.clockStyle = widgetForm.clockStyle; config.timezone = widgetForm.timezone; config.showDate = widgetForm.showDate; }
+    if (widgetForm.widgetType === "qrcode") config.qrcodeContent = widgetForm.qrcodeContent;
+    if (widgetForm.widgetType === "countdown") { config.targetDate = widgetForm.targetDate; config.countdownTitle = widgetForm.countdownTitle; }
+    if (widgetForm.widgetType === "youtube") config.youtubeUrl = widgetForm.youtubeUrl;
+    if (widgetForm.widgetType === "weather") config.city = widgetForm.city;
 
     const { error } = await (supabase as any).from("media_items").insert({
       name: widgetForm.name,
@@ -372,7 +473,7 @@ export default function MediaPage() {
     else {
       toast.success(t("widgetCreated"));
       setWidgetDialogOpen(false);
-      setWidgetForm({ name: "", widgetType: "clock", url: "", text: "歡迎光臨！今日特惠中", speed: "normal", format: "24", clockStyle: "digital", showDate: false, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, bgColor: "#1a1a2e", textColor: "#ffffff" });
+      setWidgetForm({ ...defaultWidgetForm });
       fetchMedia();
     }
   };
@@ -410,7 +511,7 @@ export default function MediaPage() {
   const getTypeBadge = (item: MediaItem) => {
     if (item.type === "widget") {
       const config = parseWidgetConfig(item.url);
-      const subLabel = config ? { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee") }[config.widgetType] : t("widget");
+      const subLabel = config ? { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee"), qrcode: t("widgetQrcode"), countdown: t("widgetCountdown"), youtube: t("widgetYoutube"), weather: t("widgetWeather") }[config.widgetType] : t("widget");
       return subLabel;
     }
     return item.type === "image" ? t("image") : t("video");
@@ -607,10 +708,10 @@ export default function MediaPage() {
             <div className="space-y-2">
               <Label>{t("widgetType")}</Label>
               <div className="grid grid-cols-4 gap-2">
-                {(["clock", "date", "webpage", "marquee"] as WidgetSubType[]).map((wt) => {
+                {(["clock", "date", "webpage", "marquee", "qrcode", "countdown", "youtube", "weather"] as WidgetSubType[]).map((wt) => {
                   const Icon = WIDGET_ICONS[wt];
-                  const labels: Record<WidgetSubType, string> = { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee") };
-                  const descs: Record<WidgetSubType, string> = { date: t("widgetDateDesc"), clock: t("widgetClockDesc"), webpage: t("widgetWebpageDesc"), marquee: t("widgetMarqueeDesc") };
+                  const labels: Record<WidgetSubType, string> = { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee"), qrcode: t("widgetQrcode"), countdown: t("widgetCountdown"), youtube: t("widgetYoutube"), weather: t("widgetWeather") };
+                  const descs: Record<WidgetSubType, string> = { date: t("widgetDateDesc"), clock: t("widgetClockDesc"), webpage: t("widgetWebpageDesc"), marquee: t("widgetMarqueeDesc"), qrcode: t("widgetQrcodeDesc"), countdown: t("widgetCountdownDesc"), youtube: t("widgetYoutubeDesc"), weather: t("widgetWeatherDesc") };
                   return (
                     <button key={wt} type="button" onClick={() => setWidgetForm({ ...widgetForm, widgetType: wt })}
                       className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all text-center ${
@@ -696,6 +797,40 @@ export default function MediaPage() {
               </>
             )}
 
+            {widgetForm.widgetType === "qrcode" && (
+              <div className="space-y-2">
+                <Label>{t("widgetQrcodeContent")}</Label>
+                <Input value={widgetForm.qrcodeContent || ""} onChange={(e) => setWidgetForm({ ...widgetForm, qrcodeContent: e.target.value })} placeholder={t("widgetQrcodePlaceholder")} />
+              </div>
+            )}
+
+            {widgetForm.widgetType === "countdown" && (
+              <>
+                <div className="space-y-2">
+                  <Label>{t("widgetCountdownTitle")}</Label>
+                  <Input value={widgetForm.countdownTitle || ""} onChange={(e) => setWidgetForm({ ...widgetForm, countdownTitle: e.target.value })} placeholder={t("widgetCountdownTitlePlaceholder")} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("widgetTargetDate")}</Label>
+                  <Input type="datetime-local" value={widgetForm.targetDate || ""} onChange={(e) => setWidgetForm({ ...widgetForm, targetDate: e.target.value })} />
+                </div>
+              </>
+            )}
+
+            {widgetForm.widgetType === "youtube" && (
+              <div className="space-y-2">
+                <Label>{t("widgetYoutubeUrl")}</Label>
+                <Input value={widgetForm.youtubeUrl || ""} onChange={(e) => setWidgetForm({ ...widgetForm, youtubeUrl: e.target.value })} placeholder={t("widgetYoutubeUrlPlaceholder")} />
+              </div>
+            )}
+
+            {widgetForm.widgetType === "weather" && (
+              <div className="space-y-2">
+                <Label>{t("widgetCity")}</Label>
+                <Input value={widgetForm.city || ""} onChange={(e) => setWidgetForm({ ...widgetForm, city: e.target.value })} placeholder={t("widgetCityPlaceholder")} />
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("widgetBgColor")}</Label>
@@ -728,6 +863,11 @@ export default function MediaPage() {
                   timezone: widgetForm.timezone,
                   bgColor: widgetForm.bgColor,
                   textColor: widgetForm.textColor,
+                  qrcodeContent: widgetForm.qrcodeContent,
+                  targetDate: widgetForm.targetDate,
+                  countdownTitle: widgetForm.countdownTitle,
+                  youtubeUrl: widgetForm.youtubeUrl,
+                  city: widgetForm.city,
                 }} />
               </div>
             </div>

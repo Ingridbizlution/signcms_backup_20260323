@@ -18,9 +18,10 @@ import {
   Utensils, PartyPopper, ShoppingBag, Sun, Gift, Coffee,
   X, Plus, AlignLeft, AlignCenter, AlignRight, Minus,
   Save, FolderOpen, FilePlus, ChevronLeft, ChevronRightIcon, Play, Pause,
-  Layers, Code2, Clock, Calendar, Globe
+  Layers, Code2, Clock, Calendar, Globe, CloudSun, QrCode, Timer, Youtube
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { QRCodeSVG } from "qrcode.react";
 
 // ── Types ──────────────────────────────────────────────────────────
 type AspectRatio = "16:9" | "9:16";
@@ -454,6 +455,50 @@ function WidgetZonePreview({ config }: { config: any }) {
       <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
         <Globe className="w-6 h-6 opacity-50" />
         <span className="text-[10px] opacity-60 truncate max-w-[80%]">{config.url || "URL"}</span>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "qrcode") {
+    return (
+      <div className="w-full h-full flex items-center justify-center" style={{ background: bg }}>
+        <QRCodeSVG value={config.qrcodeContent || "https://example.com"} size={80} bgColor={bg} fgColor={fg} level="M" />
+      </div>
+    );
+  }
+
+  if (config.widgetType === "countdown") {
+    const target = config.targetDate ? new Date(config.targetDate).getTime() : Date.now() + 86400000;
+    const diff = Math.max(0, target - now.getTime());
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        {config.countdownTitle && <span className="text-[10px] font-bold opacity-70">{config.countdownTitle}</span>}
+        <div className="flex gap-2">
+          {[days, hours, mins, secs].map((v, i) => (
+            <span key={i} className="text-lg font-mono font-bold">{String(v).padStart(2, "0")}</span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "youtube") {
+    return (
+      <div className="w-full h-full flex items-center justify-center" style={{ background: bg, color: fg }}>
+        <Youtube className="w-8 h-8 opacity-50" />
+      </div>
+    );
+  }
+
+  if (config.widgetType === "weather") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        <CloudSun className="w-8 h-8 opacity-50" />
+        <span className="text-[10px] font-medium">{config.city || "City"}</span>
       </div>
     );
   }
