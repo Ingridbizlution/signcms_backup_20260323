@@ -45,7 +45,7 @@ const translations = {
   dashNeedCheck: { zh: "需要檢查", en: "Needs attention", ja: "要確認" },
   dashTodayPlays: { zh: "今日預計播放", en: "Today's Plays", ja: "本日再生予定" },
   dashPlayCount: { zh: "次廣告輪播", en: "ad rotations", ja: "回広告ローテーション" },
-  dashScreenList: { zh: "分店螢幕列表", en: "Branch Screen List", ja: "店舗スクリーン一覧" },
+  dashScreenList: { zh: "群組螢幕列表", en: "Group Screen List", ja: "グループスクリーン一覧" },
   dashJustNow: { zh: "剛剛", en: "Just now", ja: "たった今" },
   dashMinAgo: { zh: "分鐘前", en: "min ago", ja: "分前" },
   dashScheduleOverview: { zh: "排程總覽", en: "Schedule Overview", ja: "スケジュール概要" },
