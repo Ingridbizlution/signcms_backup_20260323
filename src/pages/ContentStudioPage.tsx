@@ -350,13 +350,14 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
             </Button>
           </div>
 
-          {/* Currently added media items */}
+          {/* Currently added content items */}
           {mediaItems.length > 0 && (
             <div className="space-y-1 mb-2">
               {mediaItems.map((m, i) => (
                 <div key={m.id + i} className="flex items-center gap-2 p-1.5 rounded-md bg-muted/50 text-xs">
-                  {m.type === "image" ? <ImageIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <Film className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                  {m.type === "image" ? <ImageIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />}
                   <span className="truncate flex-1 text-foreground">{m.name}</span>
+                  <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">{m.type === "image" ? "IMG" : m.type === "video" ? "VID" : "Widget"}</Badge>
                   <div className="flex items-center gap-1 shrink-0">
                     {m.type === "video" ? (
                       <span className="text-[10px] text-muted-foreground">{m.duration || 10}s</span>
@@ -365,13 +366,13 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
                         <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => {
                           const updated = [...mediaItems];
                           updated[i] = { ...m, duration: Math.max(1, (m.duration || 5) - 1) };
-                          onUpdate({ ...content, mediaItems: updated });
+                          onUpdate({ ...content, type: "media", mediaItems: updated });
                         }}><Minus className="w-2.5 h-2.5" /></Button>
                         <span className="text-[10px] font-medium text-foreground w-5 text-center">{m.duration || 5}s</span>
                         <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => {
                           const updated = [...mediaItems];
                           updated[i] = { ...m, duration: Math.min(60, (m.duration || 5) + 1) };
-                          onUpdate({ ...content, mediaItems: updated });
+                          onUpdate({ ...content, type: "media", mediaItems: updated });
                         }}><Plus className="w-2.5 h-2.5" /></Button>
                       </>
                     )}
@@ -382,8 +383,8 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
             </div>
           )}
 
-          {/* Currently added widget */}
-          {content.type === "widget" && content.widgetName && (
+          {/* Legacy single widget */}
+          {content.type === "widget" && content.widgetName && mediaItems.length === 0 && (
             <div className="flex items-center gap-2 p-1.5 rounded-md bg-muted/50 text-xs mb-2">
               <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
               <span className="truncate flex-1 text-foreground">{content.widgetName}</span>
