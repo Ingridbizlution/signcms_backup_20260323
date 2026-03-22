@@ -238,11 +238,27 @@ export default function SchedulesPage() {
     setForm((prev) => ({ ...prev, items: [...prev.items, item] }));
   };
 
-  const addDesignToForm = (dp: DesignProjectOption) => {
+  const addDesignToForm = async (dp: DesignProjectOption) => {
+    let loopDuration = 15;
+    try {
+      const { data } = await (supabase as any).from("design_projects").select("zones").eq("id", dp.id).single();
+      if (data?.zones && Array.isArray(data.zones)) {
+        // Each zone may have mediaItems with individual durations.
+        // A single loop = the max zone duration (each zone plays its carousel independently).
+        // Zone duration = sum of all its media item durations.
+        const zoneDurations = (data.zones as any[]).map((zone: any) => {
+          const items = zone.content?.mediaItems;
+          if (!Array.isArray(items) || items.length === 0) return 0;
+          return items.reduce((sum: number, m: any) => sum + (m.duration || 5), 0);
+        });
+        const maxDur = Math.max(...zoneDurations, 0);
+        if (maxDur > 0) loopDuration = Math.round(maxDur);
+      }
+    } catch {}
     const item: FormPlaylistItem = {
       tempId: Date.now() + Math.random(), media_id: null, design_project_id: dp.id,
       item_type: "design_project", item_name: dp.name, item_sub_type: "design",
-      duration: 15,
+      duration: loopDuration,
     };
     setForm((prev) => ({ ...prev, items: [...prev.items, item] }));
   };
