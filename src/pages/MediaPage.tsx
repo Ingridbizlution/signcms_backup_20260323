@@ -611,6 +611,15 @@ export default function MediaPage() {
             <SelectItem value="widget">{t("widget")}</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={projectFilter} onValueChange={setProjectFilter}>
+          <SelectTrigger className="w-[160px]"><FolderOpen className="w-4 h-4 mr-1.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("mediaAllProjects")}</SelectItem>
+            <SelectItem value="none">{t("mediaNoProject")}</SelectItem>
+            {projects.map((p) => (
+              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
         <div className="flex border border-border rounded-lg overflow-hidden">
           <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-none" onClick={() => setViewMode("grid")}><Grid3X3 className="w-4 h-4" /></Button>
           <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-none" onClick={() => setViewMode("list")}><List className="w-4 h-4" /></Button>
