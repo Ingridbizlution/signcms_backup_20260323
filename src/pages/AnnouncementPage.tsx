@@ -542,16 +542,54 @@ const AnnouncementPage = () => {
                           {a.pinned && <Badge variant="outline" className="mr-2 border-amber-500 text-amber-600 text-[10px]">{t("pinnedTag")}</Badge>}
                           {a.subject}
                         </TableCell>
-                        <TableCell className="text-base">{categoryLabel(a.category)}</TableCell>
-                        <TableCell className="text-base">{deptLabel(a.department)}</TableCell>
+                        <TableCell className="text-base">
+                          {editingId === a.id ? (
+                            <Select value={editCategory} onValueChange={setEditCategory}>
+                              <SelectTrigger className="h-9 text-sm w-[130px]"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {CATEGORIES.map((c) => (
+                                  <SelectItem key={c.value} value={c.value}>{c.label[language]}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : categoryLabel(a.category)}
+                        </TableCell>
+                        <TableCell className="text-base">
+                          {editingId === a.id ? (
+                            <Select value={editDepartment} onValueChange={setEditDepartment}>
+                              <SelectTrigger className="h-9 text-sm w-[130px]"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {DEPARTMENTS.map((d) => (
+                                  <SelectItem key={d.value} value={d.value}>{d.label[language]}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : deptLabel(a.department)}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(a.startDate, "yyyy/MM/dd")} – {format(a.endDate, "yyyy/MM/dd")}
                         </TableCell>
                         <TableCell>{statusBadge(status)}</TableCell>
-                        <TableCell className="text-right">
-                          <Button size="sm" variant="ghost" onClick={() => handleDelete(a.id)} className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <TableCell className="text-right space-x-1">
+                          {editingId === a.id ? (
+                            <>
+                              <Button size="sm" variant="ghost" onClick={saveEditing} className="text-emerald-600 hover:text-emerald-700">
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={cancelEditing} className="text-muted-foreground">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button size="sm" variant="ghost" onClick={() => startEditing(a)} className="text-muted-foreground hover:text-foreground">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => handleDelete(a.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
