@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Image, Upload, Trash2, Search, Grid3X3, List, Eye, FileImage, FileVideo, Clock, HardDrive, Loader2,
-  Code2, Calendar, Globe, Type, Plus, CloudSun, QrCode, Timer, Youtube, FolderOpen,
+  Code2, Calendar, Globe, Type, Plus, CloudSun, QrCode, Timer, Youtube, FolderOpen, Pencil, FolderPlus, Settings2,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Card } from "@/components/ui/card";
