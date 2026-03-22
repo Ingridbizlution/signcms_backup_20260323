@@ -573,6 +573,10 @@ export default function ScreensPage() {
               <Label>序號 (Serial Number)</Label>
               <Input value={form.serial_number} onChange={(e) => setForm({ ...form, serial_number: e.target.value })} placeholder="例如：SN-2024-001" />
             </div>
+            <div className="space-y-2">
+              <Label>韌體版本 (Firmware Version)</Label>
+              <Input value={form.firmware_version} onChange={(e) => setForm({ ...form, firmware_version: e.target.value })} placeholder="例如：v2.1.0" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>網路 IP</Label>
