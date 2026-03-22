@@ -5,12 +5,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Image, Upload, Trash2, Search, Grid3X3, List, Eye, FileImage, FileVideo, Clock, HardDrive, Loader2,
+  Code2, Calendar, Globe, Type, Plus,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -18,16 +21,130 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
+type WidgetSubType = "date" | "clock" | "webpage" | "marquee";
+
+interface WidgetConfig {
+  widgetType: WidgetSubType;
+  url?: string;
+  text?: string;
+  speed?: "slow" | "normal" | "fast";
+  format?: "12" | "24";
+  bgColor?: string;
+  textColor?: string;
+}
+
 interface MediaItem {
   id: string;
   name: string;
-  type: "image" | "video";
+  type: "image" | "video" | "widget";
   url: string;
   thumbnail: string;
   size: string;
   dimensions: string;
   duration?: string;
   created_at: string;
+}
+
+function parseWidgetConfig(url: string): WidgetConfig | null {
+  try {
+    if (url.startsWith("{")) return JSON.parse(url);
+  } catch {}
+  return null;
+}
+
+const WIDGET_ICONS: Record<WidgetSubType, typeof Calendar> = {
+  date: Calendar,
+  clock: Clock,
+  webpage: Globe,
+  marquee: Type,
+};
+
+function WidgetPreviewCard({ config }: { config: WidgetConfig }) {
+  const { t } = useLanguage();
+  const Icon = WIDGET_ICONS[config.widgetType] || Code2;
+  const labels: Record<WidgetSubType, string> = {
+    date: t("widgetDate"),
+    clock: t("widgetClock"),
+    webpage: t("widgetWebpage"),
+    marquee: t("widgetMarquee"),
+  };
+
+  return (
+    <div
+      className="w-full h-full flex flex-col items-center justify-center gap-2"
+      style={{ background: config.bgColor || "hsl(var(--muted))", color: config.textColor || "hsl(var(--foreground))" }}
+    >
+      <Icon className="w-8 h-8 opacity-60" />
+      <span className="text-xs font-medium">{labels[config.widgetType]}</span>
+      {config.widgetType === "marquee" && config.text && (
+        <span className="text-[10px] opacity-60 truncate max-w-[80%]">{config.text}</span>
+      )}
+      {config.widgetType === "webpage" && config.url && (
+        <span className="text-[10px] opacity-60 truncate max-w-[80%]">{config.url}</span>
+      )}
+    </div>
+  );
+}
+
+function WidgetLivePreview({ config }: { config: WidgetConfig }) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    if (config.widgetType === "clock" || config.widgetType === "date") {
+      const timer = setInterval(() => setNow(new Date()), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [config.widgetType]);
+
+  const bg = config.bgColor || "#1a1a2e";
+  const fg = config.textColor || "#ffffff";
+
+  if (config.widgetType === "clock") {
+    const timeStr = config.format === "12"
+      ? now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })
+      : now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    return (
+      <div className="w-full h-full flex items-center justify-center rounded-lg" style={{ background: bg, color: fg }}>
+        <span className="text-4xl font-mono font-bold tracking-wider">{timeStr}</span>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "date") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
+        <span className="text-lg font-medium opacity-70">{now.toLocaleDateString("zh-TW", { weekday: "long" })}</span>
+        <span className="text-3xl font-bold">{now.toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" })}</span>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "webpage") {
+    return (
+      <div className="w-full h-full rounded-lg overflow-hidden relative" style={{ background: bg }}>
+        {config.url ? (
+          <iframe src={config.url} className="w-full h-full border-0" sandbox="allow-scripts allow-same-origin" title="webpage widget" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center" style={{ color: fg }}>
+            <Globe className="w-10 h-10 opacity-30" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (config.widgetType === "marquee") {
+    const speed = config.speed === "slow" ? "30s" : config.speed === "fast" ? "8s" : "15s";
+    return (
+      <div className="w-full h-full flex items-center overflow-hidden rounded-lg" style={{ background: bg, color: fg }}>
+        <div className="whitespace-nowrap animate-marquee text-2xl font-bold" style={{ animationDuration: speed }}>
+          {config.text || "Marquee Text"}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{config.text || "Marquee Text"}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default function MediaPage() {
@@ -41,7 +158,20 @@ export default function MediaPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [widgetDialogOpen, setWidgetDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Widget form state
+  const [widgetForm, setWidgetForm] = useState({
+    name: "",
+    widgetType: "clock" as WidgetSubType,
+    url: "",
+    text: "歡迎光臨！今日特惠中",
+    speed: "normal" as "slow" | "normal" | "fast",
+    format: "24" as "12" | "24",
+    bgColor: "#1a1a2e",
+    textColor: "#ffffff",
+  });
 
   const fetchMedia = async () => {
     setLoading(true);
@@ -70,7 +200,6 @@ export default function MediaPage() {
       const isImage = file.type.startsWith("image/");
       if (!isVideo && !isImage) { toast.error(`${t("mediaUnsupported")}：${file.name}`); continue; }
 
-      // Get dimensions
       let dimensions = "";
       let duration: string | undefined;
 
@@ -100,7 +229,6 @@ export default function MediaPage() {
         duration = result.duration;
       }
 
-      // Store file as base64 data URL for persistence (no storage bucket available)
       const dataUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
@@ -136,8 +264,75 @@ export default function MediaPage() {
     }
   };
 
+  const handleCreateWidget = async () => {
+    if (!widgetForm.name.trim()) { toast.error(t("widgetFillRequired")); return; }
+
+    const config: WidgetConfig = {
+      widgetType: widgetForm.widgetType,
+      bgColor: widgetForm.bgColor,
+      textColor: widgetForm.textColor,
+    };
+    if (widgetForm.widgetType === "webpage") config.url = widgetForm.url;
+    if (widgetForm.widgetType === "marquee") { config.text = widgetForm.text; config.speed = widgetForm.speed; }
+    if (widgetForm.widgetType === "clock") config.format = widgetForm.format;
+
+    const { error } = await (supabase as any).from("media_items").insert({
+      name: widgetForm.name,
+      type: "widget",
+      url: JSON.stringify(config),
+      thumbnail: "",
+      size: "Widget",
+      dimensions: "auto",
+      uploaded_by: user?.id,
+    });
+
+    if (error) toast.error(error.message);
+    else {
+      toast.success(t("widgetCreated"));
+      setWidgetDialogOpen(false);
+      setWidgetForm({ name: "", widgetType: "clock", url: "", text: "歡迎光臨！今日特惠中", speed: "normal", format: "24", bgColor: "#1a1a2e", textColor: "#ffffff" });
+      fetchMedia();
+    }
+  };
+
   const imageCount = media.filter((m) => m.type === "image").length;
   const videoCount = media.filter((m) => m.type === "video").length;
+  const widgetCount = media.filter((m) => m.type === "widget").length;
+
+  const getItemIcon = (item: MediaItem) => {
+    if (item.type === "widget") {
+      const config = parseWidgetConfig(item.url);
+      if (config) {
+        const Icon = WIDGET_ICONS[config.widgetType] || Code2;
+        return <Icon className="w-10 h-10 text-primary/40" />;
+      }
+      return <Code2 className="w-10 h-10 text-primary/40" />;
+    }
+    if (item.type === "video") return <FileVideo className="w-10 h-10 text-muted-foreground/40" />;
+    return <FileImage className="w-10 h-10 text-muted-foreground/40" />;
+  };
+
+  const getSmallItemIcon = (item: MediaItem) => {
+    if (item.type === "widget") {
+      const config = parseWidgetConfig(item.url);
+      if (config) {
+        const Icon = WIDGET_ICONS[config.widgetType] || Code2;
+        return <Icon className="w-5 h-5 text-primary/50" />;
+      }
+      return <Code2 className="w-5 h-5 text-primary/50" />;
+    }
+    if (item.type === "video") return <FileVideo className="w-5 h-5 text-muted-foreground/50" />;
+    return <FileImage className="w-5 h-5 text-muted-foreground/50" />;
+  };
+
+  const getTypeBadge = (item: MediaItem) => {
+    if (item.type === "widget") {
+      const config = parseWidgetConfig(item.url);
+      const subLabel = config ? { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee") }[config.widgetType] : t("widget");
+      return subLabel;
+    }
+    return item.type === "image" ? t("image") : t("video");
+  };
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -145,11 +340,15 @@ export default function MediaPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">{t("mediaTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("mediaSubtitle")} · {imageCount} {t("mediaImages")} · {videoCount} {t("mediaVideos")}
+            {t("mediaSubtitle")} · {imageCount} {t("mediaImages")} · {videoCount} {t("mediaVideos")} · {widgetCount} {t("mediaWidgets")}
           </p>
         </div>
         {isAdmin && (
-          <div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setWidgetDialogOpen(true)} className="gap-2">
+              <Code2 className="w-4 h-4" />
+              {t("mediaAddWidget")}
+            </Button>
             <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleUpload} />
             <Button onClick={() => fileInputRef.current?.click()} className="gap-2">
               <Upload className="w-4 h-4" />
@@ -170,6 +369,7 @@ export default function MediaPage() {
             <SelectItem value="all">{t("allTypes")}</SelectItem>
             <SelectItem value="image">{t("image")}</SelectItem>
             <SelectItem value="video">{t("video")}</SelectItem>
+            <SelectItem value="widget">{t("widget")}</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex border border-border rounded-lg overflow-hidden">
@@ -193,19 +393,19 @@ export default function MediaPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {filtered.map((item, i) => (
                 <Card key={item.id} className={`overflow-hidden hover-lift shadow-sm group cursor-pointer opacity-0 animate-scale-in stagger-${Math.min(i + 1, 8)}`} onClick={() => setPreviewItem(item)}>
-                  <div className="aspect-video bg-muted relative flex items-center justify-center">
-                    {item.url && item.type === "image" ? (
+                  <div className="aspect-video bg-muted relative flex items-center justify-center overflow-hidden">
+                    {item.type === "widget" ? (
+                      (() => { const c = parseWidgetConfig(item.url); return c ? <WidgetPreviewCard config={c} /> : getItemIcon(item); })()
+                    ) : item.url && item.type === "image" ? (
                       <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                    ) : item.type === "image" ? (
-                      <FileImage className="w-10 h-10 text-muted-foreground/40" />
                     ) : (
-                      <FileVideo className="w-10 h-10 text-muted-foreground/40" />
+                      getItemIcon(item)
                     )}
                     {item.type === "video" && item.duration && (
                       <span className="absolute bottom-2 right-2 bg-foreground/80 text-background text-[10px] font-medium px-1.5 py-0.5 rounded">{item.duration}</span>
                     )}
-                    <Badge variant="secondary" className="absolute top-2 left-2 text-[10px] px-1.5 py-0.5">
-                      {item.type === "image" ? t("image") : t("video")}
+                    <Badge variant={item.type === "widget" ? "default" : "secondary"} className="absolute top-2 left-2 text-[10px] px-1.5 py-0.5">
+                      {getTypeBadge(item)}
                     </Badge>
                     <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                       <Eye className="w-6 h-6 text-background drop-shadow-lg" />
@@ -214,7 +414,8 @@ export default function MediaPage() {
                   <div className="p-3 space-y-1">
                     <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                      <span>{item.size}</span><span>·</span><span>{item.dimensions}</span>
+                      <span>{item.size}</span>
+                      {item.type !== "widget" && <><span>·</span><span>{item.dimensions}</span></>}
                     </div>
                   </div>
                 </Card>
@@ -227,20 +428,20 @@ export default function MediaPage() {
               {filtered.map((item) => (
                 <Card key={item.id} className="p-3 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setPreviewItem(item)}>
                   <div className="w-16 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-                    {item.url && item.type === "image" ? (
+                    {item.type === "widget" ? (
+                      (() => { const c = parseWidgetConfig(item.url); return c ? <WidgetPreviewCard config={c} /> : getSmallItemIcon(item); })()
+                    ) : item.url && item.type === "image" ? (
                       <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                    ) : item.type === "image" ? (
-                      <FileImage className="w-5 h-5 text-muted-foreground/50" />
                     ) : (
-                      <FileVideo className="w-5 h-5 text-muted-foreground/50" />
+                      getSmallItemIcon(item)
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">{item.type === "image" ? t("image") : t("video")}</Badge>
+                      <Badge variant={item.type === "widget" ? "default" : "outline"} className="text-[10px] px-1.5 py-0 h-4">{getTypeBadge(item)}</Badge>
                       <span className="flex items-center gap-1"><HardDrive className="w-3 h-3" />{item.size}</span>
-                      <span>{item.dimensions}</span>
+                      {item.type !== "widget" && <span>{item.dimensions}</span>}
                       {item.duration && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{item.duration}</span>}
                       <span>{item.created_at?.split("T")[0]}</span>
                     </div>
@@ -258,17 +459,20 @@ export default function MediaPage() {
         </>
       )}
 
+      {/* Preview Dialog */}
       <Dialog open={!!previewItem} onOpenChange={(open) => !open && setPreviewItem(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 truncate pr-6">
-              {previewItem?.type === "image" ? <FileImage className="w-5 h-5 text-primary shrink-0" /> : <FileVideo className="w-5 h-5 text-primary shrink-0" />}
+              {previewItem?.type === "widget" ? <Code2 className="w-5 h-5 text-primary shrink-0" /> : previewItem?.type === "image" ? <FileImage className="w-5 h-5 text-primary shrink-0" /> : <FileVideo className="w-5 h-5 text-primary shrink-0" />}
               <span className="truncate">{previewItem?.name}</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-              {previewItem?.url && previewItem.type === "image" ? (
+              {previewItem?.type === "widget" ? (
+                (() => { const c = parseWidgetConfig(previewItem.url); return c ? <WidgetLivePreview config={c} /> : <Code2 className="w-16 h-16 opacity-30" />; })()
+              ) : previewItem?.url && previewItem.type === "image" ? (
                 <img src={previewItem.url} alt={previewItem.name} className="w-full h-full object-contain" />
               ) : previewItem?.url && previewItem.type === "video" ? (
                 <video src={previewItem.url} controls className="w-full h-full" />
@@ -282,15 +486,15 @@ export default function MediaPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
               <div className="bg-muted/50 rounded-lg p-3">
                 <p className="text-muted-foreground text-xs">{t("mediaType")}</p>
-                <p className="font-medium text-foreground">{previewItem?.type === "image" ? t("image") : t("video")}</p>
+                <p className="font-medium text-foreground">{previewItem ? getTypeBadge(previewItem) : ""}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-3">
                 <p className="text-muted-foreground text-xs">{t("mediaFileSize")}</p>
                 <p className="font-medium text-foreground">{previewItem?.size}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-muted-foreground text-xs">{t("mediaResolution")}</p>
-                <p className="font-medium text-foreground">{previewItem?.dimensions}</p>
+                <p className="text-muted-foreground text-xs">{previewItem?.type === "widget" ? t("widgetType") : t("mediaResolution")}</p>
+                <p className="font-medium text-foreground">{previewItem?.type === "widget" ? t("widget") : previewItem?.dimensions}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-3">
                 <p className="text-muted-foreground text-xs">{previewItem?.type === "video" ? t("mediaDuration") : t("mediaUploadDate")}</p>
@@ -306,6 +510,115 @@ export default function MediaPage() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Widget Creation Dialog */}
+      <Dialog open={widgetDialogOpen} onOpenChange={setWidgetDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Code2 className="w-5 h-5 text-primary" />{t("mediaAddWidget")}</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>{t("widgetName")} *</Label>
+              <Input value={widgetForm.name} onChange={(e) => setWidgetForm({ ...widgetForm, name: e.target.value })} placeholder={t("widgetNamePlaceholder")} />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("widgetType")}</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {(["clock", "date", "webpage", "marquee"] as WidgetSubType[]).map((wt) => {
+                  const Icon = WIDGET_ICONS[wt];
+                  const labels: Record<WidgetSubType, string> = { date: t("widgetDate"), clock: t("widgetClock"), webpage: t("widgetWebpage"), marquee: t("widgetMarquee") };
+                  const descs: Record<WidgetSubType, string> = { date: t("widgetDateDesc"), clock: t("widgetClockDesc"), webpage: t("widgetWebpageDesc"), marquee: t("widgetMarqueeDesc") };
+                  return (
+                    <button key={wt} type="button" onClick={() => setWidgetForm({ ...widgetForm, widgetType: wt })}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all text-center ${
+                        widgetForm.widgetType === wt ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                      }`}>
+                      <Icon className={`w-6 h-6 ${widgetForm.widgetType === wt ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className="text-xs font-medium">{labels[wt]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {widgetForm.widgetType === "clock" && (
+              <div className="space-y-2">
+                <Label>{t("widgetFormat")}</Label>
+                <Select value={widgetForm.format} onValueChange={(v) => setWidgetForm({ ...widgetForm, format: v as "12" | "24" })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="24">{t("widgetFormat24")}</SelectItem>
+                    <SelectItem value="12">{t("widgetFormat12")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {widgetForm.widgetType === "webpage" && (
+              <div className="space-y-2">
+                <Label>{t("widgetUrl")}</Label>
+                <Input value={widgetForm.url} onChange={(e) => setWidgetForm({ ...widgetForm, url: e.target.value })} placeholder={t("widgetUrlPlaceholder")} />
+              </div>
+            )}
+
+            {widgetForm.widgetType === "marquee" && (
+              <>
+                <div className="space-y-2">
+                  <Label>{t("widgetText")}</Label>
+                  <Input value={widgetForm.text} onChange={(e) => setWidgetForm({ ...widgetForm, text: e.target.value })} placeholder={t("widgetTextPlaceholder")} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("widgetSpeed")}</Label>
+                  <Select value={widgetForm.speed} onValueChange={(v) => setWidgetForm({ ...widgetForm, speed: v as "slow" | "normal" | "fast" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="slow">{t("widgetSpeedSlow")}</SelectItem>
+                      <SelectItem value="normal">{t("widgetSpeedNormal")}</SelectItem>
+                      <SelectItem value="fast">{t("widgetSpeedFast")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>{t("widgetBgColor")}</Label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={widgetForm.bgColor} onChange={(e) => setWidgetForm({ ...widgetForm, bgColor: e.target.value })} className="w-8 h-8 rounded border border-border cursor-pointer" />
+                  <Input value={widgetForm.bgColor} onChange={(e) => setWidgetForm({ ...widgetForm, bgColor: e.target.value })} className="flex-1" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("widgetTextColor")}</Label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={widgetForm.textColor} onChange={(e) => setWidgetForm({ ...widgetForm, textColor: e.target.value })} className="w-8 h-8 rounded border border-border cursor-pointer" />
+                  <Input value={widgetForm.textColor} onChange={(e) => setWidgetForm({ ...widgetForm, textColor: e.target.value })} className="flex-1" />
+                </div>
+              </div>
+            </div>
+
+            {/* Live Preview */}
+            <div className="space-y-2">
+              <Label>{t("mediaPreviewUnavailable").replace("（範例素材）", "").replace("(sample)", "Preview")}</Label>
+              <div className="aspect-video rounded-lg overflow-hidden border border-border">
+                <WidgetLivePreview config={{
+                  widgetType: widgetForm.widgetType,
+                  url: widgetForm.url,
+                  text: widgetForm.text,
+                  speed: widgetForm.speed,
+                  format: widgetForm.format,
+                  bgColor: widgetForm.bgColor,
+                  textColor: widgetForm.textColor,
+                }} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">{t("cancel")}</Button></DialogClose>
+            <Button onClick={handleCreateWidget} className="gap-2"><Plus className="w-4 h-4" />{t("mediaAddWidget")}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
