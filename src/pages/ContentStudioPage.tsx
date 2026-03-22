@@ -237,12 +237,7 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
     onUpdate({ ...content, mediaItems: updated, type: updated.length > 0 ? "media" : "color" });
   };
 
-  return (
-    <Card className="absolute z-50 p-4 w-80 shadow-xl border border-border animate-scale-in max-h-[90%] overflow-y-auto" style={{ top: 8, right: 8 }}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold text-foreground">{t("studioEditZone")} {zone.label}</span>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}><X className="w-3.5 h-3.5" /></Button>
-      </div>
+  const innerContent = (
       <div className="space-y-3">
         {/* Media carousel section */}
         <div>
