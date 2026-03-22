@@ -313,6 +313,14 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   return null;
 }
 
+function AnimatedWidgetWrapper({ config, children }: { config: WidgetConfig; children: React.ReactNode }) {
+  const [key, setKey] = useState(0);
+  const anim = config.animation || "none";
+  useEffect(() => { setKey((k) => k + 1); }, [anim]);
+  if (anim === "none") return <>{children}</>;
+  return <div key={key} className={`w-full h-full ${ANIMATION_CSS[anim]}`}>{children}</div>;
+}
+
 function extractYoutubeId(url: string): string | null {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
   return match ? match[1] : null;
