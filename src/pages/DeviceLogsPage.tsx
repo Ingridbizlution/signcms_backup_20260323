@@ -13,10 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2, Search, Wifi, Settings, CalendarClock, AlertTriangle, Monitor,
   RefreshCw, Building2, FileText, Download, User, LogIn, LogOut, Plus, Pencil,
-  Trash2, Send, ShieldCheck, Image, Brush, ChevronLeft, ChevronRight,
+  Trash2, Send, ShieldCheck, Image, Brush, ChevronLeft, ChevronRight, BarChart3, Play, Clock,
 } from "lucide-react";
-import { format, startOfDay, startOfWeek, startOfMonth, isAfter } from "date-fns";
+import { format, startOfDay, startOfWeek, startOfMonth, isAfter, subDays } from "date-fns";
 import * as XLSX from "xlsx";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 // --- Device log types ---
 interface DeviceLog {
