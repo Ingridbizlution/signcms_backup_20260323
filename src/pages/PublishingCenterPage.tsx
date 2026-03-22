@@ -55,6 +55,8 @@ export default function PublishingCenterPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
+  const { orgs } = useUserOrgs();
+  const [filterOrgId, setFilterOrgId] = useState<string>("all");
 
   // Data
   const [schedules, setSchedules] = useState<ScheduleOption[]>([]);
