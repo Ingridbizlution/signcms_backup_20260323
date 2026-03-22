@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      media_items: {
+        Row: {
+          created_at: string
+          dimensions: string
+          duration: string | null
+          id: string
+          name: string
+          size: string
+          thumbnail: string
+          type: string
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          dimensions?: string
+          duration?: string | null
+          id?: string
+          name: string
+          size?: string
+          thumbnail?: string
+          type?: string
+          uploaded_by?: string | null
+          url?: string
+        }
+        Update: {
+          created_at?: string
+          dimensions?: string
+          duration?: string | null
+          id?: string
+          name?: string
+          size?: string
+          thumbnail?: string
+          type?: string
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -38,6 +77,125 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      schedule_items: {
+        Row: {
+          created_at: string
+          duration: number
+          id: string
+          media_id: string | null
+          schedule_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          duration?: number
+          id?: string
+          media_id?: string | null
+          schedule_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          duration?: number
+          id?: string
+          media_id?: string | null
+          schedule_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_items_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_items_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          id: string
+          name: string
+          screen_id: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          screen_id?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          screen_id?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedules_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      screens: {
+        Row: {
+          branch: string
+          created_at: string
+          id: string
+          name: string
+          resolution: string
+          status: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          branch?: string
+          created_at?: string
+          id?: string
+          name: string
+          resolution?: string
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          branch?: string
+          created_at?: string
+          id?: string
+          name?: string
+          resolution?: string
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
         }
         Relationships: []
       }
