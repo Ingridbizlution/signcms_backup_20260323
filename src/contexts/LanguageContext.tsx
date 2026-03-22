@@ -13,6 +13,8 @@ const translations = {
   navMedia: { zh: "廣告素材庫", en: "Media Library", ja: "メディアライブラリ" },
   navSchedules: { zh: "播放清單排程", en: "Schedules", ja: "スケジュール" },
   navPublishing: { zh: "發佈管理", en: "Publishing Center", ja: "配信管理" },
+  navDeviceLogs: { zh: "設備紀錄", en: "Device Logs", ja: "デバイスログ" },
+  navAdmin: { zh: "使用者管理", en: "User Management", ja: "ユーザー管理" },
   navAdmin: { zh: "使用者管理", en: "User Management", ja: "ユーザー管理" },
 
   // Common
