@@ -308,6 +308,8 @@ const MediaPage = () => {
 
   const [previewItem, setPreviewItem] = useState<MediaItemRow | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteUsage, setDeleteUsage] = useState<{ schedules: string[]; projects: string[] } | null>(null);
+  const [checkingUsage, setCheckingUsage] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
@@ -479,8 +481,45 @@ const MediaPage = () => {
     }
   };
 
+  const checkMediaUsage = async (mediaId: string) => {
+    setCheckingUsage(true);
+    setDeleteUsage(null);
+
+    // Check schedule_items for media_id reference
+    const { data: scheduleItems } = await (supabase as any)
+      .from("schedule_items")
+      .select("schedule_id, schedules:schedule_id(name)")
+      .eq("media_id", mediaId);
+
+    // Check if media belongs to a design project
+    const item = media.find((m) => m.id === mediaId);
+    const projectNames: string[] = [];
+    if (item?.design_project_id) {
+      const pName = projectNameMap.get(item.design_project_id);
+      if (pName) projectNames.push(pName);
+    }
+
+    const scheduleNames: string[] = [];
+    if (scheduleItems && scheduleItems.length > 0) {
+      for (const si of scheduleItems) {
+        const name = si.schedules?.name;
+        if (name && !scheduleNames.includes(name)) scheduleNames.push(name);
+      }
+    }
+
+    setDeleteUsage({ schedules: scheduleNames, projects: projectNames });
+    setCheckingUsage(false);
+  };
+
+  const requestDelete = async (itemId: string) => {
+    setDeleteId(itemId);
+    await checkMediaUsage(itemId);
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
+    // Block delete if in use
+    if (deleteUsage && (deleteUsage.schedules.length > 0 || deleteUsage.projects.length > 0)) return;
 
     const item = media.find((entry) => entry.id === deleteId);
     const { error } = await (supabase as any).from("media_items").delete().eq("id", deleteId);
@@ -490,6 +529,7 @@ const MediaPage = () => {
     } else {
       toast.success(`${t("mediaDeleted")}：${item?.name || ""}`);
       setDeleteId(null);
+      setDeleteUsage(null);
       if (previewItem?.id === deleteId) setPreviewItem(null);
       fetchMedia();
     }
@@ -805,7 +845,7 @@ const MediaPage = () => {
                   <Eye className="w-4 h-4" />
                 </Button>
                 {isAdmin && (
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(item.id); }}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); requestDelete(item.id); }}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
@@ -838,7 +878,7 @@ const MediaPage = () => {
             )}
             {isAdmin && previewItem && (
               <div className="flex justify-end">
-                <Button variant="destructive" size="sm" className="gap-2" onClick={() => { setDeleteId(previewItem.id); setPreviewItem(null); }}>
+                <Button variant="destructive" size="sm" className="gap-2" onClick={() => { requestDelete(previewItem.id); setPreviewItem(null); }}>
                   <Trash2 className="w-4 h-4" />
                   {t("mediaDeleteItem")}
                 </Button>
@@ -848,17 +888,41 @@ const MediaPage = () => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => { if (!open) { setDeleteId(null); setDeleteUsage(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("mediaDeleteConfirm")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("mediaDeleteDesc")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {checkingUsage ? (
+                <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />{t("mediaCheckingUsage")}</span>
+              ) : deleteUsage && (deleteUsage.schedules.length > 0 || deleteUsage.projects.length > 0) ? (
+                <div className="space-y-2">
+                  <p className="text-destructive font-medium">{t("mediaInUseWarning")}</p>
+                  {deleteUsage.projects.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t("mediaUsedInProjects")}：</p>
+                      <ul className="list-disc list-inside text-sm">{deleteUsage.projects.map((n) => <li key={n}>{n}</li>)}</ul>
+                    </div>
+                  )}
+                  {deleteUsage.schedules.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t("mediaUsedInSchedules")}：</p>
+                      <ul className="list-disc list-inside text-sm">{deleteUsage.schedules.map((n) => <li key={n}>{n}</li>)}</ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                t("mediaDeleteDesc")
+              )}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {t("confirmDelete")}
-            </AlertDialogAction>
+            {(!deleteUsage || (deleteUsage.schedules.length === 0 && deleteUsage.projects.length === 0)) && !checkingUsage && (
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {t("confirmDelete")}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
