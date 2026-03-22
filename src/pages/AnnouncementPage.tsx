@@ -12,7 +12,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Megaphone, Upload, CalendarIcon, Send, Monitor, Smartphone, Trash2, ImageIcon, Pin, Pencil, Save } from "lucide-react";
+import { Megaphone, Upload, CalendarIcon, Send, Monitor, Smartphone, Trash2, ImageIcon, Pin, Pencil, Save, Settings } from "lucide-react";
+import AnnouncementSettings, { type LabelItem } from "@/components/announcement/AnnouncementSettings";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -30,7 +31,7 @@ interface Announcement {
   createdAt: Date;
 }
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES: LabelItem[] = [
   { value: "general", label: { zh: "一般公告", en: "General", ja: "一般" } },
   { value: "urgent", label: { zh: "緊急通知", en: "Urgent", ja: "緊急" } },
   { value: "event", label: { zh: "活動公告", en: "Event", ja: "イベント" } },
@@ -38,7 +39,7 @@ const CATEGORIES = [
   { value: "maintenance", label: { zh: "維護公告", en: "Maintenance", ja: "メンテナンス" } },
 ];
 
-const DEPARTMENTS = [
+const DEFAULT_DEPARTMENTS: LabelItem[] = [
   { value: "hq", label: { zh: "總管理處", en: "Headquarters", ja: "本部" } },
   { value: "marketing", label: { zh: "行銷部", en: "Marketing", ja: "マーケティング部" } },
   { value: "maintenance", label: { zh: "維修組", en: "Maintenance", ja: "メンテナンス" } },
@@ -46,8 +47,30 @@ const DEPARTMENTS = [
   { value: "ops", label: { zh: "營運部", en: "Operations", ja: "運営部" } },
 ];
 
+const loadFromStorage = <T,>(key: string, fallback: T): T => {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return fallback;
+};
+
 const AnnouncementPage = () => {
   const { language } = useLanguage();
+
+  // Settings state
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [DEPARTMENTS, setDepartments] = useState<LabelItem[]>(() => loadFromStorage("signboard-departments", DEFAULT_DEPARTMENTS));
+  const [CATEGORIES, setCategories] = useState<LabelItem[]>(() => loadFromStorage("signboard-categories", DEFAULT_CATEGORIES));
+
+  const handleDepartmentsChange = (items: LabelItem[]) => {
+    setDepartments(items);
+    localStorage.setItem("signboard-departments", JSON.stringify(items));
+  };
+  const handleCategoriesChange = (items: LabelItem[]) => {
+    setCategories(items);
+    localStorage.setItem("signboard-categories", JSON.stringify(items));
+  };
 
   // Form state
   const [subject, setSubject] = useState("");
@@ -266,11 +289,16 @@ const AnnouncementPage = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
-          <Megaphone className="h-5 w-5 text-white" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
+            <Megaphone className="h-5 w-5 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">{t("pageTitle")}</h1>
         </div>
-        <h1 className="text-2xl font-bold text-foreground">{t("pageTitle")}</h1>
+        <Button variant="outline" size="icon" onClick={() => setSettingsOpen(true)} className="h-10 w-10 rounded-xl">
+          <Settings className="h-5 w-5" />
+        </Button>
       </div>
 
       <Tabs defaultValue="edit" className="w-full">
@@ -730,6 +758,16 @@ const AnnouncementPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Settings Dialog */}
+      <AnnouncementSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        departments={DEPARTMENTS}
+        categories={CATEGORIES}
+        onDepartmentsChange={handleDepartmentsChange}
+        onCategoriesChange={handleCategoriesChange}
+      />
     </div>
   );
 };
