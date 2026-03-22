@@ -986,6 +986,14 @@ export default function ContentStudioPage() {
                   <span className="text-sm font-semibold text-foreground">{t("studioEditOverlay")} {activeOverlay.label}</span>
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setSelectedOverlay(null)}><X className="w-3.5 h-3.5" /></Button>
                 </div>
+                {/* Lock toggle */}
+                <div className="mb-3">
+                  <Button variant={activeOverlay.locked ? "default" : "outline"} size="sm" className="w-full h-7 text-xs gap-1.5"
+                    onClick={() => setOverlays((prev) => prev.map((o) => o.id === activeOverlay.id ? { ...o, locked: !o.locked } : o))}>
+                    {activeOverlay.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                    {activeOverlay.locked ? t("studioLocked") : t("studioUnlocked")}
+                  </Button>
+                </div>
                 {/* Opacity slider */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-1.5">
