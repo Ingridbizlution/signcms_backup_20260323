@@ -243,10 +243,26 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia }: {
             </div>
           )}
           {mediaItems.length > 1 && (
-            <div className="flex items-center gap-2 mt-1">
-              <label className="text-[11px] text-muted-foreground whitespace-nowrap">{t("studioInterval")}</label>
-              <Slider value={[content.carouselInterval || 3]} min={1} max={15} step={1} onValueChange={([v]) => onUpdate({ ...content, carouselInterval: v })} className="flex-1" />
-              <span className="text-[11px] font-medium text-foreground w-6 text-right">{content.carouselInterval || 3}s</span>
+            <div className="space-y-2 mt-1">
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] text-muted-foreground whitespace-nowrap">{t("studioInterval")}</label>
+                <Slider value={[content.carouselInterval || 3]} min={1} max={15} step={1} onValueChange={([v]) => onUpdate({ ...content, carouselInterval: v })} className="flex-1" />
+                <span className="text-[11px] font-medium text-foreground w-6 text-right">{content.carouselInterval || 3}s</span>
+              </div>
+              <div>
+                <label className="text-[11px] text-muted-foreground mb-1 block">{t("studioTransition")}</label>
+                <div className="flex gap-1">
+                  {([
+                    { val: "fade" as CarouselTransition, label: t("studioTransFade") },
+                    { val: "slide" as CarouselTransition, label: t("studioTransSlide") },
+                    { val: "zoom" as CarouselTransition, label: t("studioTransZoom") },
+                    { val: "none" as CarouselTransition, label: t("studioTransNone") },
+                  ]).map(({ val, label }) => (
+                    <Button key={val} variant={(content.carouselTransition || "fade") === val ? "default" : "outline"} size="sm" className="h-6 text-[10px] flex-1 px-1"
+                      onClick={() => onUpdate({ ...content, carouselTransition: val })}>{label}</Button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
           {showMediaPicker && (
