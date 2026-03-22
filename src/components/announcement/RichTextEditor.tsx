@@ -8,6 +8,7 @@ import Image from "@tiptap/extension-image";
 import FontFamily from "@tiptap/extension-font-family";
 import FontSize from "@tiptap/extension-font-size";
 import { useRef } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -57,6 +58,7 @@ const PRESET_COLORS = [
 ];
 
 const RichTextEditor = ({ content, onChange, placeholder, minHeight = "160px" }: RichTextEditorProps) => {
+  const { t } = useLanguage();
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
@@ -128,10 +130,10 @@ const RichTextEditor = ({ content, onChange, placeholder, minHeight = "160px" }:
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-border bg-muted/30">
         {/* Undo / Redo */}
-        <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="Undo">
+        <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title={t("tipUndo")}>
           <Undo2 className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title="Redo">
+        <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title={t("tipRedo")}>
           <Redo2 className="h-4 w-4" />
         </ToolbarButton>
 
@@ -179,16 +181,16 @@ const RichTextEditor = ({ content, onChange, placeholder, minHeight = "160px" }:
         <div className="w-px h-6 bg-border mx-1" />
 
         {/* Bold / Italic / Underline / Strikethrough */}
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title={t("tipBold")}>
           <Bold className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive("italic")} title="Italic">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive("italic")} title={t("tipItalic")}>
           <Italic className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive("underline")} title="Underline">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive("underline")} title={t("tipUnderline")}>
           <UnderlineIcon className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive("strike")} title="Strikethrough">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive("strike")} title={t("tipStrikethrough")}>
           <Strikethrough className="h-4 w-4" />
         </ToolbarButton>
 
@@ -197,7 +199,7 @@ const RichTextEditor = ({ content, onChange, placeholder, minHeight = "160px" }:
         {/* Text Color */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-md" title="Text Color">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-md" title={t("tipTextColor")}>
               <div className="flex flex-col items-center">
                 <Palette className="h-3.5 w-3.5" />
                 <div
@@ -242,30 +244,30 @@ const RichTextEditor = ({ content, onChange, placeholder, minHeight = "160px" }:
         <div className="w-px h-6 bg-border mx-1" />
 
         {/* Alignment */}
-        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign("left").run()} active={editor.isActive({ textAlign: "left" })} title="Align Left">
+        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign("left").run()} active={editor.isActive({ textAlign: "left" })} title={t("tipAlignLeft")}>
           <AlignLeft className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign("center").run()} active={editor.isActive({ textAlign: "center" })} title="Align Center">
+        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign("center").run()} active={editor.isActive({ textAlign: "center" })} title={t("tipAlignCenter")}>
           <AlignCenter className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign("right").run()} active={editor.isActive({ textAlign: "right" })} title="Align Right">
+        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign("right").run()} active={editor.isActive({ textAlign: "right" })} title={t("tipAlignRight")}>
           <AlignRight className="h-4 w-4" />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-border mx-1" />
 
         {/* Lists */}
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet List">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title={t("tipBulletList")}>
           <List className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Ordered List">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title={t("tipOrderedList")}>
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-border mx-1" />
 
         {/* Insert Image */}
-        <ToolbarButton onClick={() => imageInputRef.current?.click()} title="Insert Image">
+        <ToolbarButton onClick={() => imageInputRef.current?.click()} title={t("tipInsertImage")}>
           <ImagePlus className="h-4 w-4" />
         </ToolbarButton>
         <input

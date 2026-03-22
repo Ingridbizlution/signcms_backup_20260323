@@ -282,11 +282,11 @@ export default function ScreensPage() {
         </div>
         {isAdmin && (
           <div className="flex gap-2 self-start">
-            <Button variant="outline" onClick={() => setNewGroupDialogOpen(true)} className="gap-2" title="新增螢幕群組">
+            <Button variant="outline" onClick={() => setNewGroupDialogOpen(true)} className="gap-2" title={t("tipAddScreenGroup")}>
               <FolderPlus className="w-4 h-4" />
               {t("screensNewGroup")}
             </Button>
-            <Button onClick={openAdd} className="gap-2" title="新增螢幕">
+            <Button onClick={openAdd} className="gap-2" title={t("tipAddScreen")}>
               <Plus className="w-4 h-4" />
               {t("screensAdd")}
             </Button>
@@ -309,7 +309,7 @@ export default function ScreensPage() {
         </Select>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" title="網路速度閾值設定">
+            <Button variant="outline" size="icon" title={t("tipSpeedThreshold")}>
               <SlidersHorizontal className="w-4 h-4" />
             </Button>
           </PopoverTrigger>
@@ -430,7 +430,7 @@ export default function ScreensPage() {
           )}
           {filtered.map((screen, i) => (
             <Card key={screen.id} className={`p-4 flex items-center gap-4 hover-lift shadow-sm opacity-0 animate-fade-in stagger-${Math.min(i + 1, 8)}`}>
-              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0" title="螢幕">
+              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0" title={t("tipScreen")}>
                 <Monitor className="w-6 h-6 text-muted-foreground/60" />
               </div>
               <div className="flex-1 min-w-0">
@@ -444,18 +444,18 @@ export default function ScreensPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                  <span className={`flex items-center gap-1 ${!screen.branch ? "italic opacity-60" : ""}`} title="群組">
+                  <span className={`flex items-center gap-1 ${!screen.branch ? "italic opacity-60" : ""}`} title={t("tipGroup")}>
                     <Layers className="w-3 h-3" />{screen.branch || t("screensUngrouped")}
                   </span>
-                  {screen.location && <span className="flex items-center gap-1" title="位置"><MapPin className="w-3 h-3" />{screen.location}</span>}
-                  <span title="解析度">{screen.resolution}</span>
-                  <span className="flex items-center gap-1 font-mono text-[11px]" title="序號">SN: {screen.serial_number || "—"}</span>
-                  <span className="flex items-center gap-1 font-mono text-[11px]" title="網路 IP 位址">IP: {screen.ip_address || "—"}</span>
-                  <span className="flex items-center gap-1 font-mono text-[11px]" title="韌體版本">FW: {screen.firmware_version || "—"}</span>
+                  {screen.location && <span className="flex items-center gap-1" title={t("tipLocation")}><MapPin className="w-3 h-3" />{screen.location}</span>}
+                  <span title={t("tipResolution")}>{screen.resolution}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title={t("tipSerialNumber")}>SN: {screen.serial_number || "—"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title={t("tipIpAddress")}>IP: {screen.ip_address || "—"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title={t("tipFirmwareVersion")}>FW: {screen.firmware_version || "—"}</span>
                   {screen.connection_type && (
-                    <span className="flex items-center gap-1" title="連線方式">
+                    <span className="flex items-center gap-1" title={t("tipConnectionType")}>
                       {screen.connection_type === "wired" ? <Cable className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
-                      {screen.connection_type === "wired" ? "有線" : "無線"}
+                      {screen.connection_type === "wired" ? t("tipWired") : t("tipWireless")}
                     </span>
                   )}
                   {(() => {
@@ -472,7 +472,7 @@ export default function ScreensPage() {
                     const isWarning = hasData && (isUpLow || isDownLow);
 
                     return (
-                      <span title={`網路速度健康狀態（閾值：上傳 ${uploadThreshold} Mbps / 下載 ${downloadThreshold} Mbps）`} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium ${
+                      <span title={t("tipNetworkSpeedHealth").replace("{up}", String(uploadThreshold)).replace("{down}", String(downloadThreshold))} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium ${
                         !hasData
                           ? "bg-muted text-muted-foreground"
                           : isWarning
@@ -484,7 +484,7 @@ export default function ScreensPage() {
                         }`} />
                         <ArrowUpDown className="w-3 h-3" />
                         {!hasData ? (
-                          <span>未設定</span>
+                          <span>{t("tipSpeedNotSet")}</span>
                         ) : (
                           <>
                             {up !== null && <span className={isUpLow ? "font-bold" : ""}>↑{screen.avg_upload_speed}</span>}
@@ -501,10 +501,10 @@ export default function ScreensPage() {
               {isAdmin && (
                 <div className="flex items-center gap-1 shrink-0">
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info(t("screenLiveViewPlaceholder"))} title={t("screenLiveView")}><Eye className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIotScreen(screen)} title="IoT 擴充裝置"><Radio className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIotScreen(screen)} title={t("tipIotDevices")}><Radio className="w-4 h-4" /></Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSettingsScreen(screen)} title={t("screenSettings")}><Settings className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(screen)} title="編輯螢幕"><Pencil className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(screen.id)} title="刪除螢幕"><Trash2 className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(screen)} title={t("tipEditScreen")}><Pencil className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(screen.id)} title={t("tipDeleteScreen")}><Trash2 className="w-4 h-4" /></Button>
                 </div>
               )}
             </Card>

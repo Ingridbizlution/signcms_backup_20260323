@@ -15,12 +15,12 @@ const languages: { code: Language; label: string; flag: string }[] = [
 ];
 
 export function LanguageSwitcher() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8" title={language === "zh" ? "切換語言" : language === "ja" ? "言語切替" : "Switch Language"}>
+        <Button variant="ghost" size="icon" className="h-8 w-8" title={t("tipSwitchLanguage")}>
           <Globe className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>

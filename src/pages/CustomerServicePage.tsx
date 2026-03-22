@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,7 @@ const statusConfig = {
 };
 
 const CustomerServicePage = () => {
+  const { t } = useLanguage();
   const [selectedCustomer, setSelectedCustomer] = useState<string>("1");
   const [inputText, setInputText] = useState("");
   const [searchText, setSearchText] = useState("");
@@ -273,9 +275,9 @@ const CustomerServicePage = () => {
                     )}
                     AI 智慧回覆
                   </Button>
-                   <Button variant="ghost" size="icon" className="h-8 w-8" title="撥打電話"><Phone className="h-4 w-4" /></Button>
-                   <Button variant="ghost" size="icon" className="h-8 w-8" title="視訊通話"><Video className="h-4 w-4" /></Button>
-                   <Button variant="ghost" size="icon" className="h-8 w-8" title="更多選項"><MoreVertical className="h-4 w-4" /></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8" title={t("tipPhoneCall")}><Phone className="h-4 w-4" /></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8" title={t("tipVideoCall")}><Video className="h-4 w-4" /></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8" title={t("tipMoreOptions")}><MoreVertical className="h-4 w-4" /></Button>
                 </div>
 
                 {/* Messages */}
@@ -322,10 +324,10 @@ const CustomerServicePage = () => {
                 {/* Input area */}
                 <div className="p-4 border-t border-border">
                   <div className="flex items-center gap-2 max-w-3xl mx-auto">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title="上傳附件或照片">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title={t("tipUploadAttachment")}>
                       <Paperclip className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title="上傳圖片">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title={t("tipUploadImage")}>
                       <ImagePlus className="h-4 w-4" />
                     </Button>
                     <Input
@@ -335,10 +337,10 @@ const CustomerServicePage = () => {
                       className="flex-1 h-10 bg-muted/50"
                       onKeyDown={(e) => e.key === "Enter" && handleSend()}
                     />
-                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title="語音轉文字">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground" title={t("tipVoiceToText")}>
                       <Mic className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" className="h-9 w-9 shrink-0" onClick={handleSend} title="送出訊息">
+                    <Button size="icon" className="h-9 w-9 shrink-0" onClick={handleSend} title={t("tipSendMessage")}>
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>

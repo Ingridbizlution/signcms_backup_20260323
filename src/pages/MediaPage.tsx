@@ -769,10 +769,10 @@ const MediaPage = () => {
           </div>
 
           <div className="flex items-center gap-2 self-end lg:self-auto">
-            <Button variant={viewMode === "grid" ? "default" : "outline"} size="icon" onClick={() => setViewMode("grid")} title="Grid">
+            <Button variant={viewMode === "grid" ? "default" : "outline"} size="icon" onClick={() => setViewMode("grid")} title={t("tipGridView")}>
               <Grid3X3 className="w-4 h-4" />
             </Button>
-            <Button variant={viewMode === "list" ? "default" : "outline"} size="icon" onClick={() => setViewMode("list")} title="List">
+            <Button variant={viewMode === "list" ? "default" : "outline"} size="icon" onClick={() => setViewMode("list")} title={t("tipListView")}>
               <List className="w-4 h-4" />
             </Button>
           </div>

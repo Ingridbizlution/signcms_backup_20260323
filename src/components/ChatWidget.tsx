@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +21,7 @@ interface ChatMsg {
 const now = () => new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });
 
 const ChatWidget = () => {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [isAI, setIsAI] = useState(true);
   const [input, setInput] = useState("");
@@ -165,7 +167,7 @@ const ChatWidget = () => {
           {/* Input area */}
           <div className="p-3 border-t border-border bg-card">
             <div className="flex items-center gap-1.5">
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground" title="上傳附件或照片">
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground" title={t("tipUploadAttachment")}>
                 <Paperclip className="h-4 w-4" />
               </Button>
               <Input
@@ -176,10 +178,10 @@ const ChatWidget = () => {
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 disabled={streaming}
               />
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground" title="語音轉文字">
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground" title={t("tipVoiceToText")}>
                 <Mic className="h-4 w-4" />
               </Button>
-              <Button size="icon" className="h-8 w-8 shrink-0" onClick={handleSend} disabled={streaming} title="送出訊息">
+              <Button size="icon" className="h-8 w-8 shrink-0" onClick={handleSend} disabled={streaming} title={t("tipSendMessage")}>
                 {streaming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
               </Button>
             </div>
