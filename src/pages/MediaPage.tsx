@@ -1130,10 +1130,88 @@ async function computeMD5(data: string): Promise<string> {
 
 function PreviewInfoPanel({ item, getProjectName, t }: { item: MediaItemRow; getProjectName: (id?: string | null) => string; t: (key: string) => string }) {
   const [hash, setHash] = useState<string>("...");
+  const [extraInfo, setExtraInfo] = useState<{ pixels?: string; frameRate?: string; bitrate?: string }>({});
 
   useEffect(() => {
     computeMD5(item.url).then(setHash).catch(() => setHash("-"));
   }, [item.url]);
+
+  useEffect(() => {
+    if (item.type === "image" && item.url && !item.url.startsWith("widget://")) {
+      const img = new Image();
+      img.onload = () => {
+        const totalPixels = img.width * img.height;
+        let pixelStr: string;
+        if (totalPixels >= 1_000_000) pixelStr = `${(totalPixels / 1_000_000).toFixed(1)} MP`;
+        else if (totalPixels >= 1_000) pixelStr = `${(totalPixels / 1_000).toFixed(1)} KP`;
+        else pixelStr = `${totalPixels} px`;
+        setExtraInfo({ pixels: pixelStr });
+      };
+      img.src = item.url;
+    }
+
+    if (item.type === "video" && item.url) {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.muted = true;
+
+      // Try to detect frame rate using requestVideoFrameCallback
+      let frameCount = 0;
+      let startTime = 0;
+      let resolved = false;
+
+      const resolveInfo = (fps: string | null) => {
+        if (resolved) return;
+        resolved = true;
+        // Estimate bitrate from file size string and duration
+        let bitrateStr = "-";
+        const sizeMatch = item.size.match(/([\d.]+)\s*(B|KB|MB)/i);
+        const durMatch = item.duration?.match(/(\d+):(\d+)/);
+        if (sizeMatch && durMatch) {
+          let sizeBytes = parseFloat(sizeMatch[1]);
+          if (sizeMatch[2].toUpperCase() === "KB") sizeBytes *= 1024;
+          else if (sizeMatch[2].toUpperCase() === "MB") sizeBytes *= 1024 * 1024;
+          const totalSecs = parseInt(durMatch[1]) * 60 + parseInt(durMatch[2]);
+          if (totalSecs > 0) {
+            const bitsPerSec = (sizeBytes * 8) / totalSecs;
+            if (bitsPerSec >= 1_000_000) bitrateStr = `${(bitsPerSec / 1_000_000).toFixed(1)} Mbps`;
+            else if (bitsPerSec >= 1_000) bitrateStr = `${(bitsPerSec / 1_000).toFixed(0)} Kbps`;
+            else bitrateStr = `${Math.round(bitsPerSec)} bps`;
+          }
+        }
+        setExtraInfo({ frameRate: fps || "-", bitrate: bitrateStr });
+        video.pause();
+        video.src = "";
+      };
+
+      video.onloadeddata = () => {
+        // Use requestVideoFrameCallback if available to measure FPS
+        if ("requestVideoFrameCallback" in video) {
+          startTime = performance.now();
+          const countFrames = (_now: number, _meta: unknown) => {
+            frameCount++;
+            if (frameCount >= 10) {
+              const elapsed = (performance.now() - startTime) / 1000;
+              const fps = elapsed > 0 ? (frameCount / elapsed).toFixed(1) : "-";
+              resolveInfo(`${fps} fps`);
+              return;
+            }
+            (video as any).requestVideoFrameCallback(countFrames);
+          };
+          video.playbackRate = 4;
+          video.play().then(() => {
+            (video as any).requestVideoFrameCallback(countFrames);
+          }).catch(() => resolveInfo(null));
+          // Timeout fallback
+          setTimeout(() => resolveInfo(null), 5000);
+        } else {
+          resolveInfo(null);
+        }
+      };
+      video.onerror = () => resolveInfo(null);
+      video.src = item.url;
+    }
+  }, [item.url, item.type, item.size, item.duration]);
 
   const encoding = getEncodingFromUrl(item.url);
   const uploadDate = item.created_at ? new Date(item.created_at).toLocaleString("zh-TW") : "-";
@@ -1143,6 +1221,12 @@ function PreviewInfoPanel({ item, getProjectName, t }: { item: MediaItemRow; get
     { label: t("mediaResolution"), value: item.dimensions },
     { label: t("mediaFileSize"), value: item.size },
     { label: t("mediaEncoding"), value: encoding },
+    ...(item.type === "image" ? [{ label: t("mediaPixels"), value: extraInfo.pixels || "..." }] : []),
+    ...(item.type === "video" ? [
+      { label: t("mediaDuration"), value: item.duration || "-" },
+      { label: t("mediaFrameRate"), value: extraInfo.frameRate || "..." },
+      { label: t("mediaBitrate"), value: extraInfo.bitrate || "..." },
+    ] : []),
     { label: t("mediaUploadDate"), value: uploadDate },
     { label: "MD5", value: hash },
     { label: t("mediaProjectGroup"), value: getProjectName(item.design_project_id) },
