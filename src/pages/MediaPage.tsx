@@ -815,24 +815,7 @@ const MediaPage = () => {
               ) : null}
             </div>
             {previewItem && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-sm">
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs text-muted-foreground">{t("mediaType")}</p>
-                  <p className="font-medium text-foreground">{previewItem.type === "image" ? t("image") : previewItem.type === "video" ? t("video") : t("widget")}</p>
-                </div>
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs text-muted-foreground">{t("mediaFileSize")}</p>
-                  <p className="font-medium text-foreground">{previewItem.size}</p>
-                </div>
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs text-muted-foreground">{t("mediaResolution")}</p>
-                  <p className="font-medium text-foreground">{previewItem.dimensions}</p>
-                </div>
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs text-muted-foreground">{t("mediaProjectGroup")}</p>
-                  <p className="font-medium text-foreground">{getProjectName(previewItem.design_project_id)}</p>
-                </div>
-              </div>
+              <PreviewInfoPanel item={previewItem} getProjectName={getProjectName} t={t} />
             )}
             {isAdmin && previewItem && (
               <div className="flex justify-end">
