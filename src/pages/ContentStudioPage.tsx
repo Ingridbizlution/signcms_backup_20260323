@@ -846,7 +846,8 @@ export default function ContentStudioPage() {
 
         {/* Canvas area */}
         <div className="flex-1 flex items-center justify-center bg-muted/30 rounded-xl border border-border relative overflow-hidden min-h-0">
-          <div ref={canvasRef} className={`relative bg-card rounded-lg shadow-lg border border-border overflow-hidden ${resizing ? "" : "transition-all duration-300"}`} style={{ width: W, height: H, maxWidth: "100%", maxHeight: "100%" }}>
+          <div ref={canvasRef} className={`relative bg-card rounded-lg shadow-lg border border-border overflow-hidden ${resizing ? "" : "transition-all duration-300"}`} style={{ width: W, height: H, maxWidth: "100%", maxHeight: "100%" }}
+            onClick={() => { if (selectedOverlay) setSelectedOverlay(null); }}>
             {zones.map((zone) => {
               const isSelected = selectedZone === zone.id;
               const bg = zone.content?.bgColor || "hsl(var(--muted))";
