@@ -13,6 +13,8 @@ interface ScreenLog {
   event_title: string;
   event_detail: string;
   created_at: string;
+  created_by: string | null;
+  operator_name?: string;
 }
 
 const EVENT_TYPE_CONFIG: Record<string, { icon: typeof Wifi; color: string; label: { zh: string; en: string; ja: string } }> = {
