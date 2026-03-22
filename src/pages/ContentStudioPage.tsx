@@ -18,9 +18,10 @@ import {
   Utensils, PartyPopper, ShoppingBag, Sun, Gift, Coffee,
   X, Plus, AlignLeft, AlignCenter, AlignRight, Minus,
   Save, FolderOpen, FilePlus, ChevronLeft, ChevronRightIcon, Play, Pause,
-  Layers, Code2, Clock, Calendar, Globe
+  Layers, Code2, Clock, Calendar, Globe, CloudSun, QrCode, Timer, Youtube
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { QRCodeSVG } from "qrcode.react";
 
 // ── Types ──────────────────────────────────────────────────────────
 type AspectRatio = "16:9" | "9:16";
