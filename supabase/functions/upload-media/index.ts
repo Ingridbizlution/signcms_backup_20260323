@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
     const dimensions = formData.get("dimensions") as string || "-";
     const duration = formData.get("duration") as string | null;
     const projectId = formData.get("design_project_id") as string | null;
+    const orgId = formData.get("org_id") as string | null;
 
     if (!file) {
       return new Response(JSON.stringify({ error: "No file provided" }), {
