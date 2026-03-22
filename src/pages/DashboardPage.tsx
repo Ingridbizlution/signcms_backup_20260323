@@ -298,7 +298,7 @@ export default function DashboardPage() {
             className="h-auto py-3 flex flex-col items-center gap-1.5 hover:border-primary/50 hover:bg-primary/5 transition-all"
             onClick={() => navigate("/schedules")}
           >
-            <CalendarClock className="w-5 h-5 text-primary" />
+            <CalendarClock className="w-5 h-5 text-primary" title={t("dashQuickSchedule")} />
             <span className="text-xs font-medium">{t("dashQuickSchedule")}</span>
           </Button>
         </div>

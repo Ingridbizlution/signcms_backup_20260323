@@ -55,7 +55,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     <p className="font-medium text-foreground">{displayName}</p>
                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
-                  <DropdownMenuItem onClick={signOut} className="text-destructive cursor-pointer">
+                  <DropdownMenuItem onClick={signOut} className="text-destructive cursor-pointer" title={t("logout")}>
                     <LogOut className="w-4 h-4 mr-2" />
                     {t("logout")}
                   </DropdownMenuItem>
