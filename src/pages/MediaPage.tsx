@@ -308,6 +308,8 @@ const MediaPage = () => {
 
   const [previewItem, setPreviewItem] = useState<MediaItemRow | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteUsage, setDeleteUsage] = useState<{ schedules: string[]; projects: string[] } | null>(null);
+  const [checkingUsage, setCheckingUsage] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
