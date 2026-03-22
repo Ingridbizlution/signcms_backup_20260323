@@ -270,6 +270,15 @@ export default function SchedulesPage() {
     setForm((prev) => ({ ...prev, items: [...prev.items, item] }));
   };
 
+  const addWidgetToForm = (widget: WidgetOption) => {
+    const item: FormPlaylistItem = {
+      tempId: Date.now() + Math.random(), media_id: widget.id, design_project_id: null,
+      item_type: "widget", item_name: widget.name, item_sub_type: "widget",
+      duration: 15,
+    };
+    setForm((prev) => ({ ...prev, items: [...prev.items, item] }));
+  };
+
   const removeItemFromForm = (tempId: number) => { setForm((prev) => ({ ...prev, items: prev.items.filter((i) => i.tempId !== tempId) })); };
   const updateItemDuration = (tempId: number, duration: number) => { setForm((prev) => ({ ...prev, items: prev.items.map((i) => i.tempId === tempId ? { ...i, duration: Math.max(1, duration) } : i) })); };
   const moveItem = (index: number, direction: "up" | "down") => {
