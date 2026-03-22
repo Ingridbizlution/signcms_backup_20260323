@@ -320,15 +320,24 @@ export default function SchedulesPage() {
           <h1 className="text-2xl font-bold text-foreground">{t("schedTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t("schedSubtitle")}</p>
         </div>
-        {isAdmin && (
-          <Button onClick={openAdd} className="gap-2 self-start"><Plus className="w-4 h-4" />{t("schedAdd")}</Button>
-        )}
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-      ) : (
-        <>
+        <div className="flex items-center gap-2 self-start">
+          {isAdmin && orgs.length > 1 && (
+            <Select value={filterOrgId} onValueChange={setFilterOrgId}>
+              <SelectTrigger className="w-[180px] h-9">
+                <Building2 className="w-4 h-4 mr-1.5 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("orgFilterAll")}</SelectItem>
+                {orgs.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+                <SelectItem value="none">— {t("unassigned") || "未分配"} —</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          {isAdmin && (
+            <Button onClick={openAdd} className="gap-2"><Plus className="w-4 h-4" />{t("schedAdd")}</Button>
+          )}
+        </div>
           {schedules.length === 0 && (
             <Card className="p-12 text-center text-muted-foreground">
               <CalendarClock className="w-10 h-10 mx-auto mb-3 opacity-40" />
