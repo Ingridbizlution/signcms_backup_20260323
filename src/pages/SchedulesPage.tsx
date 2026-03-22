@@ -111,7 +111,9 @@ export default function SchedulesPage() {
     setScreenOptions(opts);
 
     const { data: mediaData } = await (supabase as any).from("media_items").select("id, name, type").order("created_at", { ascending: false });
-    setMediaOptions(mediaData || []);
+    const allMedia = mediaData || [];
+    setMediaOptions(allMedia.filter((m: any) => m.type !== "widget"));
+    setWidgetOptions(allMedia.filter((m: any) => m.type === "widget"));
 
     const { data: designData } = await (supabase as any).from("design_projects").select("id, name, aspect").order("updated_at", { ascending: false });
     setDesignOptions(designData || []);
