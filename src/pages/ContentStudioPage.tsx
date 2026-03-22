@@ -205,6 +205,48 @@ function ZoneEditor({
             onChange={(e) => onUpdate({ ...content, type: "text", value: e.target.value })}
           />
         </div>
+        {/* Font size */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs text-muted-foreground">{t("studioFontSize")}</label>
+            <span className="text-xs font-medium text-foreground">{content.fontSize || 24}px</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-6 w-6 shrink-0" onClick={() => onUpdate({ ...content, fontSize: Math.max(12, (content.fontSize || 24) - 2) })}>
+              <Minus className="w-3 h-3" />
+            </Button>
+            <Slider
+              value={[content.fontSize || 24]}
+              min={12} max={72} step={2}
+              onValueChange={([v]) => onUpdate({ ...content, fontSize: v })}
+              className="flex-1"
+            />
+            <Button variant="outline" size="icon" className="h-6 w-6 shrink-0" onClick={() => onUpdate({ ...content, fontSize: Math.min(72, (content.fontSize || 24) + 2) })}>
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+        {/* Text align */}
+        <div>
+          <label className="text-xs text-muted-foreground mb-1.5 block">{t("studioTextAlign")}</label>
+          <div className="flex gap-1">
+            {([
+              { val: "left" as const, icon: <AlignLeft className="w-3.5 h-3.5" /> },
+              { val: "center" as const, icon: <AlignCenter className="w-3.5 h-3.5" /> },
+              { val: "right" as const, icon: <AlignRight className="w-3.5 h-3.5" /> },
+            ]).map(({ val, icon }) => (
+              <Button
+                key={val}
+                variant={(content.textAlign || "center") === val ? "default" : "outline"}
+                size="sm"
+                className="h-7 w-9 px-0"
+                onClick={() => onUpdate({ ...content, textAlign: val })}
+              >
+                {icon}
+              </Button>
+            ))}
+          </div>
+        </div>
         {/* BG color */}
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">{t("studioBgColor")}</label>
