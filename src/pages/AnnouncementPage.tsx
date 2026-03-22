@@ -570,54 +570,19 @@ const AnnouncementPage = () => {
                           {a.pinned && <Badge variant="outline" className="mr-2 border-amber-500 text-amber-600 text-[10px]">{t("pinnedTag")}</Badge>}
                           {a.subject}
                         </TableCell>
-                        <TableCell className="text-base">
-                          {editingId === a.id ? (
-                            <Select value={editCategory} onValueChange={setEditCategory}>
-                              <SelectTrigger className="h-9 text-sm w-[130px]"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                {CATEGORIES.map((c) => (
-                                  <SelectItem key={c.value} value={c.value}>{c.label[language]}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : categoryLabel(a.category)}
-                        </TableCell>
-                        <TableCell className="text-base">
-                          {editingId === a.id ? (
-                            <Select value={editDepartment} onValueChange={setEditDepartment}>
-                              <SelectTrigger className="h-9 text-sm w-[130px]"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                {DEPARTMENTS.map((d) => (
-                                  <SelectItem key={d.value} value={d.value}>{d.label[language]}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : deptLabel(a.department)}
-                        </TableCell>
+                        <TableCell className="text-base">{categoryLabel(a.category)}</TableCell>
+                        <TableCell className="text-base">{deptLabel(a.department)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(a.startDate, "yyyy/MM/dd")} – {format(a.endDate, "yyyy/MM/dd")}
                         </TableCell>
                         <TableCell>{statusBadge(status)}</TableCell>
                         <TableCell className="text-right space-x-1">
-                          {editingId === a.id ? (
-                            <>
-                              <Button size="sm" variant="ghost" onClick={saveEditing} className="text-emerald-600 hover:text-emerald-700">
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={cancelEditing} className="text-muted-foreground">
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button size="sm" variant="ghost" onClick={() => startEditing(a)} className="text-muted-foreground hover:text-foreground">
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => handleDelete(a.id)} className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
+                          <Button size="sm" variant="ghost" onClick={() => startEditing(a)} className="text-muted-foreground hover:text-foreground">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDelete(a.id)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -628,6 +593,140 @@ const AnnouncementPage = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              {texts.editTitle[language]}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-5 py-2">
+            {/* Subject */}
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">{t("subject")}</Label>
+              <Input value={editSubject} onChange={(e) => setEditSubject(e.target.value)} placeholder={t("subjectPh")} className="h-12 text-lg font-medium" />
+            </div>
+
+            {/* Department & Category */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">{t("dept")}</Label>
+                <Select value={editDepartment} onValueChange={setEditDepartment}>
+                  <SelectTrigger className="h-12 text-base"><SelectValue placeholder={t("deptPh")} /></SelectTrigger>
+                  <SelectContent>
+                    {DEPARTMENTS.map((d) => (
+                      <SelectItem key={d.value} value={d.value}>{d.label[language]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">{t("categoryLabel")}</Label>
+                <Select value={editCategory} onValueChange={setEditCategory}>
+                  <SelectTrigger className="h-12 text-base"><SelectValue placeholder={t("categoryPh")} /></SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>{c.label[language]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Pinned */}
+            <div className="flex items-center justify-between rounded-xl border border-border p-4">
+              <div className="space-y-0.5">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <Pin className="h-4 w-4 text-amber-500" />
+                  {t("pinnedLabel")}
+                </Label>
+                <p className="text-sm text-muted-foreground">{t("pinnedDesc")}</p>
+              </div>
+              <Switch checked={editPinned} onCheckedChange={setEditPinned} />
+            </div>
+
+            {/* Content */}
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">{t("contentLabel")}</Label>
+              <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} placeholder={t("contentPh")} className="min-h-[120px] text-base leading-relaxed" />
+            </div>
+
+            {/* Image */}
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">{t("imageLabel")}</Label>
+              <div
+                onClick={() => editFileInputRef.current?.click()}
+                className={cn(
+                  "relative border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/5 flex flex-col items-center justify-center",
+                  editImageUrl ? "h-36 border-primary/40" : "h-24 border-border"
+                )}
+              >
+                {editImageUrl ? (
+                  <>
+                    <img src={editImageUrl} alt="preview" className="h-full w-full object-contain rounded-lg p-2" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditImageUrl(null); }}
+                      className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:opacity-80"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                    <p className="text-xs text-muted-foreground">{t("imageDrop")}</p>
+                  </>
+                )}
+                <input ref={editFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleEditImageUpload(f); }} />
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">{t("startTime")}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full h-12 justify-start text-left text-base", !editStartDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editStartDate ? format(editStartDate, "yyyy/MM/dd") : t("pickDate")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={editStartDate} onSelect={setEditStartDate} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">{t("endTime")}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full h-12 justify-start text-left text-base", !editEndDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editEndDate ? format(editEndDate, "yyyy/MM/dd") : t("pickDate")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={editEndDate} onSelect={setEditEndDate} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{texts.cancelBtn[language]}</Button>
+            <Button onClick={saveEditing} className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 hover:opacity-90">
+              <Save className="mr-2 h-4 w-4" />
+              {texts.saveBtn[language]}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
