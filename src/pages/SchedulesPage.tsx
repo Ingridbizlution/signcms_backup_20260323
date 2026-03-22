@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
-type PlaylistItemType = "media" | "design_project";
+type PlaylistItemType = "media" | "design_project" | "widget";
 
 interface PlaylistItem {
   id: string;
