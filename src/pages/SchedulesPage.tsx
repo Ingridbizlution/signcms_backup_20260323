@@ -102,51 +102,53 @@ export default function SchedulesPage() {
   const fetchAll = async () => {
     setLoading(true);
 
-    // Fetch screens for dropdown
     const { data: screensData } = await (supabase as any).from("screens").select("id, name, branch").order("branch");
     const opts: ScreenOption[] = (screensData || []).map((s: any) => ({ id: s.id, label: `${s.branch} - ${s.name}` }));
     setScreenOptions(opts);
 
-    // Fetch media for dropdown
     const { data: mediaData } = await (supabase as any).from("media_items").select("id, name, type").order("created_at", { ascending: false });
     setMediaOptions(mediaData || []);
 
-    // Fetch schedules
+    const { data: designData } = await (supabase as any).from("design_projects").select("id, name, aspect").order("updated_at", { ascending: false });
+    setDesignOptions(designData || []);
+
     const { data: schedData } = await (supabase as any).from("schedules").select("*").order("created_at");
 
-    // Fetch schedule items
     const { data: itemsData } = await (supabase as any).from("schedule_items")
-      .select("id, schedule_id, media_id, sort_order, duration")
+      .select("id, schedule_id, media_id, design_project_id, item_type, sort_order, duration")
       .order("sort_order");
 
-    // Fetch media names for items
     const mediaMap = new Map((mediaData || []).map((m: any) => [m.id, m]));
+    const designMap = new Map((designData || []).map((d: any) => [d.id, d]));
     const screenMap = new Map(opts.map((s) => [s.id, s.label]));
 
     const merged: Schedule[] = (schedData || []).map((s: any) => {
-      const schedItems = (itemsData || [])
+      const schedItems: PlaylistItem[] = (itemsData || [])
         .filter((i: any) => i.schedule_id === s.id)
         .map((i: any) => {
+          const itemType: PlaylistItemType = i.item_type || "media";
+          if (itemType === "design_project") {
+            const d = designMap.get(i.design_project_id) as any;
+            return {
+              id: i.id, media_id: null, design_project_id: i.design_project_id,
+              item_type: "design_project" as PlaylistItemType,
+              item_name: d?.name || "Unknown", item_sub_type: "design" as const,
+              duration: i.duration, sort_order: i.sort_order,
+            };
+          }
           const m = mediaMap.get(i.media_id) as any;
           return {
-            id: i.id,
-            media_id: i.media_id,
-            media_name: m?.name || "Unknown",
-            media_type: m?.type || "image",
-            duration: i.duration,
-            sort_order: i.sort_order,
+            id: i.id, media_id: i.media_id, design_project_id: null,
+            item_type: "media" as PlaylistItemType,
+            item_name: m?.name || "Unknown", item_sub_type: (m?.type || "image") as "image" | "video",
+            duration: i.duration, sort_order: i.sort_order,
           };
         });
       return {
-        id: s.id,
-        name: s.name,
-        screen_id: s.screen_id,
+        id: s.id, name: s.name, screen_id: s.screen_id,
         screen_label: screenMap.get(s.screen_id) || "",
-        start_time: s.start_time,
-        end_time: s.end_time,
-        days: s.days || [],
-        enabled: s.enabled,
-        items: schedItems,
+        start_time: s.start_time, end_time: s.end_time,
+        days: s.days || [], enabled: s.enabled, items: schedItems,
       };
     });
 
