@@ -991,6 +991,22 @@ export default function ContentStudioPage() {
                   </div>
                   <Slider value={[activeOverlay.opacity ?? 100]} min={10} max={100} step={5} onValueChange={([v]) => setOverlays((prev) => prev.map((o) => o.id === activeOverlay.id ? { ...o, opacity: v } : o))} />
                 </div>
+                {/* Layer order */}
+                {overlays.length > 1 && (
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-muted-foreground">{t("studioLayerOrder")}</label>
+                      <div className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 px-2" onClick={() => moveOverlayLayer(activeOverlay.id, "down")}>
+                          <ChevronLeft className="w-3 h-3" /> {t("studioLayerDown")}
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 px-2" onClick={() => moveOverlayLayer(activeOverlay.id, "up")}>
+                          {t("studioLayerUp")} <ChevronRight className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Reuse ZoneEditor content inline - delegate to ZoneEditor */}
                 <ZoneEditor zone={{ id: activeOverlay.id, x: 0, y: 0, w: 100, h: 100, label: activeOverlay.label, content: activeOverlay.content }} onUpdate={(content) => updateOverlayContent(activeOverlay.id, content)} onClose={() => setSelectedOverlay(null)} dbMedia={dbMedia} dbWidgets={dbWidgets} isEmbedded />
               </Card>
