@@ -106,7 +106,7 @@ export default function ScreensPage() {
 
   const fetchScreens = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online").order("created_at", { ascending: true });
+    const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online, org_id").order("created_at", { ascending: true });
     if (error) { toast.error(error.message); }
     else {
       setScreens(data || []);
