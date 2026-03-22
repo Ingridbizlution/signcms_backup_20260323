@@ -249,7 +249,7 @@ export default function MediaPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Widget form state
-  const [widgetForm, setWidgetForm] = useState({
+  const defaultWidgetForm = {
     name: "",
     widgetType: "clock" as WidgetSubType,
     url: "",
@@ -261,7 +261,13 @@ export default function MediaPage() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     bgColor: "#1a1a2e",
     textColor: "#ffffff",
-  });
+    qrcodeContent: "",
+    targetDate: "",
+    countdownTitle: "",
+    youtubeUrl: "",
+    city: "Taipei",
+  };
+  const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
 
   const fetchMedia = async () => {
     setLoading(true);
