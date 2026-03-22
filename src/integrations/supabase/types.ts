@@ -105,6 +105,47 @@ export type Database = {
           },
         ]
       }
+      knowledge_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: string
+          file_type: string
+          id: string
+          knowledge_item_id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: string
+          file_type?: string
+          id?: string
+          knowledge_item_id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: string
+          file_type?: string
+          id?: string
+          knowledge_item_id?: string
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_files_knowledge_item_id_fkey"
+            columns: ["knowledge_item_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_items: {
         Row: {
           category: string

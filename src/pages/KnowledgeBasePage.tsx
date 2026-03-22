@@ -14,7 +14,8 @@ import {
   FileText, Trash2, Edit2, FolderOpen, ChevronRight, Sparkles, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useKnowledgeItems } from "@/hooks/useKnowledgeItems";
+import { useKnowledgeItems, KnowledgeItem } from "@/hooks/useKnowledgeItems";
+import { KnowledgeFilePanel } from "@/components/knowledge/KnowledgeFilePanel";
 
 const CATEGORIES = [
   {
@@ -34,10 +35,11 @@ const CATEGORIES = [
 ];
 
 const KnowledgeBasePage = () => {
-  const { items, loading, addItem, deleteItem, syncAll } = useKnowledgeItems();
+  const { items, loading, addItem, deleteItem, syncAll, refetch } = useKnowledgeItems();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [addOpen, setAddOpen] = useState(false);
+  const [fileItem, setFileItem] = useState<KnowledgeItem | null>(null);
   const [newItem, setNewItem] = useState({ title: "", description: "", category: "", subCategory: "" });
 
   const filtered = items.filter((item) => {
@@ -187,7 +189,7 @@ const KnowledgeBasePage = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="上傳文件">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="上傳文件" onClick={() => setFileItem(item)}>
                           <Upload className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="編輯">
@@ -256,6 +258,21 @@ const KnowledgeBasePage = () => {
             <Button variant="outline" onClick={() => setAddOpen(false)}>取消</Button>
             <Button onClick={handleAdd} disabled={!newItem.title || !newItem.category}>新增</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* File management dialog */}
+      <Dialog open={!!fileItem} onOpenChange={(open) => { if (!open) { setFileItem(null); refetch(); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>檔案管理</DialogTitle>
+          </DialogHeader>
+          {fileItem && (
+            <KnowledgeFilePanel
+              knowledgeItemId={fileItem.id}
+              itemTitle={fileItem.title}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </DashboardLayout>
