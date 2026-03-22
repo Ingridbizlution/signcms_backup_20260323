@@ -78,6 +78,7 @@ const statusConfig = {
 };
 
 const CustomerServicePage = () => {
+  const { t } = useLanguage();
   const [selectedCustomer, setSelectedCustomer] = useState<string>("1");
   const [inputText, setInputText] = useState("");
   const [searchText, setSearchText] = useState("");

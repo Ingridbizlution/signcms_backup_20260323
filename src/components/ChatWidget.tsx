@@ -21,6 +21,7 @@ interface ChatMsg {
 const now = () => new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });
 
 const ChatWidget = () => {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [isAI, setIsAI] = useState(true);
   const [input, setInput] = useState("");
