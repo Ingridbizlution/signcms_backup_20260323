@@ -435,7 +435,7 @@ function WidgetZonePreview({ config }: { config: any }) {
     const timeStr = now.toLocaleTimeString("en-US", opts);
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
-        <span className="text-2xl font-mono font-bold tracking-wider">{timeStr}</span>
+        <span className={`${zfs.time} font-mono font-bold tracking-wider`}>{timeStr}</span>
         {config.showDate && <span className="text-[10px] opacity-60">{now.toLocaleDateString("zh-TW", { month: "short", day: "numeric", timeZone: tz })}</span>}
       </div>
     );
