@@ -283,7 +283,10 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
   const confirmPickerSelection = () => {
     let updatedContent = { ...content };
     let updatedMediaItems = [...mediaItems];
-    selectedPickerIds.forEach((pickerId) => {
+    let lastWidget: { id: string; name: string; config: any } | null = null;
+
+    const selectedArray = Array.from(selectedPickerIds);
+    selectedArray.forEach((pickerId) => {
       const item = pickerItems.find((p) => p.id === pickerId);
       if (!item) return;
       if (item.kind === "media") {
@@ -292,12 +295,26 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
         updatedMediaItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
       } else {
         const w = item.raw;
-        updatedContent = { ...updatedContent, type: "widget", widgetId: w.id, widgetName: w.name, widgetConfig: w.config };
+        lastWidget = { id: w.id, name: w.name, config: w.config };
       }
     });
+
+    // Apply media additions
     if (updatedMediaItems.length > mediaItems.length) {
       updatedContent = { ...updatedContent, type: "media", mediaItems: updatedMediaItems };
     }
+
+    // Apply widget (widget takes priority if only widget selected, otherwise both are kept)
+    if (lastWidget) {
+      if (updatedMediaItems.length === 0 || updatedMediaItems.length === mediaItems.length) {
+        // Only widget(s) selected, no new media
+        updatedContent = { ...updatedContent, type: "widget", widgetId: lastWidget.id, widgetName: lastWidget.name, widgetConfig: lastWidget.config };
+      } else {
+        // Both media and widget selected — keep media type but also store widget info
+        updatedContent = { ...updatedContent, widgetId: lastWidget.id, widgetName: lastWidget.name, widgetConfig: lastWidget.config };
+      }
+    }
+
     onUpdate(updatedContent);
     setSelectedPickerIds(new Set());
     setShowContentPicker(false);
