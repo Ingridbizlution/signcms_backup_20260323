@@ -888,17 +888,41 @@ const MediaPage = () => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => { if (!open) { setDeleteId(null); setDeleteUsage(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("mediaDeleteConfirm")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("mediaDeleteDesc")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {checkingUsage ? (
+                <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />{t("mediaCheckingUsage")}</span>
+              ) : deleteUsage && (deleteUsage.schedules.length > 0 || deleteUsage.projects.length > 0) ? (
+                <div className="space-y-2">
+                  <p className="text-destructive font-medium">{t("mediaInUseWarning")}</p>
+                  {deleteUsage.projects.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t("mediaUsedInProjects")}：</p>
+                      <ul className="list-disc list-inside text-sm">{deleteUsage.projects.map((n) => <li key={n}>{n}</li>)}</ul>
+                    </div>
+                  )}
+                  {deleteUsage.schedules.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t("mediaUsedInSchedules")}：</p>
+                      <ul className="list-disc list-inside text-sm">{deleteUsage.schedules.map((n) => <li key={n}>{n}</li>)}</ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                t("mediaDeleteDesc")
+              )}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {t("confirmDelete")}
-            </AlertDialogAction>
+            {(!deleteUsage || (deleteUsage.schedules.length === 0 && deleteUsage.projects.length === 0)) && !checkingUsage && (
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {t("confirmDelete")}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
