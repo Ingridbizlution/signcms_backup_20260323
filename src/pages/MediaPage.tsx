@@ -704,6 +704,7 @@ export default function MediaPage() {
                       {item.type !== "widget" && <span>{item.dimensions}</span>}
                       {item.duration && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{item.duration}</span>}
                       <span>{item.created_at?.split("T")[0]}</span>
+                      {item.design_project_id && (() => { const p = projects.find(pr => pr.id === item.design_project_id); return p ? <span className="flex items-center gap-1"><FolderOpen className="w-3 h-3" />{p.name}</span> : null; })()}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
