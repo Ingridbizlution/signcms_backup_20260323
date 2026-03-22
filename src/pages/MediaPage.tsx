@@ -29,6 +29,8 @@ interface WidgetConfig {
   text?: string;
   speed?: "slow" | "normal" | "fast";
   format?: "12" | "24";
+  clockStyle?: "digital" | "analog";
+  timezone?: string;
   bgColor?: string;
   textColor?: string;
 }
@@ -58,6 +60,26 @@ const WIDGET_ICONS: Record<WidgetSubType, typeof Calendar> = {
   webpage: Globe,
   marquee: Type,
 };
+
+const TIMEZONE_OPTIONS = [
+  { value: "Asia/Taipei", label: "🇹🇼 台北 (UTC+8)" },
+  { value: "Asia/Tokyo", label: "🇯🇵 東京 (UTC+9)" },
+  { value: "Asia/Shanghai", label: "🇨🇳 上海 (UTC+8)" },
+  { value: "Asia/Hong_Kong", label: "🇭🇰 香港 (UTC+8)" },
+  { value: "Asia/Singapore", label: "🇸🇬 新加坡 (UTC+8)" },
+  { value: "Asia/Seoul", label: "🇰🇷 首爾 (UTC+9)" },
+  { value: "Asia/Bangkok", label: "🇹🇭 曼谷 (UTC+7)" },
+  { value: "Asia/Kolkata", label: "🇮🇳 孟買 (UTC+5:30)" },
+  { value: "Asia/Dubai", label: "🇦🇪 杜拜 (UTC+4)" },
+  { value: "Europe/London", label: "🇬🇧 倫敦 (UTC+0/+1)" },
+  { value: "Europe/Paris", label: "🇫🇷 巴黎 (UTC+1/+2)" },
+  { value: "Europe/Berlin", label: "🇩🇪 柏林 (UTC+1/+2)" },
+  { value: "America/New_York", label: "🇺🇸 紐約 (UTC-5/-4)" },
+  { value: "America/Chicago", label: "🇺🇸 芝加哥 (UTC-6/-5)" },
+  { value: "America/Los_Angeles", label: "🇺🇸 洛杉磯 (UTC-8/-7)" },
+  { value: "Pacific/Auckland", label: "🇳🇿 奧克蘭 (UTC+12/+13)" },
+  { value: "Australia/Sydney", label: "🇦🇺 雪梨 (UTC+10/+11)" },
+];
 
 function WidgetPreviewCard({ config }: { config: WidgetConfig }) {
   const { t } = useLanguage();
@@ -100,12 +122,43 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   const fg = config.textColor || "#ffffff";
 
   if (config.widgetType === "clock") {
-    const timeStr = config.format === "12"
-      ? now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })
-      : now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: config.format === "12", timeZone: tz };
+    const timeStr = now.toLocaleTimeString("en-US", opts);
+
+    if (config.clockStyle === "analog") {
+      const hParts = now.toLocaleString("en-US", { hour: "numeric", minute: "numeric", second: "numeric", hour12: false, timeZone: tz }).split(":");
+      const h = parseInt(hParts[0]), m = parseInt(hParts[1]), s = parseInt(hParts[2]);
+      const hDeg = (h % 12) * 30 + m * 0.5;
+      const mDeg = m * 6;
+      const sDeg = s * 6;
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
+          <svg viewBox="0 0 200 200" className="w-[60%] max-w-[180px]">
+            <circle cx="100" cy="100" r="95" fill="none" stroke={fg} strokeWidth="3" opacity="0.3" />
+            {[...Array(12)].map((_, i) => {
+              const angle = (i * 30 - 90) * Math.PI / 180;
+              const x1 = 100 + 80 * Math.cos(angle), y1 = 100 + 80 * Math.sin(angle);
+              const x2 = 100 + 90 * Math.cos(angle), y2 = 100 + 90 * Math.sin(angle);
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={fg} strokeWidth="2" opacity="0.5" />;
+            })}
+            {/* Hour */}
+            <line x1="100" y1="100" x2={100 + 50 * Math.cos((hDeg - 90) * Math.PI / 180)} y2={100 + 50 * Math.sin((hDeg - 90) * Math.PI / 180)} stroke={fg} strokeWidth="4" strokeLinecap="round" />
+            {/* Minute */}
+            <line x1="100" y1="100" x2={100 + 70 * Math.cos((mDeg - 90) * Math.PI / 180)} y2={100 + 70 * Math.sin((mDeg - 90) * Math.PI / 180)} stroke={fg} strokeWidth="3" strokeLinecap="round" />
+            {/* Second */}
+            <line x1="100" y1="100" x2={100 + 75 * Math.cos((sDeg - 90) * Math.PI / 180)} y2={100 + 75 * Math.sin((sDeg - 90) * Math.PI / 180)} stroke="hsl(0 70% 55%)" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="100" cy="100" r="4" fill={fg} />
+          </svg>
+          {config.timezone && <span className="text-[10px] opacity-50">{config.timezone}</span>}
+        </div>
+      );
+    }
+
     return (
-      <div className="w-full h-full flex items-center justify-center rounded-lg" style={{ background: bg, color: fg }}>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
         <span className="text-4xl font-mono font-bold tracking-wider">{timeStr}</span>
+        {config.timezone && <span className="text-xs opacity-50">{config.timezone}</span>}
       </div>
     );
   }
@@ -169,6 +222,8 @@ export default function MediaPage() {
     text: "歡迎光臨！今日特惠中",
     speed: "normal" as "slow" | "normal" | "fast",
     format: "24" as "12" | "24",
+    clockStyle: "digital" as "digital" | "analog",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     bgColor: "#1a1a2e",
     textColor: "#ffffff",
   });
@@ -274,7 +329,7 @@ export default function MediaPage() {
     };
     if (widgetForm.widgetType === "webpage") config.url = widgetForm.url;
     if (widgetForm.widgetType === "marquee") { config.text = widgetForm.text; config.speed = widgetForm.speed; }
-    if (widgetForm.widgetType === "clock") config.format = widgetForm.format;
+    if (widgetForm.widgetType === "clock") { config.format = widgetForm.format; config.clockStyle = widgetForm.clockStyle; config.timezone = widgetForm.timezone; }
 
     const { error } = await (supabase as any).from("media_items").insert({
       name: widgetForm.name,
@@ -290,7 +345,7 @@ export default function MediaPage() {
     else {
       toast.success(t("widgetCreated"));
       setWidgetDialogOpen(false);
-      setWidgetForm({ name: "", widgetType: "clock", url: "", text: "歡迎光臨！今日特惠中", speed: "normal", format: "24", bgColor: "#1a1a2e", textColor: "#ffffff" });
+      setWidgetForm({ name: "", widgetType: "clock", url: "", text: "歡迎光臨！今日特惠中", speed: "normal", format: "24", clockStyle: "digital", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, bgColor: "#1a1a2e", textColor: "#ffffff" });
       fetchMedia();
     }
   };
@@ -543,15 +598,43 @@ export default function MediaPage() {
             </div>
 
             {widgetForm.widgetType === "clock" && (
-              <div className="space-y-2">
-                <Label>{t("widgetFormat")}</Label>
-                <Select value={widgetForm.format} onValueChange={(v) => setWidgetForm({ ...widgetForm, format: v as "12" | "24" })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="24">{t("widgetFormat24")}</SelectItem>
-                    <SelectItem value="12">{t("widgetFormat12")}</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>{t("widgetClockStyle")}</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => setWidgetForm({ ...widgetForm, clockStyle: "digital" })}
+                      className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 transition-all text-sm ${widgetForm.clockStyle === "digital" ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
+                      {t("widgetDigital")}
+                    </button>
+                    <button type="button" onClick={() => setWidgetForm({ ...widgetForm, clockStyle: "analog" })}
+                      className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 transition-all text-sm ${widgetForm.clockStyle === "analog" ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
+                      {t("widgetAnalog")}
+                    </button>
+                  </div>
+                </div>
+                {widgetForm.clockStyle === "digital" && (
+                  <div className="space-y-2">
+                    <Label>{t("widgetFormat")}</Label>
+                    <Select value={widgetForm.format} onValueChange={(v) => setWidgetForm({ ...widgetForm, format: v as "12" | "24" })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="24">{t("widgetFormat24")}</SelectItem>
+                        <SelectItem value="12">{t("widgetFormat12")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label>{t("widgetTimezone")}</Label>
+                  <Select value={widgetForm.timezone} onValueChange={(v) => setWidgetForm({ ...widgetForm, timezone: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {TIMEZONE_OPTIONS.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             )}
 

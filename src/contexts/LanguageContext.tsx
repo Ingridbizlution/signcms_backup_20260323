@@ -133,6 +133,10 @@ const translations = {
   widgetBgColor: { zh: "背景顏色", en: "Background Color", ja: "背景色" },
   widgetTextColor: { zh: "文字顏色", en: "Text Color", ja: "テキスト色" },
   widgetCreated: { zh: "Widget 已建立", en: "Widget created", ja: "ウィジェットを作成しました" },
+  widgetClockStyle: { zh: "時鐘樣式", en: "Clock Style", ja: "時計スタイル" },
+  widgetDigital: { zh: "數位時鐘", en: "Digital", ja: "デジタル" },
+  widgetAnalog: { zh: "類比時鐘", en: "Analog", ja: "アナログ" },
+  widgetTimezone: { zh: "時區", en: "Timezone", ja: "タイムゾーン" },
   widgetFillRequired: { zh: "請填寫 Widget 名稱", en: "Please fill in widget name", ja: "ウィジェット名を入力してください" },
 
   // Schedules
