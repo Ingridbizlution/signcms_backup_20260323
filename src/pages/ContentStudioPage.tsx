@@ -285,39 +285,41 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
   };
 
   const confirmPickerSelection = () => {
-    let updatedContent = { ...content };
-    let updatedMediaItems = [...mediaItems];
-    let lastWidget: { id: string; name: string; config: any } | null = null;
+    const existingKeys = new Set(mediaItems.map((item) => `${item.type}-${item.id}`));
+    const appendedItems: MediaItem[] = [];
 
-    const selectedArray = Array.from(selectedPickerIds);
-    selectedArray.forEach((pickerId) => {
+    Array.from(selectedPickerIds).forEach((pickerId) => {
       const item = pickerItems.find((p) => p.id === pickerId);
       if (!item) return;
+
       if (item.kind === "media") {
         const m = item.raw;
+        const key = `${m.type}-${m.id}`;
+        if (existingKeys.has(key)) return;
+        existingKeys.add(key);
         const dur = m.type === "video" && m.duration ? parseFloat(m.duration) || 10 : 5;
-        updatedMediaItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
-      } else {
-        const w = item.raw;
-        lastWidget = { id: w.id, name: w.name, config: w.config };
+        appendedItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
+        return;
       }
+
+      const w = item.raw;
+      const key = `widget-${w.id}`;
+      if (existingKeys.has(key)) return;
+      existingKeys.add(key);
+      appendedItems.push({ id: w.id, type: "widget", url: "", name: w.name, duration: 5, widgetConfig: w.config });
     });
 
-    // Apply media additions
-    if (updatedMediaItems.length > mediaItems.length) {
-      updatedContent = { ...updatedContent, type: "media", mediaItems: updatedMediaItems };
-    }
-
-    // Apply widget (widget takes priority if only widget selected, otherwise both are kept)
-    if (lastWidget) {
-      if (updatedMediaItems.length === 0 || updatedMediaItems.length === mediaItems.length) {
-        // Only widget(s) selected, no new media
-        updatedContent = { ...updatedContent, type: "widget", widgetId: lastWidget.id, widgetName: lastWidget.name, widgetConfig: lastWidget.config };
-      } else {
-        // Both media and widget selected — keep media type but also store widget info
-        updatedContent = { ...updatedContent, widgetId: lastWidget.id, widgetName: lastWidget.name, widgetConfig: lastWidget.config };
-      }
-    }
+    const updatedItems = [...mediaItems, ...appendedItems];
+    const updatedContent = updatedItems.length > 0
+      ? {
+          ...content,
+          type: "media" as const,
+          mediaItems: updatedItems,
+          widgetId: undefined,
+          widgetName: undefined,
+          widgetConfig: undefined,
+        }
+      : content;
 
     onUpdate(updatedContent);
     setSelectedPickerIds(new Set());
