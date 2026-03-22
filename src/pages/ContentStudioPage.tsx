@@ -392,7 +392,7 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
   if (isEmbedded) return innerContent;
 
   return (
-    <Card className="absolute z-50 p-4 w-80 shadow-xl border border-border animate-scale-in max-h-[90%] overflow-y-auto" style={{ top: 8, right: 8 }}>
+    <Card className="absolute z-50 p-4 w-80 shadow-xl border border-border animate-scale-in max-h-[90%] overflow-y-auto" style={{ top: 8, right: 8 }} onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-semibold text-foreground">{t("studioEditZone")} {zone.label}</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}><X className="w-3.5 h-3.5" /></Button>
