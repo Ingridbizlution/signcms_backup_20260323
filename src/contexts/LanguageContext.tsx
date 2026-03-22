@@ -357,6 +357,9 @@ const translations = {
   studioDeleteOverlay: { zh: "刪除重疊區塊", en: "Delete Overlay", ja: "オーバーレイ削除" },
   studioOverlayHint: { zh: "可自由拖曳移動與調整大小", en: "Drag to move, resize from edges", ja: "ドラッグで移動、端からリサイズ" },
   studioOpacity: { zh: "不透明度", en: "Opacity", ja: "不透明度" },
+  studioLayerOrder: { zh: "圖層順序", en: "Layer Order", ja: "レイヤー順序" },
+  studioLayerUp: { zh: "上移", en: "Up", ja: "上へ" },
+  studioLayerDown: { zh: "下移", en: "Down", ja: "下へ" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
