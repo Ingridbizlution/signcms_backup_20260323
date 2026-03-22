@@ -30,7 +30,7 @@ const translations = {
   disabled: { zh: "已停用", en: "Disabled", ja: "無効" },
   confirmDelete: { zh: "確定刪除", en: "Confirm Delete", ja: "削除確認" },
   seconds: { zh: "秒", en: "s", ja: "秒" },
-  allBranches: { zh: "所有分店", en: "All Branches", ja: "全店舗" },
+  allGroups: { zh: "所有群組", en: "All Groups", ja: "全グループ" },
   allTypes: { zh: "所有類型", en: "All Types", ja: "全タイプ" },
   image: { zh: "圖片", en: "Image", ja: "画像" },
   video: { zh: "影片", en: "Video", ja: "動画" },
