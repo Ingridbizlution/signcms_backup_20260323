@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users as UsersIcon, Plus, Pencil, Trash2, UserPlus, UserMinus, Loader2, ChevronDown, ChevronUp, Building2 } from "lucide-react";
 import { toast } from "sonner";
+import { logActivity } from "@/lib/activityLogger";
 
 interface Team {
   id: string; name: string; description: string; org_id: string; org_name: string;
