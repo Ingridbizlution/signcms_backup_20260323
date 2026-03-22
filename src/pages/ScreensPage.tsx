@@ -909,18 +909,27 @@ export default function ScreensPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddIotOpen(false)}>取消</Button>
             <Button
-              disabled={!newIotDevice.name.trim()}
-              onClick={() => {
-                setIotDevices((prev) => [
-                  ...prev,
-                  { id: Date.now().toString(), name: newIotDevice.name.trim(), type: newIotDevice.type, status: "online" },
-                ]);
+              disabled={!newIotDevice.name.trim() || iotSaving}
+              onClick={async () => {
+                if (!iotScreen) return;
+                setIotSaving(true);
+                const { data, error } = await (supabase as any).from("iot_devices").insert({
+                  screen_id: iotScreen.id,
+                  org_id: iotScreen.org_id || null,
+                  name: newIotDevice.name.trim(),
+                  device_type: newIotDevice.type,
+                  status: "online",
+                  created_by: user?.id,
+                }).select().single();
+                setIotSaving(false);
+                if (error) { toast.error(error.message); return; }
+                setIotDevices((prev) => [...prev, data]);
                 toast.success("IoT 裝置已新增");
                 setNewIotDevice({ name: "", type: "air_quality" });
                 setAddIotOpen(false);
               }}
             >
-              新增
+              {iotSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "新增"}
             </Button>
           </DialogFooter>
         </DialogContent>
