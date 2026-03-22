@@ -25,6 +25,8 @@ import { toast } from "sonner";
 
 type WidgetSubType = "date" | "clock" | "webpage" | "marquee" | "qrcode" | "countdown" | "youtube" | "weather";
 
+type WidgetAnimation = "none" | "fadeIn" | "slideUp" | "bounce" | "zoomIn" | "flipIn";
+
 interface WidgetConfig {
   widgetType: WidgetSubType;
   url?: string;
@@ -43,6 +45,7 @@ interface WidgetConfig {
   city?: string;
   fontSize?: "small" | "medium" | "large" | "xlarge";
   qrcodeSize?: number;
+  animation?: WidgetAnimation;
 }
 
 interface MediaItem {

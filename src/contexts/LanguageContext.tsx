@@ -166,6 +166,13 @@ const translations = {
   widgetFontSizeLarge: { zh: "大", en: "Large", ja: "大" },
   widgetFontSizeXLarge: { zh: "特大", en: "Extra Large", ja: "特大" },
   widgetQrcodeSize: { zh: "QR Code 大小", en: "QR Code Size", ja: "QRコードサイズ" },
+  widgetAnimation: { zh: "入場動畫", en: "Entrance Animation", ja: "入場アニメーション" },
+  widgetAnimNone: { zh: "無", en: "None", ja: "なし" },
+  widgetAnimFadeIn: { zh: "淡入", en: "Fade In", ja: "フェードイン" },
+  widgetAnimSlideUp: { zh: "上滑", en: "Slide Up", ja: "スライドアップ" },
+  widgetAnimBounce: { zh: "彈跳", en: "Bounce", ja: "バウンス" },
+  widgetAnimZoomIn: { zh: "放大", en: "Zoom In", ja: "ズームイン" },
+  widgetAnimFlipIn: { zh: "翻轉", en: "Flip In", ja: "フリップイン" },
 
   // Schedules
   schedTitle: { zh: "播放清單排程", en: "Playlist Schedules", ja: "プレイリストスケジュール" },
