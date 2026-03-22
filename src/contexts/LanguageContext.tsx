@@ -245,6 +245,8 @@ const translations = {
   studioTplSummer: { zh: "夏日特惠", en: "Summer Sale", ja: "サマーセール" },
   studioTplGift: { zh: "禮品活動", en: "Gift Event", ja: "ギフトイベント" },
   studioTplCoffee: { zh: "咖啡時光", en: "Coffee Time", ja: "コーヒータイム" },
+  studioFontSize: { zh: "字型大小", en: "Font Size", ja: "フォントサイズ" },
+  studioTextAlign: { zh: "文字對齊", en: "Text Align", ja: "テキスト配置" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
