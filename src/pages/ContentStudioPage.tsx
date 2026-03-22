@@ -907,7 +907,7 @@ export default function ContentStudioPage() {
             {/* Overlay blocks */}
             {overlays.map((overlay) => {
               const isSelected = selectedOverlay === overlay.id;
-              const bg = overlay.content?.bgColor || "hsla(0, 0%, 0%, 0.7)";
+              const bg = overlay.content?.bgColor || "transparent";
               const mediaItems = overlay.content?.mediaItems || [];
               return (
                 <div key={overlay.id}
