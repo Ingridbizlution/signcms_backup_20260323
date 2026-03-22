@@ -377,11 +377,11 @@ const AnnouncementPage = () => {
               {/* Content */}
               <div className="space-y-2">
                 <Label className="text-base font-semibold">{t("contentLabel")}</Label>
-                <Textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                <RichTextEditor
+                  content={content}
+                  onChange={setContent}
                   placeholder={t("contentPh")}
-                  className="min-h-[140px] text-base leading-relaxed"
+                  minHeight="160px"
                 />
               </div>
 
