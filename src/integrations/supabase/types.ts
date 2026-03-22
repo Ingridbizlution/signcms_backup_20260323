@@ -124,6 +124,57 @@ export type Database = {
         }
         Relationships: []
       }
+      publish_records: {
+        Row: {
+          created_at: string
+          id: string
+          published_by: string | null
+          schedule_id: string | null
+          schedule_name: string
+          scheduled_at: string | null
+          screen_id: string | null
+          screen_name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          published_by?: string | null
+          schedule_id?: string | null
+          schedule_name?: string
+          scheduled_at?: string | null
+          screen_id?: string | null
+          screen_name?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          published_by?: string | null
+          schedule_id?: string | null
+          schedule_name?: string
+          scheduled_at?: string | null
+          screen_id?: string | null
+          screen_name?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publish_records_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "publish_records_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_items: {
         Row: {
           created_at: string
