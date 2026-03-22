@@ -393,6 +393,14 @@ function WidgetZonePreview({ config }: { config: any }) {
   if (!config) return null;
   const bg = config.bgColor || "#1a1a2e";
   const fg = config.textColor || "#ffffff";
+  const fontSize = config.fontSize || "medium";
+  const ZONE_FS: Record<string, Record<string, string>> = {
+    small: { time: "text-base", title: "text-xs", countdown: "text-base", marquee: "text-xs" },
+    medium: { time: "text-2xl", title: "text-[10px]", countdown: "text-lg", marquee: "text-sm" },
+    large: { time: "text-3xl", title: "text-sm", countdown: "text-2xl", marquee: "text-lg" },
+    xlarge: { time: "text-4xl", title: "text-base", countdown: "text-3xl", marquee: "text-xl" },
+  };
+  const zfs = ZONE_FS[fontSize] || ZONE_FS.medium;
 
   if (config.widgetType === "clock") {
     const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
