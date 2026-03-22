@@ -248,7 +248,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="p-4 space-y-1">
                   <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors duration-200">{screen.name}</h3>
-                  <p className="text-xs text-muted-foreground">{screen.branch}</p>
+                  <p className="text-xs text-muted-foreground">{screen.branch || t("screensUngrouped")}</p>
                 </div>
               </Card>
             ))}
