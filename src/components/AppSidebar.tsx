@@ -36,7 +36,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <div className="p-4 flex items-center gap-2">
-        <img src={logoImg} alt="SignCMS" className="h-7 shrink-0 object-contain" style={collapsed ? { width: 28 } : {}} />
+        <img src={logoImg} alt="SignCMS" className="h-5 shrink-0 object-contain" style={collapsed ? { width: 20 } : {}} />
       </div>
       <SidebarContent>
         <SidebarGroup>
