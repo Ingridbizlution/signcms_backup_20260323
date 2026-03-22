@@ -120,8 +120,16 @@ function WidgetPreviewCard({ config }: { config: WidgetConfig }) {
   );
 }
 
+const FONT_SIZE_MAP = {
+  small: { time: "text-2xl", date: "text-xs", title: "text-sm", countdown: "text-2xl", marquee: "text-lg", weather: "text-xl", weatherCity: "text-sm", weatherIcon: "w-10 h-10" },
+  medium: { time: "text-4xl", date: "text-sm", title: "text-lg", countdown: "text-4xl", marquee: "text-2xl", weather: "text-3xl", weatherCity: "text-lg", weatherIcon: "w-16 h-16" },
+  large: { time: "text-6xl", date: "text-lg", title: "text-2xl", countdown: "text-6xl", marquee: "text-4xl", weather: "text-5xl", weatherCity: "text-xl", weatherIcon: "w-20 h-20" },
+  xlarge: { time: "text-8xl", date: "text-xl", title: "text-3xl", countdown: "text-8xl", marquee: "text-6xl", weather: "text-7xl", weatherCity: "text-2xl", weatherIcon: "w-24 h-24" },
+};
+
 function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   const [now, setNow] = useState(new Date());
+  const fs = FONT_SIZE_MAP[config.fontSize || "medium"];
 
   useEffect(() => {
     if (config.widgetType === "clock" || config.widgetType === "date") {
