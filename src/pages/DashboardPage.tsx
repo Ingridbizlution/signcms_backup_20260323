@@ -66,10 +66,13 @@ export default function DashboardPage() {
   const offlineCount = screens.filter((s) => !s.online).length;
   const enabledSchedules = schedules.filter((s) => s.enabled).length;
 
-  // Branch distribution data
-  const branchMap = new Map<string, number>();
-  screens.forEach((s) => { branchMap.set(s.branch, (branchMap.get(s.branch) || 0) + 1); });
-  const branchData = Array.from(branchMap.entries()).map(([name, count]) => ({ name, count }));
+  // Group distribution data
+  const groupMap = new Map<string, number>();
+  screens.forEach((s) => {
+    const groupName = s.branch || t("screensUngrouped");
+    groupMap.set(groupName, (groupMap.get(groupName) || 0) + 1);
+  });
+  const branchData = Array.from(groupMap.entries()).map(([name, count]) => ({ name, count }));
 
   // Media type distribution
   const imageCount = mediaItems.filter((m) => m.type === "image").length;
