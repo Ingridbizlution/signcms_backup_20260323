@@ -97,6 +97,24 @@ export default function ScreensPage() {
   const [mediaOptions, setMediaOptions] = useState<{ id: string; name: string; type: string }[]>([]);
   const [designOptions, setDesignOptions] = useState<{ id: string; name: string }[]>([]);
 
+  // Network speed thresholds (persisted in localStorage)
+  const [uploadThreshold, setUploadThreshold] = useState(() => {
+    const saved = localStorage.getItem("screen_upload_threshold");
+    return saved ? parseFloat(saved) : 10;
+  });
+  const [downloadThreshold, setDownloadThreshold] = useState(() => {
+    const saved = localStorage.getItem("screen_download_threshold");
+    return saved ? parseFloat(saved) : 20;
+  });
+
+  const saveThresholds = (up: number, down: number) => {
+    setUploadThreshold(up);
+    setDownloadThreshold(down);
+    localStorage.setItem("screen_upload_threshold", String(up));
+    localStorage.setItem("screen_download_threshold", String(down));
+    toast.success("閾值已更新");
+  };
+
   // IoT extension
   const [iotScreen, setIotScreen] = useState<Screen | null>(null);
   const [iotDevices, setIotDevices] = useState<{ id: string; name: string; device_type: string; status: string }[]>([]);
