@@ -862,6 +862,37 @@ export default function MediaPage() {
               </div>
             </div>
 
+            {/* Font Size - shown for clock, date, marquee, countdown, weather */}
+            {["clock", "date", "marquee", "countdown", "weather"].includes(widgetForm.widgetType) && (
+              <div className="space-y-2">
+                <Label>{t("widgetFontSize")}</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {(["small", "medium", "large", "xlarge"] as const).map((size) => {
+                    const sizeLabels = { small: t("widgetFontSizeSmall"), medium: t("widgetFontSizeMedium"), large: t("widgetFontSizeLarge"), xlarge: t("widgetFontSizeXLarge") };
+                    return (
+                      <button key={size} type="button" onClick={() => setWidgetForm({ ...widgetForm, fontSize: size })}
+                        className={`p-2 rounded-lg border-2 transition-all text-sm text-center ${widgetForm.fontSize === size ? "border-primary bg-primary/5 text-primary font-medium" : "border-border hover:border-primary/40"}`}>
+                        {sizeLabels[size]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* QR Code Size */}
+            {widgetForm.widgetType === "qrcode" && (
+              <div className="space-y-2">
+                <Label>{t("widgetQrcodeSize")}：{widgetForm.qrcodeSize}px</Label>
+                <input type="range" min={60} max={300} step={10} value={widgetForm.qrcodeSize}
+                  onChange={(e) => setWidgetForm({ ...widgetForm, qrcodeSize: Number(e.target.value) })}
+                  className="w-full accent-primary" />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>60px</span><span>300px</span>
+                </div>
+              </div>
+            )}
+
             {/* Live Preview */}
             <div className="space-y-2">
               <Label>{t("mediaPreviewUnavailable").replace("（範例素材）", "").replace("(sample)", "Preview")}</Label>
@@ -882,6 +913,8 @@ export default function MediaPage() {
                   countdownTitle: widgetForm.countdownTitle,
                   youtubeUrl: widgetForm.youtubeUrl,
                   city: widgetForm.city,
+                  fontSize: widgetForm.fontSize,
+                  qrcodeSize: widgetForm.qrcodeSize,
                 }} />
               </div>
             </div>
