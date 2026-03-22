@@ -45,9 +45,10 @@ interface Screen {
   connection_type?: string;
   avg_upload_speed?: string;
   avg_download_speed?: string;
+  firmware_version?: string;
 }
 
-const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "", serial_number: "", ip_address: "", connection_type: "wired", avg_upload_speed: "", avg_download_speed: "" };
+const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "", serial_number: "", ip_address: "", connection_type: "wired", avg_upload_speed: "", avg_download_speed: "", firmware_version: "" };
 
 export default function ScreensPage() {
   const { isAdmin } = useUserRole();
@@ -154,7 +155,7 @@ export default function ScreensPage() {
 
   const fetchScreens = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online, org_id, serial_number, ip_address, connection_type, avg_upload_speed, avg_download_speed").order("created_at", { ascending: true });
+    const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online, org_id, serial_number, ip_address, connection_type, avg_upload_speed, avg_download_speed, firmware_version").order("created_at", { ascending: true });
     if (error) { toast.error(error.message); }
     else {
       setScreens(data || []);
@@ -185,6 +186,7 @@ export default function ScreensPage() {
       name: screen.name, branch: screen.branch || "", location: screen.location, resolution: screen.resolution, org_id: screen.org_id || "",
       serial_number: screen.serial_number || "", ip_address: screen.ip_address || "", connection_type: screen.connection_type || "wired",
       avg_upload_speed: screen.avg_upload_speed || "", avg_download_speed: screen.avg_download_speed || "",
+      firmware_version: screen.firmware_version || "",
     });
     setIsCreatingInForm(false);
     setInlineNewGroup("");
@@ -196,11 +198,11 @@ export default function ScreensPage() {
     if (!form.name) { toast.error(t("screensFillRequired")); return; }
     setSaving(true);
     if (editingId) {
-      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, serial_number: form.serial_number, ip_address: form.ip_address, connection_type: form.connection_type, avg_upload_speed: form.avg_upload_speed, avg_download_speed: form.avg_download_speed, updated_at: new Date().toISOString() }).eq("id", editingId);
+      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, serial_number: form.serial_number, ip_address: form.ip_address, connection_type: form.connection_type, avg_upload_speed: form.avg_upload_speed, avg_download_speed: form.avg_download_speed, firmware_version: form.firmware_version, updated_at: new Date().toISOString() }).eq("id", editingId);
       if (error) toast.error(error.message);
       else { toast.success(t("screensUpdated")); logActivity({ action: "編輯螢幕", category: "screen", targetName: form.name, targetId: editingId, orgId: form.org_id }); }
     } else {
-      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, uploaded_by: user?.id, serial_number: form.serial_number, ip_address: form.ip_address, connection_type: form.connection_type, avg_upload_speed: form.avg_upload_speed, avg_download_speed: form.avg_download_speed });
+      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, uploaded_by: user?.id, serial_number: form.serial_number, ip_address: form.ip_address, connection_type: form.connection_type, avg_upload_speed: form.avg_upload_speed, avg_download_speed: form.avg_download_speed, firmware_version: form.firmware_version });
       if (error) toast.error(error.message);
       else { toast.success(t("screensAdded")); logActivity({ action: "新增螢幕", category: "screen", targetName: form.name, orgId: form.org_id }); }
     }
@@ -449,6 +451,7 @@ export default function ScreensPage() {
                   <span title="解析度">{screen.resolution}</span>
                   <span className="flex items-center gap-1 font-mono text-[11px]" title="序號">SN: {screen.serial_number || "—"}</span>
                   <span className="flex items-center gap-1 font-mono text-[11px]" title="網路 IP 位址">IP: {screen.ip_address || "—"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px]" title="韌體版本">FW: {screen.firmware_version || "—"}</span>
                   {screen.connection_type && (
                     <span className="flex items-center gap-1" title="連線方式">
                       {screen.connection_type === "wired" ? <Cable className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
@@ -569,6 +572,10 @@ export default function ScreensPage() {
             <div className="space-y-2">
               <Label>序號 (Serial Number)</Label>
               <Input value={form.serial_number} onChange={(e) => setForm({ ...form, serial_number: e.target.value })} placeholder="例如：SN-2024-001" />
+            </div>
+            <div className="space-y-2">
+              <Label>韌體版本 (Firmware Version)</Label>
+              <Input value={form.firmware_version} onChange={(e) => setForm({ ...form, firmware_version: e.target.value })} placeholder="例如：v2.1.0" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
