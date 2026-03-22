@@ -4,8 +4,8 @@ export type Language = "zh" | "en" | "ja";
 
 const translations = {
   // App
-  appName: { zh: "SignBoard CMS", en: "SignBoard CMS", ja: "SignBoard CMS" },
-  appSubtitle: { zh: "連鎖店電子看板管理系統", en: "Digital Signage Management", ja: "デジタルサイネージ管理" },
+  appName: { zh: "SignCMS Enterprise", en: "SignCMS Enterprise", ja: "SignCMS Enterprise" },
+  appSubtitle: { zh: "SignCMS Enterprise", en: "SignCMS Enterprise", ja: "SignCMS Enterprise" },
 
   // Nav
   navDashboard: { zh: "總覽儀表板", en: "Dashboard", ja: "ダッシュボード" },
