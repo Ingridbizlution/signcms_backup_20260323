@@ -169,7 +169,12 @@ export default function ScreensPage() {
     if (deleteId) {
       const { error } = await (supabase as any).from("screens").delete().eq("id", deleteId);
       if (error) toast.error(error.message);
-      else { toast.success(t("screensDeleted")); fetchScreens(); }
+      else {
+        const deleted = screens.find(s => s.id === deleteId);
+        toast.success(t("screensDeleted"));
+        logActivity({ action: "刪除螢幕", category: "screen", targetName: deleted?.name || "", targetId: deleteId });
+        fetchScreens();
+      }
       setDeleteId(null);
     }
   };
