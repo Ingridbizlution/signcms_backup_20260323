@@ -56,7 +56,7 @@ const loadFromStorage = <T,>(key: string, fallback: T): T => {
 };
 
 const AnnouncementPage = () => {
-  const { language } = useLanguage();
+  const { language, t: globalT } = useLanguage();
 
   // Settings state
   const [settingsOpen, setSettingsOpen] = useState(false);
