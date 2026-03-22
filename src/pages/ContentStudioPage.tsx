@@ -653,8 +653,8 @@ export default function ContentStudioPage() {
   const [saving, setSaving] = useState(false);
 
   // DB media for picker
-  const [dbMedia, setDbMedia] = useState<{ id: string; name: string; type: string; url: string; thumbnail: string; duration: string | null }[]>([]);
-  const [dbWidgets, setDbWidgets] = useState<{ id: string; name: string; url: string }[]>([]);
+  const [dbMedia, setDbMedia] = useState<{ id: string; name: string; type: string; url: string; thumbnail: string; duration: string | null; created_at?: string }[]>([]);
+  const [dbWidgets, setDbWidgets] = useState<{ id: string; name: string; url: string; created_at?: string }[]>([]);
 
   useEffect(() => {
     (supabase as any).from("media_items").select("id, name, type, url, thumbnail, duration").order("created_at", { ascending: false }).then((res: any) => {
