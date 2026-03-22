@@ -112,6 +112,8 @@ export default function SystemLogsPage() {
   const [activityFilterCategory, setActivityFilterCategory] = useState("all");
   const [activityFilterOrg, setActivityFilterOrg] = useState("all");
   const [activityFilterTime, setActivityFilterTime] = useState("all");
+  const [activityPage, setActivityPage] = useState(1);
+  const ACTIVITY_PAGE_SIZE = 50;
 
   // --- Shared ---
   const [profileMap, setProfileMap] = useState<Map<string, string>>(new Map());
