@@ -120,6 +120,8 @@ const translations = {
   screenSettingsRebootDesc: { zh: "螢幕將立即重新啟動，播放中的內容會暫時中斷。", en: "The screen will restart immediately. Currently playing content will be interrupted.", ja: "スクリーンが即座に再起動されます。再生中のコンテンツは中断されます。" },
   screenSettingsSaved: { zh: "螢幕設定已儲存", en: "Screen settings saved", ja: "スクリーン設定を保存しました" },
   screenSettingsRebooting: { zh: "已發送重新開機指令", en: "Reboot command sent", ja: "再起動コマンドを送信しました" },
+  screenLiveView: { zh: "遠端監視", en: "Live View", ja: "ライブビュー" },
+  screenLiveViewPlaceholder: { zh: "遠端監視功能開發中", en: "Live View coming soon", ja: "ライブビュー機能は開発中です" },
 
   // Media
   mediaTitle: { zh: "廣告素材庫", en: "Media Library", ja: "メディアライブラリ" },
