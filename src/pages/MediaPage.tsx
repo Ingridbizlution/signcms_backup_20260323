@@ -749,7 +749,9 @@ const MediaPage = () => {
           {filteredMedia.map((item) => (
             <Card key={item.id} className="flex cursor-pointer items-center gap-4 p-3" onClick={() => setPreviewItem(item)}>
               <div className="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
-                {item.type === "image" && item.url ? (
+                {item.type === "widget" ? (
+                  (() => { const c = parseWidgetConfig(item.url); return c ? <WidgetPreviewCard config={c} /> : <Code2 className="w-6 h-6 text-muted-foreground" />; })()
+                ) : item.type === "image" && item.url ? (
                   <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
                 ) : (
                   getPreviewIcon(item.type)
