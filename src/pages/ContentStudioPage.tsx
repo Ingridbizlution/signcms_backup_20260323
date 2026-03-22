@@ -212,12 +212,13 @@ function CarouselPreview({ items, transition = "fade" }: { items: MediaItem[]; t
 }
 
 // ── Zone Editor ────────────────────────────────────────────────────
-function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets }: {
+function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }: {
   zone: Zone;
   onUpdate: (content: ZoneContent) => void;
   onClose: () => void;
   dbMedia: { id: string; name: string; type: string; url: string; thumbnail: string; duration: string | null }[];
   dbWidgets: { id: string; name: string; url: string }[];
+  isEmbedded?: boolean;
 }) {
   const { t } = useLanguage();
   const content: ZoneContent = zone.content || { type: "color", value: "", bgColor: "hsl(var(--muted))" };
