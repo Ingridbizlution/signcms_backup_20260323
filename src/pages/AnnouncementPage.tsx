@@ -162,6 +162,30 @@ const AnnouncementPage = () => {
     setEndDate(undefined);
   };
 
+  // Editing state for list items
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editCategory, setEditCategory] = useState("");
+  const [editDepartment, setEditDepartment] = useState("");
+
+  const startEditing = (a: Announcement) => {
+    setEditingId(a.id);
+    setEditCategory(a.category);
+    setEditDepartment(a.department);
+  };
+
+  const saveEditing = () => {
+    if (!editingId) return;
+    const updated = announcements.map((a) =>
+      a.id === editingId ? { ...a, category: editCategory, department: editDepartment } : a
+    );
+    setAnnouncements(updated);
+    localStorage.setItem("signboard-announcements", JSON.stringify(updated));
+    setEditingId(null);
+    toast.success(texts.successEdit[language]);
+  };
+
+  const cancelEditing = () => setEditingId(null);
+
   const handleDelete = (id: string) => {
     const updated = announcements.filter((a) => a.id !== id);
     setAnnouncements(updated);
