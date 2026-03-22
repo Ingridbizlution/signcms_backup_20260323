@@ -102,12 +102,43 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   const fg = config.textColor || "#ffffff";
 
   if (config.widgetType === "clock") {
-    const timeStr = config.format === "12"
-      ? now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })
-      : now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: config.format === "12", timeZone: tz };
+    const timeStr = now.toLocaleTimeString("en-US", opts);
+
+    if (config.clockStyle === "analog") {
+      const hParts = now.toLocaleString("en-US", { hour: "numeric", minute: "numeric", second: "numeric", hour12: false, timeZone: tz }).split(":");
+      const h = parseInt(hParts[0]), m = parseInt(hParts[1]), s = parseInt(hParts[2]);
+      const hDeg = (h % 12) * 30 + m * 0.5;
+      const mDeg = m * 6;
+      const sDeg = s * 6;
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
+          <svg viewBox="0 0 200 200" className="w-[60%] max-w-[180px]">
+            <circle cx="100" cy="100" r="95" fill="none" stroke={fg} strokeWidth="3" opacity="0.3" />
+            {[...Array(12)].map((_, i) => {
+              const angle = (i * 30 - 90) * Math.PI / 180;
+              const x1 = 100 + 80 * Math.cos(angle), y1 = 100 + 80 * Math.sin(angle);
+              const x2 = 100 + 90 * Math.cos(angle), y2 = 100 + 90 * Math.sin(angle);
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={fg} strokeWidth="2" opacity="0.5" />;
+            })}
+            {/* Hour */}
+            <line x1="100" y1="100" x2={100 + 50 * Math.cos((hDeg - 90) * Math.PI / 180)} y2={100 + 50 * Math.sin((hDeg - 90) * Math.PI / 180)} stroke={fg} strokeWidth="4" strokeLinecap="round" />
+            {/* Minute */}
+            <line x1="100" y1="100" x2={100 + 70 * Math.cos((mDeg - 90) * Math.PI / 180)} y2={100 + 70 * Math.sin((mDeg - 90) * Math.PI / 180)} stroke={fg} strokeWidth="3" strokeLinecap="round" />
+            {/* Second */}
+            <line x1="100" y1="100" x2={100 + 75 * Math.cos((sDeg - 90) * Math.PI / 180)} y2={100 + 75 * Math.sin((sDeg - 90) * Math.PI / 180)} stroke="hsl(0 70% 55%)" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="100" cy="100" r="4" fill={fg} />
+          </svg>
+          {config.timezone && <span className="text-[10px] opacity-50">{config.timezone}</span>}
+        </div>
+      );
+    }
+
     return (
-      <div className="w-full h-full flex items-center justify-center rounded-lg" style={{ background: bg, color: fg }}>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-lg" style={{ background: bg, color: fg }}>
         <span className="text-4xl font-mono font-bold tracking-wider">{timeStr}</span>
+        {config.timezone && <span className="text-xs opacity-50">{config.timezone}</span>}
       </div>
     );
   }
