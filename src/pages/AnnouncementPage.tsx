@@ -31,7 +31,7 @@ interface Announcement {
   createdAt: Date;
 }
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES: LabelItem[] = [
   { value: "general", label: { zh: "一般公告", en: "General", ja: "一般" } },
   { value: "urgent", label: { zh: "緊急通知", en: "Urgent", ja: "緊急" } },
   { value: "event", label: { zh: "活動公告", en: "Event", ja: "イベント" } },
@@ -39,12 +39,21 @@ const CATEGORIES = [
   { value: "maintenance", label: { zh: "維護公告", en: "Maintenance", ja: "メンテナンス" } },
 ];
 
-const DEPARTMENTS = [
+const DEFAULT_DEPARTMENTS: LabelItem[] = [
   { value: "hq", label: { zh: "總管理處", en: "Headquarters", ja: "本部" } },
   { value: "marketing", label: { zh: "行銷部", en: "Marketing", ja: "マーケティング部" } },
   { value: "maintenance", label: { zh: "維修組", en: "Maintenance", ja: "メンテナンス" } },
   { value: "hr", label: { zh: "人事部", en: "HR", ja: "人事部" } },
   { value: "ops", label: { zh: "營運部", en: "Operations", ja: "運営部" } },
+];
+
+const loadFromStorage = <T,>(key: string, fallback: T): T => {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return fallback;
+};
 ];
 
 const AnnouncementPage = () => {
