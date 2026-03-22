@@ -1,4 +1,4 @@
-import { LayoutDashboard, Monitor, Image, CalendarClock, ShieldCheck, Brush, Send, FileText, Store, Megaphone, Users, CloudSun, Instagram } from "lucide-react";
+import { LayoutDashboard, Monitor, Image, CalendarClock, ShieldCheck, Brush, Send, FileText, Store, Megaphone, Users, CloudSun, Instagram, DoorOpen, Languages, Clock } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -23,6 +23,9 @@ const INSTALLED_ICONS: Record<string, React.ElementType> = {
   queue: Users,
   weather: CloudSun,
   social: Instagram,
+  "meeting-room": DoorOpen,
+  multilingual: Languages,
+  attendance: Clock,
 };
 
 export function AppSidebar() {

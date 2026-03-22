@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Megaphone, Users, CloudSun, Instagram, Check, Download, Monitor } from "lucide-react";
+import { Megaphone, Users, CloudSun, Instagram, Check, Download, Monitor, DoorOpen, Languages, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useInstalledApps } from "@/contexts/InstalledAppsContext";
 
@@ -70,6 +70,42 @@ const APPS: AppItem[] = [
     },
     category: { zh: "行銷工具", en: "Marketing", ja: "マーケティング" },
     color: "from-pink-500 to-rose-500",
+  },
+  {
+    id: "meeting-room",
+    icon: <DoorOpen className="h-7 w-7 text-white" />,
+    name: { zh: "會議室管理", en: "Meeting Room Manager", ja: "会議室管理" },
+    description: {
+      zh: "在螢幕上顯示會議室預約狀態與即時排程",
+      en: "Display meeting room bookings and real-time schedules on screen",
+      ja: "会議室の予約状況とリアルタイムスケジュールを画面に表示",
+    },
+    category: { zh: "辦公管理", en: "Office", ja: "オフィス管理" },
+    color: "from-violet-500 to-purple-500",
+  },
+  {
+    id: "multilingual",
+    icon: <Languages className="h-7 w-7 text-white" />,
+    name: { zh: "多語言翻譯", en: "Multilingual Display", ja: "多言語翻訳表示" },
+    description: {
+      zh: "自動將公告內容翻譯為多國語言輪播顯示",
+      en: "Auto-translate announcements and rotate in multiple languages",
+      ja: "お知らせを自動翻訳し多言語でローテーション表示",
+    },
+    category: { zh: "國際化", en: "i18n", ja: "国際化" },
+    color: "from-sky-500 to-indigo-500",
+  },
+  {
+    id: "attendance",
+    icon: <Clock className="h-7 w-7 text-white" />,
+    name: { zh: "員工打卡系統", en: "Employee Attendance", ja: "勤怠管理システム" },
+    description: {
+      zh: "螢幕顯示員工出勤與打卡狀態，支援即時更新",
+      en: "Display employee check-in/out status with real-time updates",
+      ja: "従業員の出退勤状態をリアルタイムで画面に表示",
+    },
+    category: { zh: "人事管理", en: "HR", ja: "人事管理" },
+    color: "from-amber-500 to-yellow-500",
   },
 ];
 
