@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -150,8 +150,9 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
     }
   }, [config.widgetType]);
 
-  const bg = config.bgColor || "#1a1a2e";
-  const fg = config.textColor || "#ffffff";
+  const bg = config.bgColor || "transparent";
+  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const fg = config.textColor || (isDark ? "#ffffff" : "#000000");
 
   if (config.widgetType === "clock") {
     const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -362,8 +363,10 @@ export default function MediaPage() {
   const [widgetDialogOpen, setWidgetDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Widget form state
-  const defaultWidgetForm = {
+  // Widget form state — text color defaults to theme-aware
+  const isDarkMode = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const defaultTextColor = isDarkMode ? "#ffffff" : "#000000";
+  const defaultWidgetForm = useMemo(() => ({
     name: "",
     widgetType: "clock" as WidgetSubType,
     url: "",
@@ -374,7 +377,7 @@ export default function MediaPage() {
     showDate: false,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     bgColor: "transparent",
-    textColor: "#ffffff",
+    textColor: defaultTextColor,
     qrcodeContent: "",
     targetDate: "",
     countdownTitle: "",
@@ -383,7 +386,7 @@ export default function MediaPage() {
     fontSize: "medium" as "small" | "medium" | "large" | "xlarge",
     qrcodeSize: 140,
     animation: "none" as WidgetAnimation,
-  };
+  }), [defaultTextColor]);
   const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
 
   const fetchMedia = async () => {
