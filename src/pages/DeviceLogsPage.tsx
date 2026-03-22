@@ -313,12 +313,15 @@ export default function SystemLogsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-sm grid-cols-2">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="device" className="gap-1.5">
             <Monitor className="w-3.5 h-3.5" />{labels.tabDevice[language]}
           </TabsTrigger>
           <TabsTrigger value="activity" className="gap-1.5">
             <User className="w-3.5 h-3.5" />{labels.tabActivity[language]}
+          </TabsTrigger>
+          <TabsTrigger value="playback" className="gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5" />{labels.tabPlayback[language]}
           </TabsTrigger>
         </TabsList>
 
