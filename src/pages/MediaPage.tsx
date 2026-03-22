@@ -373,7 +373,7 @@ export default function MediaPage() {
     clockStyle: "digital" as "digital" | "analog",
     showDate: false,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    bgColor: "#1a1a2e",
+    bgColor: "transparent",
     textColor: "#ffffff",
     qrcodeContent: "",
     targetDate: "",
@@ -871,7 +871,11 @@ export default function MediaPage() {
               <div className="space-y-2">
                 <Label>{t("widgetBgColor")}</Label>
                 <div className="flex items-center gap-2">
-                  <input type="color" value={widgetForm.bgColor} onChange={(e) => setWidgetForm({ ...widgetForm, bgColor: e.target.value })} className="w-8 h-8 rounded border border-border cursor-pointer" />
+                  <button type="button" onClick={() => setWidgetForm({ ...widgetForm, bgColor: "transparent" })}
+                    className={`w-8 h-8 rounded border cursor-pointer relative overflow-hidden shrink-0 ${widgetForm.bgColor === "transparent" ? "ring-2 ring-primary border-primary" : "border-border"}`}
+                    style={{ background: "linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)", backgroundSize: "8px 8px", backgroundPosition: "0 0, 4px 4px" }}
+                    title="Transparent" />
+                  <input type="color" value={widgetForm.bgColor === "transparent" ? "#1a1a2e" : widgetForm.bgColor} onChange={(e) => setWidgetForm({ ...widgetForm, bgColor: e.target.value })} className="w-8 h-8 rounded border border-border cursor-pointer" />
                   <Input value={widgetForm.bgColor} onChange={(e) => setWidgetForm({ ...widgetForm, bgColor: e.target.value })} className="flex-1" />
                 </div>
               </div>
