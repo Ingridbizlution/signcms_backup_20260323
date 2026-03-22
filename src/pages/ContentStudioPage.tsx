@@ -378,6 +378,93 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets }: {
   );
 }
 
+// ── Widget Zone Preview ────────────────────────────────────────────
+function WidgetZonePreview({ config }: { config: any }) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    if (config?.widgetType === "clock" || config?.widgetType === "date") {
+      const timer = setInterval(() => setNow(new Date()), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [config?.widgetType]);
+
+  if (!config) return null;
+  const bg = config.bgColor || "#1a1a2e";
+  const fg = config.textColor || "#ffffff";
+
+  if (config.widgetType === "clock") {
+    const tz = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (config.clockStyle === "analog") {
+      const hParts = now.toLocaleString("en-US", { hour: "numeric", minute: "numeric", second: "numeric", hour12: false, timeZone: tz }).split(":");
+      const h = parseInt(hParts[0]), m = parseInt(hParts[1]), s = parseInt(hParts[2]);
+      const hDeg = (h % 12) * 30 + m * 0.5, mDeg = m * 6, sDeg = s * 6;
+      return (
+        <div className="w-full h-full flex items-center justify-center" style={{ background: bg }}>
+          <svg viewBox="0 0 200 200" className="w-[70%] max-w-[160px]">
+            <circle cx="100" cy="100" r="96" fill="none" stroke={fg} strokeWidth="2" opacity="0.15" />
+            {[...Array(12)].map((_, i) => {
+              const num = i === 0 ? 12 : i;
+              const angle = (i * 30 - 90) * Math.PI / 180;
+              return <text key={i} x={100 + 78 * Math.cos(angle)} y={100 + 78 * Math.sin(angle)} textAnchor="middle" dominantBaseline="central" fill={fg} fontSize="14" fontWeight="600" opacity="0.8">{num}</text>;
+            })}
+            {[...Array(60)].map((_, i) => {
+              const angle = (i * 6 - 90) * Math.PI / 180;
+              const isH = i % 5 === 0;
+              return <line key={i} x1={100 + (isH ? 86 : 89) * Math.cos(angle)} y1={100 + (isH ? 86 : 89) * Math.sin(angle)} x2={100 + 92 * Math.cos(angle)} y2={100 + 92 * Math.sin(angle)} stroke={fg} strokeWidth={isH ? 2 : 0.8} opacity={isH ? 0.6 : 0.3} />;
+            })}
+            <polygon points={`${100 + 45 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 + 45 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 + 5 * Math.cos(hDeg * Math.PI / 180)},${100 + 5 * Math.sin(hDeg * Math.PI / 180)} ${100 - 10 * Math.cos((hDeg - 90) * Math.PI / 180)},${100 - 10 * Math.sin((hDeg - 90) * Math.PI / 180)} ${100 - 5 * Math.cos(hDeg * Math.PI / 180)},${100 - 5 * Math.sin(hDeg * Math.PI / 180)}`} fill={fg} opacity="0.9" />
+            <polygon points={`${100 + 65 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 + 65 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 + 4 * Math.cos(mDeg * Math.PI / 180)},${100 + 4 * Math.sin(mDeg * Math.PI / 180)} ${100 - 12 * Math.cos((mDeg - 90) * Math.PI / 180)},${100 - 12 * Math.sin((mDeg - 90) * Math.PI / 180)} ${100 - 4 * Math.cos(mDeg * Math.PI / 180)},${100 - 4 * Math.sin(mDeg * Math.PI / 180)}`} fill={fg} opacity="0.85" />
+            <line x1={100 - 18 * Math.cos((sDeg - 90) * Math.PI / 180)} y1={100 - 18 * Math.sin((sDeg - 90) * Math.PI / 180)} x2={100 + 72 * Math.cos((sDeg - 90) * Math.PI / 180)} y2={100 + 72 * Math.sin((sDeg - 90) * Math.PI / 180)} stroke="hsl(0 70% 55%)" strokeWidth="1.2" strokeLinecap="round" />
+            <circle cx="100" cy="100" r="5" fill={fg} />
+            <circle cx="100" cy="100" r="2.5" fill="hsl(0 70% 55%)" />
+          </svg>
+        </div>
+      );
+    }
+    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: config.format === "12", timeZone: tz };
+    const timeStr = now.toLocaleTimeString("en-US", opts);
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        <span className="text-2xl font-mono font-bold tracking-wider">{timeStr}</span>
+        {config.showDate && <span className="text-[10px] opacity-60">{now.toLocaleDateString("zh-TW", { month: "short", day: "numeric", timeZone: tz })}</span>}
+      </div>
+    );
+  }
+
+  if (config.widgetType === "date") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        <span className="text-sm font-medium opacity-70">{now.toLocaleDateString("zh-TW", { weekday: "long" })}</span>
+        <span className="text-xl font-bold">{now.toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" })}</span>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "marquee" && config.text) {
+    return (
+      <div className="w-full h-full flex items-center overflow-hidden" style={{ background: bg, color: fg }}>
+        <div className="animate-marquee whitespace-nowrap text-sm font-medium">{config.text}</div>
+      </div>
+    );
+  }
+
+  if (config.widgetType === "webpage") {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ background: bg, color: fg }}>
+        <Globe className="w-6 h-6 opacity-50" />
+        <span className="text-[10px] opacity-60 truncate max-w-[80%]">{config.url || "URL"}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex items-center justify-center" style={{ background: bg, color: fg }}>
+      <Code2 className="w-6 h-6 opacity-50" />
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────────
 export default function ContentStudioPage() {
   const { t } = useLanguage();
