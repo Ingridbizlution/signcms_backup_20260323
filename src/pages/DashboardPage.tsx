@@ -282,7 +282,7 @@ export default function DashboardPage() {
             className="h-auto py-3 flex flex-col items-center gap-1.5 hover:border-primary/50 hover:bg-primary/5 transition-all"
             onClick={() => navigate("/screens")}
           >
-            <Plus className="w-5 h-5 text-primary" />
+            <Plus className="w-5 h-5 text-primary" title={t("dashQuickScreen")} />
             <span className="text-xs font-medium">{t("dashQuickScreen")}</span>
           </Button>
           <Button
