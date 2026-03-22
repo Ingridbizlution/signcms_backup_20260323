@@ -273,9 +273,9 @@ const CustomerServicePage = () => {
                     )}
                     AI 智慧回覆
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8"><Phone className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8"><Video className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8" title="撥打電話"><Phone className="h-4 w-4" /></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8" title="視訊通話"><Video className="h-4 w-4" /></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8" title="更多選項"><MoreVertical className="h-4 w-4" /></Button>
                 </div>
 
                 {/* Messages */}
