@@ -789,7 +789,7 @@ export default function MediaPage() {
             </div>
             <div className="space-y-2">
               <Label>{t("mediaProjectGroup")}</Label>
-              <Select value={(widgetForm as any).projectId || ""} onValueChange={(v) => setWidgetForm({ ...widgetForm, projectId: v } as any)}>
+              <Select value={(widgetForm as any).projectId || "__none__"} onValueChange={(v) => setWidgetForm({ ...widgetForm, projectId: v } as any)}>
                 <SelectTrigger><FolderOpen className="w-4 h-4 mr-1.5 text-muted-foreground" /><SelectValue placeholder={t("mediaNoProject")} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t("mediaNoProject")}</SelectItem>
