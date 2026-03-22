@@ -37,12 +37,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </span>
             </div>
             <div className="flex items-center gap-1">
-              {isAdmin && (
-                <Button size="sm" className="gap-2 transition-transform duration-200 hover:scale-105">
-                  <Upload className="w-4 h-4" />
-                  {t("uploadMedia")}
-                </Button>
-              )}
               <LanguageSwitcher />
               <ThemeToggle />
               <DropdownMenu>
