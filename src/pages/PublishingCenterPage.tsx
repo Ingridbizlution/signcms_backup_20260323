@@ -31,6 +31,7 @@ import { toast } from "sonner";
 interface ScheduleOption {
   id: string;
   name: string;
+  org_id: string | null;
   screen_name: string;
   items_count: number;
 }
@@ -40,6 +41,7 @@ interface ScreenOption {
   name: string;
   branch: string;
   online: boolean;
+  org_id: string | null;
 }
 
 interface PublishRecord {
