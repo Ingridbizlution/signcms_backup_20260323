@@ -226,20 +226,22 @@ export default function MediaPage() {
             管理所有廣告圖片與影片素材 · {imageCount} 張圖片 · {videoCount} 部影片
           </p>
         </div>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            multiple
-            className="hidden"
-            onChange={handleUpload}
-          />
-          <Button onClick={() => fileInputRef.current?.click()} className="gap-2">
-            <Upload className="w-4 h-4" />
-            上傳素材
-          </Button>
-        </div>
+        {isAdmin && (
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              className="hidden"
+              onChange={handleUpload}
+            />
+            <Button onClick={() => fileInputRef.current?.click()} className="gap-2">
+              <Upload className="w-4 h-4" />
+              上傳素材
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Filters & View Toggle */}
