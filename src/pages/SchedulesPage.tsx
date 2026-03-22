@@ -376,6 +376,7 @@ export default function SchedulesPage() {
                             <ItemIcon subType={item.item_sub_type} />
                             <span className="flex-1 truncate text-foreground">{item.item_name}</span>
                             {item.item_sub_type === "design" && <Badge variant="secondary" className="text-[9px] px-1 py-0">{t("schedTabDesign")}</Badge>}
+                            {item.item_sub_type === "widget" && <Badge variant="outline" className="text-[9px] px-1 py-0">{t("schedTabWidget")}</Badge>}
                             <span className="text-xs text-muted-foreground">{item.duration}{t("seconds")}</span>
                           </div>
                         ))}
