@@ -690,40 +690,55 @@ export type Database = {
       }
       screens: {
         Row: {
+          avg_download_speed: string
+          avg_upload_speed: string
           branch: string
+          connection_type: string
           created_at: string
           id: string
+          ip_address: string
           location: string
           name: string
           online: boolean
           org_id: string | null
           resolution: string
+          serial_number: string
           status: string
           updated_at: string
           uploaded_by: string | null
         }
         Insert: {
+          avg_download_speed?: string
+          avg_upload_speed?: string
           branch?: string
+          connection_type?: string
           created_at?: string
           id?: string
+          ip_address?: string
           location?: string
           name: string
           online?: boolean
           org_id?: string | null
           resolution?: string
+          serial_number?: string
           status?: string
           updated_at?: string
           uploaded_by?: string | null
         }
         Update: {
+          avg_download_speed?: string
+          avg_upload_speed?: string
           branch?: string
+          connection_type?: string
           created_at?: string
           id?: string
+          ip_address?: string
           location?: string
           name?: string
           online?: boolean
           org_id?: string | null
           resolution?: string
+          serial_number?: string
           status?: string
           updated_at?: string
           uploaded_by?: string | null

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2, FolderPlus, Layers, MoreHorizontal, Settings, RotateCw, Power, RefreshCw, Eye, Moon, Play, Brush, FileText, Radio } from "lucide-react";
+import { Monitor, Plus, Pencil, Trash2, Search, MapPin, Loader2, FolderPlus, Layers, MoreHorizontal, Settings, RotateCw, Power, RefreshCw, Eye, Moon, Play, Brush, FileText, Radio, Wifi, Cable, ArrowUpDown } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserOrgs } from "@/hooks/useUserOrgs";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,9 +39,14 @@ interface Screen {
   resolution: string;
   online: boolean;
   org_id?: string | null;
+  serial_number?: string;
+  ip_address?: string;
+  connection_type?: string;
+  avg_upload_speed?: string;
+  avg_download_speed?: string;
 }
 
-const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "" };
+const emptyForm = { name: "", branch: "", location: "", resolution: "1920×1080", org_id: "", serial_number: "", ip_address: "", connection_type: "wired", avg_upload_speed: "", avg_download_speed: "" };
 
 export default function ScreensPage() {
   const { isAdmin } = useUserRole();
@@ -130,7 +135,7 @@ export default function ScreensPage() {
 
   const fetchScreens = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online, org_id").order("created_at", { ascending: true });
+    const { data, error } = await (supabase as any).from("screens").select("id, name, branch, location, resolution, online, org_id, serial_number, ip_address, connection_type, avg_upload_speed, avg_download_speed").order("created_at", { ascending: true });
     if (error) { toast.error(error.message); }
     else {
       setScreens(data || []);
@@ -157,7 +162,11 @@ export default function ScreensPage() {
   const openAdd = () => { setEditingId(null); setForm({ ...emptyForm, org_id: defaultOrgId || "" }); setIsCreatingInForm(false); setInlineNewGroup(""); setDialogOpen(true); };
   const openEdit = (screen: Screen) => {
     setEditingId(screen.id);
-    setForm({ name: screen.name, branch: screen.branch || "", location: screen.location, resolution: screen.resolution, org_id: screen.org_id || "" });
+    setForm({
+      name: screen.name, branch: screen.branch || "", location: screen.location, resolution: screen.resolution, org_id: screen.org_id || "",
+      serial_number: screen.serial_number || "", ip_address: screen.ip_address || "", connection_type: screen.connection_type || "wired",
+      avg_upload_speed: screen.avg_upload_speed || "", avg_download_speed: screen.avg_download_speed || "",
+    });
     setIsCreatingInForm(false);
     setInlineNewGroup("");
     setDialogOpen(true);
@@ -168,11 +177,11 @@ export default function ScreensPage() {
     if (!form.name) { toast.error(t("screensFillRequired")); return; }
     setSaving(true);
     if (editingId) {
-      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, updated_at: new Date().toISOString() }).eq("id", editingId);
+      const { error } = await (supabase as any).from("screens").update({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, serial_number: form.serial_number, ip_address: form.ip_address, connection_type: form.connection_type, avg_upload_speed: form.avg_upload_speed, avg_download_speed: form.avg_download_speed, updated_at: new Date().toISOString() }).eq("id", editingId);
       if (error) toast.error(error.message);
       else { toast.success(t("screensUpdated")); logActivity({ action: "編輯螢幕", category: "screen", targetName: form.name, targetId: editingId, orgId: form.org_id }); }
     } else {
-      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, uploaded_by: user?.id });
+      const { error } = await (supabase as any).from("screens").insert({ name: form.name, branch: finalBranch || "", location: form.location, resolution: form.resolution, org_id: form.org_id || null, uploaded_by: user?.id, serial_number: form.serial_number, ip_address: form.ip_address, connection_type: form.connection_type, avg_upload_speed: form.avg_upload_speed, avg_download_speed: form.avg_download_speed });
       if (error) toast.error(error.message);
       else { toast.success(t("screensAdded")); logActivity({ action: "新增螢幕", category: "screen", targetName: form.name, orgId: form.org_id }); }
     }
@@ -364,12 +373,28 @@ export default function ScreensPage() {
                     {screen.online ? t("online") : t("offline")}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
                   <span className={`flex items-center gap-1 ${!screen.branch ? "italic opacity-60" : ""}`}>
                     <Layers className="w-3 h-3" />{screen.branch || t("screensUngrouped")}
                   </span>
                   {screen.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{screen.location}</span>}
                   <span>{screen.resolution}</span>
+                  {screen.serial_number && <span className="flex items-center gap-1 font-mono text-[11px]">SN: {screen.serial_number}</span>}
+                  {screen.ip_address && <span className="flex items-center gap-1 font-mono text-[11px]">IP: {screen.ip_address}</span>}
+                  {screen.connection_type && (
+                    <span className="flex items-center gap-1">
+                      {screen.connection_type === "wired" ? <Cable className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
+                      {screen.connection_type === "wired" ? "有線" : "無線"}
+                    </span>
+                  )}
+                  {(screen.avg_upload_speed || screen.avg_download_speed) && (
+                    <span className="flex items-center gap-1">
+                      <ArrowUpDown className="w-3 h-3" />
+                      {screen.avg_upload_speed && `↑${screen.avg_upload_speed}`}
+                      {screen.avg_upload_speed && screen.avg_download_speed && " / "}
+                      {screen.avg_download_speed && `↓${screen.avg_download_speed}`}
+                    </span>
+                  )}
                 </div>
               </div>
               {isAdmin && (
@@ -442,6 +467,36 @@ export default function ScreensPage() {
                   <SelectItem value="2160×3840">2160×3840 (Portrait 4K)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>序號 (Serial Number)</Label>
+              <Input value={form.serial_number} onChange={(e) => setForm({ ...form, serial_number: e.target.value })} placeholder="例如：SN-2024-001" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>網路 IP</Label>
+                <Input value={form.ip_address} onChange={(e) => setForm({ ...form, ip_address: e.target.value })} placeholder="192.168.1.100" />
+              </div>
+              <div className="space-y-2">
+                <Label>連線方式</Label>
+                <Select value={form.connection_type} onValueChange={(v) => setForm({ ...form, connection_type: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="wired">🔌 有線連接</SelectItem>
+                    <SelectItem value="wireless">📶 無線連接</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>平均上傳速率</Label>
+                <Input value={form.avg_upload_speed} onChange={(e) => setForm({ ...form, avg_upload_speed: e.target.value })} placeholder="例如：50 Mbps" />
+              </div>
+              <div className="space-y-2">
+                <Label>平均下載速率</Label>
+                <Input value={form.avg_download_speed} onChange={(e) => setForm({ ...form, avg_download_speed: e.target.value })} placeholder="例如：100 Mbps" />
+              </div>
             </div>
             {orgs.length > 0 && (
               <div className="space-y-2">
