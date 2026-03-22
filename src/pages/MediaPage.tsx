@@ -799,6 +799,11 @@ const MediaPage = () => {
                 <Badge variant={getTypeBadgeVariant(item.type)} className="absolute left-2 top-2 text-[10px]">
                   {item.type === "image" ? t("image") : item.type === "video" ? t("video") : t("widget")}
                 </Badge>
+                {item.type === "widget" && (
+                  <Badge variant={item.is_system ? "destructive" : "outline"} className="absolute right-2 top-2 text-[10px]">
+                    {item.is_system ? t("widgetSystem") : t("widgetRegular")}
+                  </Badge>
+                )}
               </div>
 
               <div className="space-y-2 p-3">
