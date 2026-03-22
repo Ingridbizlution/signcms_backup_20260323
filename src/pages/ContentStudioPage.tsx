@@ -29,10 +29,11 @@ type AspectRatio = "16:9" | "9:16";
 
 interface MediaItem {
   id: string;
-  type: "image" | "video";
+  type: "image" | "video" | "widget";
   url: string;
   name: string;
   duration?: number; // seconds for carousel auto-advance
+  widgetConfig?: any;
 }
 
 type CarouselTransition = "fade" | "slide" | "zoom" | "none";
