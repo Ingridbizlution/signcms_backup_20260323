@@ -264,7 +264,7 @@ export default function DashboardPage() {
       <Card className="p-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Zap className="w-4 h-4 text-primary" title={t("dashQuickActions")} />
+            <Zap className="w-4 h-4 text-primary" />
             {t("dashQuickActions")}
           </h3>
         </div>
