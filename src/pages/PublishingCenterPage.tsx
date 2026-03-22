@@ -705,6 +705,38 @@ export default function PublishingCenterPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Restore Normal Dialog */}
+      <AlertDialog open={restoreOpen} onOpenChange={setRestoreOpen}>
+        <AlertDialogContent className="border-sky-500/30 sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-sky-600">
+              <RotateCcw className="w-6 h-6" />
+              {t("restoreNormalTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{t("restoreNormalDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="rounded-lg bg-sky-500/5 border border-sky-500/20 p-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("emergencyAffectedScreens")}：</span>
+              <span className="font-bold text-sky-600">
+                {records.filter((r) => r.status === "emergency").length} {t("publishScreensTotal")}
+              </span>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRestoreNormal}
+              disabled={restoring}
+              className="bg-sky-600 hover:bg-sky-700 text-white gap-2 font-bold"
+            >
+              {restoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+              {t("restoreNormalConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
