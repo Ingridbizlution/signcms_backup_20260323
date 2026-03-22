@@ -117,10 +117,23 @@ export default function PublishingCenterPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Filter by org
+  const filteredSchedules = useMemo(() => {
+    if (filterOrgId === "all") return schedules;
+    if (filterOrgId === "none") return schedules.filter(s => !s.org_id);
+    return schedules.filter(s => s.org_id === filterOrgId);
+  }, [schedules, filterOrgId]);
+
+  const filteredScreens = useMemo(() => {
+    if (filterOrgId === "all") return screens;
+    if (filterOrgId === "none") return screens.filter(s => !s.org_id);
+    return screens.filter(s => s.org_id === filterOrgId);
+  }, [screens, filterOrgId]);
+
   // Grouped screens by group (branch field)
   const groupedScreens = useMemo(() => {
     const groups = new Map<string, ScreenOption[]>();
-    const filtered = screens.filter((s) =>
+    const filtered = filteredScreens.filter((s) =>
       s.name.toLowerCase().includes(searchScreen.toLowerCase()) ||
       s.branch.toLowerCase().includes(searchScreen.toLowerCase())
     );
@@ -130,10 +143,10 @@ export default function PublishingCenterPage() {
       groups.get(group)!.push(s);
     });
     return groups;
-  }, [screens, searchScreen, t]);
+  }, [filteredScreens, searchScreen, t]);
 
-  const allScreenIds = useMemo(() => new Set(screens.map((s) => s.id)), [screens]);
-  const allSelected = selectedScreenIds.size === screens.length && screens.length > 0;
+  const allScreenIds = useMemo(() => new Set(filteredScreens.map((s) => s.id)), [filteredScreens]);
+  const allSelected = selectedScreenIds.size === filteredScreens.length && filteredScreens.length > 0;
 
   // Check if there are active emergency records
   const hasActiveEmergency = useMemo(() => records.some((r) => r.status === "emergency"), [records]);
