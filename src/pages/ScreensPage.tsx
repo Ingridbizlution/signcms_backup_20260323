@@ -630,7 +630,65 @@ export default function ScreensPage() {
 
             <Separator />
 
-            {/* Reboot */}
+            {/* Default Playback */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Play className="w-4 h-4 text-primary" />
+                {t("screenDefaultPlayback")}
+              </h3>
+              <p className="text-xs text-muted-foreground pl-6">{t("screenDefaultPlaybackDesc")}</p>
+              <div className="space-y-3 pl-6">
+                <div className="space-y-1.5">
+                  <Select value={settingsForm.defaultPlayback} onValueChange={(v: "sleep" | "media" | "design") => setSettingsForm({ ...settingsForm, defaultPlayback: v, defaultMediaId: "", defaultDesignId: "" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sleep">
+                        <span className="flex items-center gap-2"><Moon className="w-3.5 h-3.5" />{t("screenDefaultSleep")}</span>
+                      </SelectItem>
+                      <SelectItem value="media">
+                        <span className="flex items-center gap-2"><Play className="w-3.5 h-3.5" />{t("screenDefaultMedia")}</span>
+                      </SelectItem>
+                      <SelectItem value="design">
+                        <span className="flex items-center gap-2"><Brush className="w-3.5 h-3.5" />{t("screenDefaultDesign")}</span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {settingsForm.defaultPlayback === "media" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t("screenDefaultSelectMedia")}</Label>
+                    <Select value={settingsForm.defaultMediaId} onValueChange={(v) => setSettingsForm({ ...settingsForm, defaultMediaId: v })}>
+                      <SelectTrigger><SelectValue placeholder={t("screenDefaultSelectMedia")} /></SelectTrigger>
+                      <SelectContent>
+                        {mediaOptions.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            <span className="flex items-center gap-2">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase">{m.type}</span>
+                              {m.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {settingsForm.defaultPlayback === "design" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t("screenDefaultSelectProject")}</Label>
+                    <Select value={settingsForm.defaultDesignId} onValueChange={(v) => setSettingsForm({ ...settingsForm, defaultDesignId: v })}>
+                      <SelectTrigger><SelectValue placeholder={t("screenDefaultSelectProject")} /></SelectTrigger>
+                      <SelectContent>
+                        {designOptions.map((d) => (
+                          <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <RefreshCw className="w-4 h-4 text-destructive" />
