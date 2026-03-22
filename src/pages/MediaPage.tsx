@@ -420,6 +420,27 @@ export default function MediaPage() {
     setProjects(data || []);
   };
 
+  const handleCreateProject = async () => {
+    if (!newProjectName.trim()) return;
+    const { error } = await (supabase as any).from("design_projects").insert({ name: newProjectName.trim(), created_by: user?.id });
+    if (error) toast.error(error.message);
+    else { toast.success(t("mediaProjectCreated")); setNewProjectName(""); fetchProjects(); }
+  };
+
+  const handleUpdateProject = async () => {
+    if (!editingProject || !editProjectName.trim()) return;
+    const { error } = await (supabase as any).from("design_projects").update({ name: editProjectName.trim() }).eq("id", editingProject.id);
+    if (error) toast.error(error.message);
+    else { toast.success(t("mediaProjectUpdated")); setEditingProject(null); setEditProjectName(""); fetchProjects(); }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteProjectId) return;
+    const { error } = await (supabase as any).from("design_projects").delete().eq("id", deleteProjectId);
+    if (error) toast.error(error.message);
+    else { toast.success(t("mediaProjectDeleted")); setDeleteProjectId(null); fetchProjects(); fetchMedia(); }
+  };
+
   useEffect(() => { fetchMedia(); fetchProjects(); }, []);
 
   const filtered = media.filter((m) => {
