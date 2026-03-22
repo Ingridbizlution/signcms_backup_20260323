@@ -112,14 +112,22 @@ const TIMEZONE_OPTIONS = [
   { value: "Australia/Sydney", label: "Australia/Sydney (UTC+11)" },
 ];
 
-const defaultWidgetForm = {
+const defaultWidgetForm: {
+  name: string; widgetType: WidgetSubType; url: string; text: string;
+  speed: "slow" | "normal" | "fast"; format: "12" | "24";
+  clockStyle: "digital" | "analog"; showDate: boolean; timezone: string;
+  bgColor: string; textColor: string; qrcodeContent: string; targetDate: string;
+  countdownTitle: string; youtubeUrl: string; city: string;
+  fontSize: "small" | "medium" | "large" | "xlarge"; qrcodeSize: number;
+  animation: WidgetAnimation; projectId: string;
+} = {
   name: "",
-  widgetType: "clock" as WidgetSubType,
+  widgetType: "clock",
   url: "",
   text: "",
-  speed: "normal" as const,
-  format: "24" as const,
-  clockStyle: "digital" as const,
+  speed: "normal",
+  format: "24",
+  clockStyle: "digital",
   showDate: true,
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   bgColor: "#1a1a2e",
@@ -129,9 +137,9 @@ const defaultWidgetForm = {
   countdownTitle: "",
   youtubeUrl: "",
   city: "",
-  fontSize: "medium" as const,
+  fontSize: "medium",
   qrcodeSize: 128,
-  animation: "none" as WidgetAnimation,
+  animation: "none",
   projectId: NONE_PROJECT_VALUE,
 };
 
