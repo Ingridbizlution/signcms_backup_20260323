@@ -481,8 +481,45 @@ const MediaPage = () => {
     }
   };
 
+  const checkMediaUsage = async (mediaId: string) => {
+    setCheckingUsage(true);
+    setDeleteUsage(null);
+
+    // Check schedule_items for media_id reference
+    const { data: scheduleItems } = await (supabase as any)
+      .from("schedule_items")
+      .select("schedule_id, schedules:schedule_id(name)")
+      .eq("media_id", mediaId);
+
+    // Check if media belongs to a design project
+    const item = media.find((m) => m.id === mediaId);
+    const projectNames: string[] = [];
+    if (item?.design_project_id) {
+      const pName = projectNameMap.get(item.design_project_id);
+      if (pName) projectNames.push(pName);
+    }
+
+    const scheduleNames: string[] = [];
+    if (scheduleItems && scheduleItems.length > 0) {
+      for (const si of scheduleItems) {
+        const name = si.schedules?.name;
+        if (name && !scheduleNames.includes(name)) scheduleNames.push(name);
+      }
+    }
+
+    setDeleteUsage({ schedules: scheduleNames, projects: projectNames });
+    setCheckingUsage(false);
+  };
+
+  const requestDelete = async (itemId: string) => {
+    setDeleteId(itemId);
+    await checkMediaUsage(itemId);
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
+    // Block delete if in use
+    if (deleteUsage && (deleteUsage.schedules.length > 0 || deleteUsage.projects.length > 0)) return;
 
     const item = media.find((entry) => entry.id === deleteId);
     const { error } = await (supabase as any).from("media_items").delete().eq("id", deleteId);
@@ -492,6 +529,7 @@ const MediaPage = () => {
     } else {
       toast.success(`${t("mediaDeleted")}：${item?.name || ""}`);
       setDeleteId(null);
+      setDeleteUsage(null);
       if (previewItem?.id === deleteId) setPreviewItem(null);
       fetchMedia();
     }
