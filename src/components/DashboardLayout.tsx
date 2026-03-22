@@ -41,7 +41,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full w-8 h-8">
+                  <Button variant="ghost" size="icon" className="rounded-full w-8 h-8" title={displayName}>
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={avatarUrl} />
                       <AvatarFallback className="text-xs bg-primary/10 text-primary">
