@@ -132,7 +132,9 @@ const translations = {
   schedDeleteConfirm: { zh: "確定要刪除這個排程嗎？", en: "Delete this schedule?", ja: "このスケジュールを削除しますか？" },
   schedDeleteDesc: { zh: "刪除後將無法復原，該螢幕的播放內容將會停止。", en: "This cannot be undone. Playback on this screen will stop.", ja: "この操作は取り消せません。このスクリーンの再生は停止します。" },
   schedClickToAdd: { zh: "點擊加入素材", en: "Click to add media", ja: "クリックしてメディアを追加" },
-  schedFromBelow: { zh: "從下方選擇素材加入清單", en: "Select media below to add to playlist", ja: "下からメディアを選択してプレイリストに追加" },
+  schedFromBelow: { zh: "從下方選擇素材或設計專案加入清單", en: "Select media or design projects below to add to playlist", ja: "下からメディアまたはデザインプロジェクトを選択してプレイリストに追加" },
+  schedTabMedia: { zh: "素材", en: "Media", ja: "メディア" },
+  schedTabDesign: { zh: "設計專案", en: "Design Projects", ja: "デザイン" },
 
   // Days
   dayMon: { zh: "一", en: "Mon", ja: "月" },

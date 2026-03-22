@@ -113,29 +113,42 @@ export type Database = {
       schedule_items: {
         Row: {
           created_at: string
+          design_project_id: string | null
           duration: number
           id: string
+          item_type: string
           media_id: string | null
           schedule_id: string
           sort_order: number
         }
         Insert: {
           created_at?: string
+          design_project_id?: string | null
           duration?: number
           id?: string
+          item_type?: string
           media_id?: string | null
           schedule_id: string
           sort_order?: number
         }
         Update: {
           created_at?: string
+          design_project_id?: string | null
           duration?: number
           id?: string
+          item_type?: string
           media_id?: string | null
           schedule_id?: string
           sort_order?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "schedule_items_design_project_id_fkey"
+            columns: ["design_project_id"]
+            isOneToOne: false
+            referencedRelation: "design_projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "schedule_items_media_id_fkey"
             columns: ["media_id"]
