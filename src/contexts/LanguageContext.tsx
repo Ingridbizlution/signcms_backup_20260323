@@ -126,9 +126,9 @@ const translations = {
   screenDefaultPlaybackDesc: { zh: "當螢幕沒有排程播放時的預設行為", en: "Default behavior when no schedule is active", ja: "スケジュールがないときのデフォルト動作" },
   screenDefaultSleep: { zh: "螢幕休眠", en: "Screen Sleep", ja: "スクリーンスリープ" },
   screenDefaultMedia: { zh: "播放素材", en: "Play Media", ja: "メディア再生" },
-  screenDefaultDesign: { zh: "播放設計專案", en: "Play Design Project", ja: "デザインプロジェクト再生" },
+  screenDefaultDesign: { zh: "播放內容設計專案", en: "Play Content Design", ja: "コンテンツデザイン再生" },
   screenDefaultSelectMedia: { zh: "選擇素材", en: "Select Media", ja: "メディアを選択" },
-  screenDefaultSelectProject: { zh: "選擇設計專案", en: "Select Project", ja: "プロジェクトを選択" },
+  screenDefaultSelectProject: { zh: "選擇內容設計專案", en: "Select Content Design", ja: "コンテンツデザインを選択" },
 
   // Media
   mediaTitle: { zh: "廣告素材庫", en: "Media Library", ja: "メディアライブラリ" },
