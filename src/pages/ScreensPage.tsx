@@ -387,14 +387,38 @@ export default function ScreensPage() {
                       {screen.connection_type === "wired" ? "有線" : "無線"}
                     </span>
                   )}
-                  {(screen.avg_upload_speed || screen.avg_download_speed) && (
-                    <span className="flex items-center gap-1">
-                      <ArrowUpDown className="w-3 h-3" />
-                      {screen.avg_upload_speed && `↑${screen.avg_upload_speed}`}
-                      {screen.avg_upload_speed && screen.avg_download_speed && " / "}
-                      {screen.avg_download_speed && `↓${screen.avg_download_speed}`}
-                    </span>
-                  )}
+                  {(() => {
+                    const parseSpeed = (s?: string) => {
+                      if (!s) return null;
+                      const match = s.match(/([\d.]+)/);
+                      return match ? parseFloat(match[1]) : null;
+                    };
+                    const up = parseSpeed(screen.avg_upload_speed);
+                    const down = parseSpeed(screen.avg_download_speed);
+                    const UPLOAD_THRESHOLD = 10; // Mbps
+                    const DOWNLOAD_THRESHOLD = 20; // Mbps
+                    const hasData = up !== null || down !== null;
+                    const isUpLow = up !== null && up < UPLOAD_THRESHOLD;
+                    const isDownLow = down !== null && down < DOWNLOAD_THRESHOLD;
+                    const isWarning = isUpLow || isDownLow;
+
+                    if (!hasData) return null;
+
+                    return (
+                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium ${
+                        isWarning
+                          ? "bg-destructive/10 text-destructive"
+                          : "bg-success/10 text-success"
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isWarning ? "bg-destructive animate-pulse" : "bg-success"}`} />
+                        <ArrowUpDown className="w-3 h-3" />
+                        {up !== null && <span className={isUpLow ? "font-bold" : ""}>↑{screen.avg_upload_speed}</span>}
+                        {up !== null && down !== null && <span>/</span>}
+                        {down !== null && <span className={isDownLow ? "font-bold" : ""}>↓{screen.avg_download_speed}</span>}
+                        {isWarning && <span className="text-[10px]">⚠</span>}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
               {isAdmin && (
