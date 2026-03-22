@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Megaphone, Users, CloudSun, Instagram, Check, Download, Monitor } from "lucide-react";
+import { Megaphone, Users, CloudSun, Instagram, Check, Download, Monitor, DoorOpen, Languages, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useInstalledApps } from "@/contexts/InstalledAppsContext";
 
