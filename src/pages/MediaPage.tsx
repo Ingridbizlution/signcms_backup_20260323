@@ -523,7 +523,7 @@ export default function MediaPage() {
       size: "Widget",
       dimensions: "auto",
       uploaded_by: user?.id,
-      design_project_id: (widgetForm as any).projectId || null,
+      design_project_id: (widgetForm as any).projectId && (widgetForm as any).projectId !== "__none__" ? (widgetForm as any).projectId : null,
     });
 
     if (error) toast.error(error.message);
