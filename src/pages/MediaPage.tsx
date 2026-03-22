@@ -513,6 +513,11 @@ const MediaPage = () => {
   };
 
   const requestDelete = async (itemId: string) => {
+    const item = media.find((m) => m.id === itemId);
+    if (item?.is_system) {
+      toast.error(t("widgetSystemCannotDelete"));
+      return;
+    }
     setDeleteId(itemId);
     await checkMediaUsage(itemId);
   };
