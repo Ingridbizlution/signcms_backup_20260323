@@ -1,9 +1,9 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Upload, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/hooks/useUserRole";
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
-  const { isAdmin } = useUserRole();
+  
   const { t } = useLanguage();
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || t("user");
@@ -37,12 +37,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </span>
             </div>
             <div className="flex items-center gap-1">
-              {isAdmin && (
-                <Button size="sm" className="gap-2 transition-transform duration-200 hover:scale-105">
-                  <Upload className="w-4 h-4" />
-                  {t("uploadMedia")}
-                </Button>
-              )}
               <LanguageSwitcher />
               <ThemeToggle />
               <DropdownMenu>
