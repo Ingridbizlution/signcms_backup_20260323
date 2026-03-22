@@ -27,6 +27,7 @@ import {
   QrCode,
   Timer,
   Youtube,
+  Hash,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Switch } from "@/components/ui/switch";
