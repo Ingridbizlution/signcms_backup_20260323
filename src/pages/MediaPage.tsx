@@ -306,7 +306,7 @@ function extractYoutubeId(url: string): string | null {
   return match ? match[1] : null;
 }
 
-function WeatherDisplay({ city, fg }: { city: string; fg: string }) {
+function WeatherDisplay({ city, fg, fontSize }: { city: string; fg: string; fontSize?: string }) {
   const [weather, setWeather] = useState<{ temp: string; desc: string } | null>(null);
 
   useEffect(() => {
@@ -322,7 +322,7 @@ function WeatherDisplay({ city, fg }: { city: string; fg: string }) {
   if (!weather) return <span className="text-xs opacity-40">Loading...</span>;
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <span className="text-3xl font-bold">{weather.temp}</span>
+      <span className={`${fontSize || "text-3xl"} font-bold`}>{weather.temp}</span>
       <span className="text-sm opacity-60">{weather.desc}</span>
     </div>
   );
