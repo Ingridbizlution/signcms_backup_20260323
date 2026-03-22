@@ -516,6 +516,22 @@ const translations = {
   dashEmergencyTitle: { zh: "⚠️ 緊急插播進行中", en: "⚠️ Emergency Broadcast Active", ja: "⚠️ 緊急配信が進行中" },
   dashEmergencyDesc: { zh: "目前有 {count} 個螢幕正處於緊急插播模式，正常排程已被覆蓋。", en: "{count} screen(s) are currently in emergency broadcast mode. Normal schedules are overridden.", ja: "現在 {count} 台のスクリーンが緊急配信モードです。通常スケジュールは上書きされています。" },
   dashEmergencyAction: { zh: "前往處理", en: "Go to Publishing", ja: "発行管理へ" },
+
+  // Dashboard enhanced
+  dashPublishToday: { zh: "今日發佈", en: "Published Today", ja: "本日の配信" },
+  dashPublishTodaySub: { zh: "筆發佈紀錄", en: "publish records", ja: "件の配信記録" },
+  dashScheduledPending: { zh: "待排程", en: "Scheduled", ja: "予約中" },
+  dashScheduledPendingSub: { zh: "筆等待執行", en: "pending execution", ja: "件の実行待ち" },
+  dashEmergencyCount: { zh: "緊急插播", en: "Emergency", ja: "緊急配信" },
+  dashEmergencyCountSub: { zh: "台螢幕受影響", en: "screens affected", ja: "台が影響中" },
+  dashQuickActions: { zh: "快捷操作", en: "Quick Actions", ja: "クイック操作" },
+  dashQuickPublish: { zh: "發佈管理", en: "Publishing", ja: "配信管理" },
+  dashQuickScreen: { zh: "新增螢幕", en: "Add Screen", ja: "スクリーン追加" },
+  dashQuickMedia: { zh: "上傳素材", en: "Upload Media", ja: "メディア追加" },
+  dashQuickSchedule: { zh: "排程管理", en: "Schedules", ja: "スケジュール" },
+  dashLastRefresh: { zh: "最後更新", en: "Last updated", ja: "最終更新" },
+  dashAutoRefresh: { zh: "自動刷新中", en: "Auto-refreshing", ja: "自動更新中" },
+  dashWidgetCount: { zh: "個 Widget", en: "widgets", ja: "ウィジェット" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
