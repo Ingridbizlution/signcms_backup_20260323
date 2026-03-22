@@ -856,7 +856,7 @@ export default function ContentStudioPage() {
                 <div key={zone.id}
                   className={`absolute cursor-pointer transition-all duration-200 flex items-center justify-center overflow-hidden ${isSelected ? "ring-2 ring-primary ring-offset-1 z-10" : "hover:ring-1 hover:ring-primary/40"}`}
                   style={{ left: `${zone.x}%`, top: `${zone.y}%`, width: `${zone.w}%`, height: `${zone.h}%`, background: bg }}
-                  onClick={() => setSelectedZone(isSelected ? null : zone.id)}
+                  onClick={() => { setSelectedOverlay(null); setSelectedZone(isSelected ? null : zone.id); }}
                 >
                   {/* Content render */}
                   {zone.content?.type === "widget" && zone.content.widgetConfig ? (
