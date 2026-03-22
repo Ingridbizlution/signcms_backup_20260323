@@ -32,7 +32,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <header className="h-14 flex items-center justify-between border-b border-border px-4 bg-card/80 backdrop-blur-sm shrink-0 sticky top-0 z-10">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <span className="text-sm text-muted-foreground hidden sm:inline">
+              <span className="text-sm font-bold tracking-wide text-foreground hidden sm:inline">
                 {t("appSubtitle")}
               </span>
             </div>
