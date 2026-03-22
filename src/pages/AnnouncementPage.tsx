@@ -54,7 +54,6 @@ const loadFromStorage = <T,>(key: string, fallback: T): T => {
   } catch {}
   return fallback;
 };
-];
 
 const AnnouncementPage = () => {
   const { language } = useLanguage();
