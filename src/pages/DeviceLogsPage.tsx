@@ -186,6 +186,12 @@ export default function SystemLogsPage() {
     });
   }, [activityLogs, activityFilterCategory, activityFilterOrg, activityFilterTime, activitySearch]);
 
+  // Reset page when filters change
+  useEffect(() => { setActivityPage(1); }, [activityFilterCategory, activityFilterOrg, activityFilterTime, activitySearch]);
+
+  const activityTotalPages = Math.max(1, Math.ceil(filteredActivity.length / ACTIVITY_PAGE_SIZE));
+  const paginatedActivity = filteredActivity.slice((activityPage - 1) * ACTIVITY_PAGE_SIZE, activityPage * ACTIVITY_PAGE_SIZE);
+
   const labels = {
     title: { zh: "系統紀錄", en: "System Logs", ja: "システムログ" },
     subtitle: { zh: "查看設備狀態與使用者操作紀錄", en: "View device status and user activity logs", ja: "デバイスステータスとユーザー操作ログを表示" },
