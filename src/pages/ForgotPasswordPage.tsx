@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex items-center justify-center mb-8">
-          <img src={logoImg} alt="SignCMS" className="h-7 object-contain" />
+          <img src={logoImg} alt="SignCMS" className="h-11 object-contain" />
         </div>
         <Card className="shadow-lg">
           <CardHeader className="text-center">
