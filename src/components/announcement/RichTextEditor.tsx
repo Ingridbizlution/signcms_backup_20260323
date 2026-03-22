@@ -199,7 +199,7 @@ const RichTextEditor = ({ content, onChange, placeholder, minHeight = "160px" }:
         {/* Text Color */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-md" title="Text Color">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-md" title={t("tipTextColor")}>
               <div className="flex flex-col items-center">
                 <Palette className="h-3.5 w-3.5" />
                 <div
