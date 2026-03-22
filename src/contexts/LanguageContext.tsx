@@ -65,7 +65,7 @@ const translations = {
   screensTitle: { zh: "螢幕管理", en: "Screen Management", ja: "スクリーン管理" },
   screensSubtitle: { zh: "管理所有群組的電子看板設備", en: "Manage all group digital signage devices", ja: "全グループのデジタルサイネージを管理" },
   screensAdd: { zh: "新增螢幕", en: "Add Screen", ja: "スクリーン追加" },
-  screensSearchPlaceholder: { zh: "搜尋螢幕名稱、分店...", en: "Search screens, branches...", ja: "スクリーン名、店舗を検索..." },
+  screensSearchPlaceholder: { zh: "搜尋螢幕名稱、群組...", en: "Search screens, groups...", ja: "スクリーン名、グループを検索..." },
   screensNoResult: { zh: "沒有找到符合條件的螢幕", en: "No screens found", ja: "スクリーンが見つかりません" },
   screensName: { zh: "螢幕名稱", en: "Screen Name", ja: "スクリーン名" },
   screensBranch: { zh: "所屬分店", en: "Branch", ja: "所属店舗" },
