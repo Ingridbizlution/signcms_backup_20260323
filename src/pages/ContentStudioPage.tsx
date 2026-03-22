@@ -468,9 +468,10 @@ function WidgetZonePreview({ config }: { config: any }) {
   }
 
   if (config.widgetType === "qrcode") {
+    const qrSize = config.qrcodeSize ? Math.min(config.qrcodeSize, 120) : 80;
     return (
       <div className="w-full h-full flex items-center justify-center" style={{ background: bg }}>
-        <QRCodeSVG value={config.qrcodeContent || "https://example.com"} size={80} bgColor={bg} fgColor={fg} level="M" />
+        <QRCodeSVG value={config.qrcodeContent || "https://example.com"} size={qrSize} bgColor={bg} fgColor={fg} level="M" />
       </div>
     );
   }
