@@ -68,7 +68,7 @@ const translations = {
   screensSearchPlaceholder: { zh: "搜尋螢幕名稱、群組...", en: "Search screens, groups...", ja: "スクリーン名、グループを検索..." },
   screensNoResult: { zh: "沒有找到符合條件的螢幕", en: "No screens found", ja: "スクリーンが見つかりません" },
   screensName: { zh: "螢幕名稱", en: "Screen Name", ja: "スクリーン名" },
-  screensBranch: { zh: "所屬分店", en: "Branch", ja: "所属店舗" },
+  screensBranch: { zh: "所屬群組", en: "Group", ja: "所属グループ" },
   screensLocation: { zh: "安裝位置", en: "Location", ja: "設置場所" },
   screensResolution: { zh: "螢幕解析度", en: "Resolution", ja: "解像度" },
   screensEditTitle: { zh: "編輯螢幕", en: "Edit Screen", ja: "スクリーン編集" },
