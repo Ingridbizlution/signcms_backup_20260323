@@ -401,19 +401,25 @@ export default function MediaPage() {
   const fetchMedia = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any).from("media_items")
-      .select("id, name, type, url, thumbnail, size, dimensions, duration, created_at")
+      .select("id, name, type, url, thumbnail, size, dimensions, duration, created_at, design_project_id")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     else setMedia(data || []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchMedia(); }, []);
+  const fetchProjects = async () => {
+    const { data } = await (supabase as any).from("design_projects").select("id, name").order("name");
+    setProjects(data || []);
+  };
+
+  useEffect(() => { fetchMedia(); fetchProjects(); }, []);
 
   const filtered = media.filter((m) => {
     const matchSearch = m.name.toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter === "all" || m.type === typeFilter;
-    return matchSearch && matchType;
+    const matchProject = projectFilter === "all" || (projectFilter === "none" ? !m.design_project_id : m.design_project_id === projectFilter);
+    return matchSearch && matchType && matchProject;
   });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
