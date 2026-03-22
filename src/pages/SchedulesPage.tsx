@@ -472,8 +472,8 @@ export default function SchedulesPage() {
                       <span className="text-[10px] text-muted-foreground">{t("seconds")}</span>
                     </div>
                     <div className="flex shrink-0">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveItem(index, "up")} disabled={index === 0} title="↑"><ChevronUp className="w-3 h-3" /></Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveItem(index, "down")} disabled={index === form.items.length - 1} title="↓"><ChevronDown className="w-3 h-3" /></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveItem(index, "up")} disabled={index === 0} title={t("tipMoveUp")}><ChevronUp className="w-3 h-3" /></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveItem(index, "down")} disabled={index === form.items.length - 1} title={t("tipMoveDown")}><ChevronDown className="w-3 h-3" /></Button>
                     </div>
                     <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive shrink-0" onClick={() => removeItemFromForm(item.tempId)} title={t("delete")}><X className="w-3 h-3" /></Button>
                   </div>

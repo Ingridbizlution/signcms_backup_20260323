@@ -15,7 +15,7 @@ const languages: { code: Language; label: string; flag: string }[] = [
 ];
 
 export function LanguageSwitcher() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <DropdownMenu>
