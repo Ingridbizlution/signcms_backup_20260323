@@ -242,9 +242,10 @@ function WidgetLivePreview({ config }: { config: WidgetConfig }) {
   }
 
   if (config.widgetType === "qrcode") {
+    const qrSize = config.qrcodeSize || 140;
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-lg" style={{ background: bg, color: fg }}>
-        <QRCodeSVG value={config.qrcodeContent || "https://example.com"} size={140} bgColor={bg} fgColor={fg} level="M" />
+        <QRCodeSVG value={config.qrcodeContent || "https://example.com"} size={qrSize} bgColor={bg} fgColor={fg} level="M" />
         {config.qrcodeContent && <span className="text-[10px] opacity-50 truncate max-w-[80%]">{config.qrcodeContent}</span>}
       </div>
     );
