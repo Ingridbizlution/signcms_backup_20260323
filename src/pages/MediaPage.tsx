@@ -374,6 +374,7 @@ export default function MediaPage() {
     city: "Taipei",
     fontSize: "medium" as "small" | "medium" | "large" | "xlarge",
     qrcodeSize: 140,
+    animation: "none" as WidgetAnimation,
   };
   const [widgetForm, setWidgetForm] = useState(defaultWidgetForm);
 
