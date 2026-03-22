@@ -29,10 +29,11 @@ type AspectRatio = "16:9" | "9:16";
 
 interface MediaItem {
   id: string;
-  type: "image" | "video";
+  type: "image" | "video" | "widget";
   url: string;
   name: string;
   duration?: number; // seconds for carousel auto-advance
+  widgetConfig?: any;
 }
 
 type CarouselTransition = "fade" | "slide" | "zoom" | "none";
@@ -157,6 +158,9 @@ function CarouselPreview({ items, transition = "fade" }: { items: MediaItem[]; t
   if (items.length === 0) return null;
 
   const renderItem = (item: MediaItem) => {
+    if (item.type === "widget" && item.widgetConfig) {
+      return <WidgetZonePreview config={item.widgetConfig} />;
+    }
     if (item.type === "image" && (item.url.startsWith("data:") || item.url.startsWith("http"))) {
       return <img src={item.url} alt={item.name} className="w-full h-full object-cover" />;
     }
@@ -281,39 +285,41 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
   };
 
   const confirmPickerSelection = () => {
-    let updatedContent = { ...content };
-    let updatedMediaItems = [...mediaItems];
-    let lastWidget: { id: string; name: string; config: any } | null = null;
+    const existingKeys = new Set(mediaItems.map((item) => `${item.type}-${item.id}`));
+    const appendedItems: MediaItem[] = [];
 
-    const selectedArray = Array.from(selectedPickerIds);
-    selectedArray.forEach((pickerId) => {
+    Array.from(selectedPickerIds).forEach((pickerId) => {
       const item = pickerItems.find((p) => p.id === pickerId);
       if (!item) return;
+
       if (item.kind === "media") {
         const m = item.raw;
+        const key = `${m.type}-${m.id}`;
+        if (existingKeys.has(key)) return;
+        existingKeys.add(key);
         const dur = m.type === "video" && m.duration ? parseFloat(m.duration) || 10 : 5;
-        updatedMediaItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
-      } else {
-        const w = item.raw;
-        lastWidget = { id: w.id, name: w.name, config: w.config };
+        appendedItems.push({ id: m.id, type: m.type as "image" | "video", url: m.thumbnail || m.url, name: m.name, duration: dur });
+        return;
       }
+
+      const w = item.raw;
+      const key = `widget-${w.id}`;
+      if (existingKeys.has(key)) return;
+      existingKeys.add(key);
+      appendedItems.push({ id: w.id, type: "widget", url: "", name: w.name, duration: 5, widgetConfig: w.config });
     });
 
-    // Apply media additions
-    if (updatedMediaItems.length > mediaItems.length) {
-      updatedContent = { ...updatedContent, type: "media", mediaItems: updatedMediaItems };
-    }
-
-    // Apply widget (widget takes priority if only widget selected, otherwise both are kept)
-    if (lastWidget) {
-      if (updatedMediaItems.length === 0 || updatedMediaItems.length === mediaItems.length) {
-        // Only widget(s) selected, no new media
-        updatedContent = { ...updatedContent, type: "widget", widgetId: lastWidget.id, widgetName: lastWidget.name, widgetConfig: lastWidget.config };
-      } else {
-        // Both media and widget selected — keep media type but also store widget info
-        updatedContent = { ...updatedContent, widgetId: lastWidget.id, widgetName: lastWidget.name, widgetConfig: lastWidget.config };
-      }
-    }
+    const updatedItems = [...mediaItems, ...appendedItems];
+    const updatedContent = updatedItems.length > 0
+      ? {
+          ...content,
+          type: "media" as const,
+          mediaItems: updatedItems,
+          widgetId: undefined,
+          widgetName: undefined,
+          widgetConfig: undefined,
+        }
+      : content;
 
     onUpdate(updatedContent);
     setSelectedPickerIds(new Set());
@@ -344,13 +350,14 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
             </Button>
           </div>
 
-          {/* Currently added media items */}
+          {/* Currently added content items */}
           {mediaItems.length > 0 && (
             <div className="space-y-1 mb-2">
               {mediaItems.map((m, i) => (
                 <div key={m.id + i} className="flex items-center gap-2 p-1.5 rounded-md bg-muted/50 text-xs">
-                  {m.type === "image" ? <ImageIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <Film className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                  {m.type === "image" ? <ImageIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />}
                   <span className="truncate flex-1 text-foreground">{m.name}</span>
+                  <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">{m.type === "image" ? "IMG" : m.type === "video" ? "VID" : "Widget"}</Badge>
                   <div className="flex items-center gap-1 shrink-0">
                     {m.type === "video" ? (
                       <span className="text-[10px] text-muted-foreground">{m.duration || 10}s</span>
@@ -359,13 +366,13 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
                         <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => {
                           const updated = [...mediaItems];
                           updated[i] = { ...m, duration: Math.max(1, (m.duration || 5) - 1) };
-                          onUpdate({ ...content, mediaItems: updated });
+                          onUpdate({ ...content, type: "media", mediaItems: updated });
                         }}><Minus className="w-2.5 h-2.5" /></Button>
                         <span className="text-[10px] font-medium text-foreground w-5 text-center">{m.duration || 5}s</span>
                         <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => {
                           const updated = [...mediaItems];
                           updated[i] = { ...m, duration: Math.min(60, (m.duration || 5) + 1) };
-                          onUpdate({ ...content, mediaItems: updated });
+                          onUpdate({ ...content, type: "media", mediaItems: updated });
                         }}><Plus className="w-2.5 h-2.5" /></Button>
                       </>
                     )}
@@ -376,8 +383,8 @@ function ZoneEditor({ zone, onUpdate, onClose, dbMedia, dbWidgets, isEmbedded }:
             </div>
           )}
 
-          {/* Currently added widget */}
-          {content.type === "widget" && content.widgetName && (
+          {/* Legacy single widget */}
+          {content.type === "widget" && content.widgetName && mediaItems.length === 0 && (
             <div className="flex items-center gap-2 p-1.5 rounded-md bg-muted/50 text-xs mb-2">
               <Code2 className="w-3.5 h-3.5 text-accent-foreground shrink-0" />
               <span className="truncate flex-1 text-foreground">{content.widgetName}</span>
@@ -1017,12 +1024,12 @@ export default function ContentStudioPage() {
                   onClick={() => { setSelectedOverlay(null); setSelectedZone(isSelected ? null : zone.id); }}
                 >
                   {/* Content render */}
-                  {zone.content?.type === "widget" && zone.content.widgetConfig ? (
+                  {zone.content?.type === "media" && mediaItems.length > 0 ? (
+                    <CarouselPreview items={mediaItems} transition={zone.content.carouselTransition || "fade"} />
+                  ) : zone.content?.type === "widget" && zone.content.widgetConfig ? (
                     <ZoneAnimatedWrapper animation={zone.content.widgetConfig.animation}>
                       <WidgetZonePreview config={zone.content.widgetConfig} />
                     </ZoneAnimatedWrapper>
-                  ) : zone.content?.type === "media" && mediaItems.length > 0 ? (
-                    <CarouselPreview items={mediaItems} transition={zone.content.carouselTransition || "fade"} />
                   ) : zone.content?.type === "text" && zone.content.value ? (
                     <div className="p-3 w-full" style={{ color: zone.content.textColor || "hsl(0 0% 100%)", fontSize: Math.min(zone.content.fontSize || 24, 52), textAlign: zone.content.textAlign || "center" }}>
                       <span className="font-bold leading-tight whitespace-pre-line">{zone.content.value}</span>
@@ -1063,12 +1070,12 @@ export default function ContentStudioPage() {
                   onMouseDown={(e) => { if (overlay.locked) return; if ((e.target as HTMLElement).dataset.resize) return; handleOverlayDragStart(e, overlay.id); }}
                 >
                   {/* Content render */}
-                  {overlay.content?.type === "widget" && overlay.content.widgetConfig ? (
+                  {overlay.content?.type === "media" && mediaItems.length > 0 ? (
+                    <CarouselPreview items={mediaItems} transition={overlay.content.carouselTransition || "fade"} />
+                  ) : overlay.content?.type === "widget" && overlay.content.widgetConfig ? (
                     <ZoneAnimatedWrapper animation={overlay.content.widgetConfig.animation}>
                       <WidgetZonePreview config={overlay.content.widgetConfig} />
                     </ZoneAnimatedWrapper>
-                  ) : overlay.content?.type === "media" && mediaItems.length > 0 ? (
-                    <CarouselPreview items={mediaItems} transition={overlay.content.carouselTransition || "fade"} />
                   ) : overlay.content?.type === "text" && overlay.content.value ? (
                     <div className="p-2 w-full" style={{ color: overlay.content.textColor || "hsl(0 0% 100%)", fontSize: Math.min(overlay.content.fontSize || 20, 40), textAlign: overlay.content.textAlign || "center" }}>
                       <span className="font-bold leading-tight whitespace-pre-line">{overlay.content.value}</span>
