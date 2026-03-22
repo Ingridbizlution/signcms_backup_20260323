@@ -67,6 +67,7 @@ interface OverlayBlock {
   label: string;
   opacity: number; // 0-100
   zIndex: number;
+  locked?: boolean;
   content?: ZoneContent;
 }
 
