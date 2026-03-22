@@ -58,6 +58,20 @@ const loadFromStorage = <T,>(key: string, fallback: T): T => {
 const AnnouncementPage = () => {
   const { language } = useLanguage();
 
+  // Settings state
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [DEPARTMENTS, setDepartments] = useState<LabelItem[]>(() => loadFromStorage("signboard-departments", DEFAULT_DEPARTMENTS));
+  const [CATEGORIES, setCategories] = useState<LabelItem[]>(() => loadFromStorage("signboard-categories", DEFAULT_CATEGORIES));
+
+  const handleDepartmentsChange = (items: LabelItem[]) => {
+    setDepartments(items);
+    localStorage.setItem("signboard-departments", JSON.stringify(items));
+  };
+  const handleCategoriesChange = (items: LabelItem[]) => {
+    setCategories(items);
+    localStorage.setItem("signboard-categories", JSON.stringify(items));
+  };
+
   // Form state
   const [subject, setSubject] = useState("");
   const [department, setDepartment] = useState("");
