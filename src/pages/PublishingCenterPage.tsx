@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import {
   Send, CalendarClock, Monitor, CheckCircle2, Clock, Loader2,
   Play, Zap, Calendar as CalendarIcon, ListMusic,
-  CheckCheck, Search, AlertTriangle, ShieldAlert, X, Layers,
+  CheckCheck, Search, AlertTriangle, ShieldAlert, X, Layers, RotateCcw,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,11 @@ export default function PublishingCenterPage() {
   const [emergencyPublishing, setEmergencyPublishing] = useState(false);
   const [showEmergencySuccess, setShowEmergencySuccess] = useState(false);
 
+  // Restore normal state
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
+
   // Fetch data
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -122,6 +127,9 @@ export default function PublishingCenterPage() {
 
   const allScreenIds = useMemo(() => new Set(screens.map((s) => s.id)), [screens]);
   const allSelected = selectedScreenIds.size === screens.length && screens.length > 0;
+
+  // Check if there are active emergency records
+  const hasActiveEmergency = useMemo(() => records.some((r) => r.status === "emergency"), [records]);
 
   const toggleScreen = (id: string) => {
     setSelectedScreenIds((prev) => {
@@ -221,11 +229,33 @@ export default function PublishingCenterPage() {
     setEmergencyPublishing(false);
   };
 
+  // Restore normal playback
+  const handleRestoreNormal = async () => {
+    setRestoring(true);
+    // Update all emergency records to "restored"
+    const { error } = await (supabase as any)
+      .from("publish_records")
+      .update({ status: "restored" })
+      .eq("status", "emergency");
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setShowRestoreSuccess(true);
+      setTimeout(() => setShowRestoreSuccess(false), 2500);
+      toast.success(t("restoreNormalSuccess"));
+      setRestoreOpen(false);
+      fetchData();
+    }
+    setRestoring(false);
+  };
+
   const getStatusBadge = (status: string) => {
     if (status === "playing") return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 gap-1"><Play className="w-3 h-3" />{t("publishStatusPlaying")}</Badge>;
     if (status === "scheduled") return <Badge variant="outline" className="gap-1 text-amber-600 border-amber-500/30 bg-amber-500/10"><Clock className="w-3 h-3" />{t("publishStatusScheduled")}</Badge>;
     if (status === "sending") return <Badge variant="outline" className="gap-1 text-blue-600 border-blue-500/30 bg-blue-500/10"><Loader2 className="w-3 h-3 animate-spin" />{t("publishStatusSending")}</Badge>;
     if (status === "emergency") return <Badge className="bg-red-500/15 text-red-600 border-red-500/30 gap-1 animate-pulse"><AlertTriangle className="w-3 h-3" />{t("publishStatusEmergency")}</Badge>;
+    if (status === "restored") return <Badge variant="outline" className="gap-1 text-sky-600 border-sky-500/30 bg-sky-500/10"><RotateCcw className="w-3 h-3" />{t("restoreNormal")}</Badge>;
     return <Badge variant="secondary">{status}</Badge>;
   };
 
@@ -265,6 +295,19 @@ export default function PublishingCenterPage() {
         </div>
       )}
 
+      {/* Restore success overlay */}
+      {showRestoreSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="flex flex-col items-center gap-4 animate-in zoom-in-75 duration-500">
+            <div className="w-24 h-24 rounded-full bg-sky-500/15 flex items-center justify-center">
+              <RotateCcw className="w-14 h-14 text-sky-500 animate-in zoom-in-50 duration-700" />
+            </div>
+            <p className="text-xl font-bold text-foreground">{t("restoreNormalSuccess")}</p>
+            <p className="text-sm text-muted-foreground">{t("restoreNormalSuccessDesc")}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
@@ -275,14 +318,26 @@ export default function PublishingCenterPage() {
           <p className="text-muted-foreground mt-1">{t("publishSubtitle")}</p>
         </div>
         {isAdmin && (
-          <Button
-            variant="destructive"
-            className="gap-2 shadow-lg shadow-red-600/20 font-bold"
-            onClick={() => setEmergencyOpen(true)}
-          >
-            <AlertTriangle className="w-4 h-4" />
-            {t("emergencyBroadcast")}
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasActiveEmergency && (
+              <Button
+                variant="outline"
+                className="gap-2 font-bold border-sky-500/40 text-sky-600 hover:bg-sky-500/10 hover:text-sky-700 shadow-lg shadow-sky-600/10"
+                onClick={() => setRestoreOpen(true)}
+              >
+                <RotateCcw className="w-4 h-4" />
+                {t("restoreNormal")}
+              </Button>
+            )}
+            <Button
+              variant="destructive"
+              className="gap-2 shadow-lg shadow-red-600/20 font-bold"
+              onClick={() => setEmergencyOpen(true)}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              {t("emergencyBroadcast")}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -646,6 +701,38 @@ export default function PublishingCenterPage() {
             >
               {emergencyPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
               {t("emergencyExecute")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Restore Normal Dialog */}
+      <AlertDialog open={restoreOpen} onOpenChange={setRestoreOpen}>
+        <AlertDialogContent className="border-sky-500/30 sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-sky-600">
+              <RotateCcw className="w-6 h-6" />
+              {t("restoreNormalTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{t("restoreNormalDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="rounded-lg bg-sky-500/5 border border-sky-500/20 p-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("emergencyAffectedScreens")}：</span>
+              <span className="font-bold text-sky-600">
+                {records.filter((r) => r.status === "emergency").length} {t("publishScreensTotal")}
+              </span>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRestoreNormal}
+              disabled={restoring}
+              className="bg-sky-600 hover:bg-sky-700 text-white gap-2 font-bold"
+            >
+              {restoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+              {t("restoreNormalConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

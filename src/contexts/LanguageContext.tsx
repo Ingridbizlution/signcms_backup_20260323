@@ -502,6 +502,15 @@ const translations = {
   emergencyFillMessage: { zh: "請填寫緊急訊息內容", en: "Please fill in the emergency message", ja: "緊急メッセージを入力してください" },
   emergencyBroadcastSent: { zh: "緊急插播已發送！", en: "Emergency Broadcast Sent!", ja: "緊急配信を送信しました！" },
   emergencyBroadcastSentDesc: { zh: "所有螢幕已收到緊急訊息", en: "All screens have received the emergency message", ja: "全スクリーンが緊急メッセージを受信しました" },
+
+  // Restore Normal Playback
+  restoreNormal: { zh: "恢復正常播放", en: "Restore Normal", ja: "通常再生に復帰" },
+  restoreNormalTitle: { zh: "恢復正常播放", en: "Restore Normal Playback", ja: "通常再生に復帰" },
+  restoreNormalDesc: { zh: "此操作將解除所有螢幕的緊急插播狀態，恢復為正常排程播放。", en: "This will dismiss the emergency broadcast on all screens and restore normal scheduled playback.", ja: "全スクリーンの緊急配信を解除し、通常のスケジュール再生に復帰します。" },
+  restoreNormalConfirm: { zh: "確認恢復", en: "Confirm Restore", ja: "復帰を確認" },
+  restoreNormalSuccess: { zh: "已恢復正常播放！", en: "Normal Playback Restored!", ja: "通常再生に復帰しました！" },
+  restoreNormalSuccessDesc: { zh: "所有螢幕已恢復正常排程播放", en: "All screens have returned to normal scheduled playback", ja: "全スクリーンが通常のスケジュール再生に復帰しました" },
+  restoreNormalNoEmergency: { zh: "目前沒有緊急插播中的螢幕", en: "No screens currently in emergency mode", ja: "現在緊急配信中のスクリーンはありません" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
