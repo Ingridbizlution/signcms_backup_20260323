@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Monitor, Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2 } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -52,11 +53,8 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md animate-fade-in">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <Monitor className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold text-foreground tracking-tight">{t("appName")}</span>
+        <div className="flex items-center justify-center mb-8">
+          <img src={logoImg} alt="SignCMS" className="h-10 object-contain" />
         </div>
 
         <Card className="shadow-lg">

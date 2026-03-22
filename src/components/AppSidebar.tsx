@@ -1,4 +1,5 @@
 import { LayoutDashboard, Monitor, Image, CalendarClock, ShieldCheck, Brush } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -35,14 +36,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <div className="p-4 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-          <Monitor className="w-4 h-4 text-primary-foreground" />
-        </div>
-        {!collapsed && (
-          <span className="font-semibold text-foreground text-sm tracking-tight">
-            {t("appName")}
-          </span>
-        )}
+        <img src={logoImg} alt="SignCMS" className="h-7 shrink-0 object-contain" style={collapsed ? { width: 28 } : {}} />
       </div>
       <SidebarContent>
         <SidebarGroup>
