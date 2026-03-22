@@ -20,7 +20,9 @@ interface LogEntry {
   event_title: string;
   event_detail: string;
   created_at: string;
+  created_by: string | null;
   screen_name?: string;
+  operator_name?: string;
 }
 
 const EVENT_TYPE_CONFIG: Record<string, { icon: typeof Wifi; color: string; label: { zh: string; en: string; ja: string } }> = {
