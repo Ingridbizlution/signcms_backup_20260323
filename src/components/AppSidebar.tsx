@@ -28,6 +28,7 @@ export function AppSidebar() {
     { titleKey: "navMedia" as const, url: "/media", icon: Image, adminOnly: false },
     { titleKey: "navStudio" as const, url: "/studio", icon: Brush, adminOnly: false },
     { titleKey: "navSchedules" as const, url: "/schedules", icon: CalendarClock, adminOnly: false },
+    { titleKey: "navPublishing" as const, url: "/publishing", icon: Send, adminOnly: false },
     { titleKey: "navAdmin" as const, url: "/admin", icon: ShieldCheck, adminOnly: true },
   ];
 
