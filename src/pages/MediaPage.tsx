@@ -373,7 +373,7 @@ export default function MediaPage() {
     clockStyle: "digital" as "digital" | "analog",
     showDate: false,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    bgColor: "#1a1a2e",
+    bgColor: "transparent",
     textColor: "#ffffff",
     qrcodeContent: "",
     targetDate: "",
